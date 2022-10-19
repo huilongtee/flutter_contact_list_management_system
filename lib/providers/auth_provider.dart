@@ -22,6 +22,7 @@ class AuthProvider with ChangeNotifier {
     return token != null;
   }
 
+  var tempUserId = '';
   bool get isAdministrator {
     return _isAdministrator;
   }
@@ -37,6 +38,8 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _authenticate(String email, String password, String fullName,
       String phoneNumber, String homeAddress, String urlSegment) async {
+    var userId;
+    var userResponseData;
     //create a new account for authenticate or login by checking the credentials in authenticate table
     final url = Uri.parse(
         'https://www.googleapis.com/identitytoolkit/v3/relyingparty/$urlSegment?key=AIzaSyBkPkGSp8mpprO2dy0PCnHAbN5dBvBLoEU');
@@ -73,71 +76,105 @@ class AuthProvider with ChangeNotifier {
 
         if (urlSegment == Mode.signupNewUser.name) {
 //if the administrator table is null, then then the first user who try to register the app will become the administrator
-          if (extractedData == null) {
-            try {
-              final administratorResponse =
-                  await http //await will wait for this operation finish then will only execute the later code
-                      .post(
-                administratorUrl,
-                body: json.encode({
-                  'userId': _userId,
-                }),
-              );
-              administratorResponseData =
-                  json.decode(administratorResponse.body);
-              if (administratorResponseData['error'] != null) {
-                throw HttpException(responseData['error']['message']);
-              }
-              _isAdministrator = true;
-              notifyListeners();
-            } catch (error) {
-              throw (error);
+//insert into user table
+          final userURL = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+          try {
+            final userResponse =
+                await http //await will wait for this operation finish then will only execute the later code
+                    .post(
+              userURL,
+              body: json.encode({
+                'userId': _userId,
+                'fullName': fullName,
+                'phoneNumber': phoneNumber,
+                'homeAddress': homeAddress,
+                'emailAddress': email,
+                'roleID': '',
+                'departmentID': '',
+                'companyID': '',
+                'imageUrl': '',
+              }),
+            );
+            userResponseData = json.decode(userResponse.body);
+
+            if (userResponseData['error'] != null) {
+              throw HttpException(responseData['error']['message']);
             }
-          } else {
-            _isAdministrator = false;
-            //register as normal user
-            final userURL = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
-            try {
-              final userResponse =
-                  await http //await will wait for this operation finish then will only execute the later code
-                      .post(
-                userURL,
-                body: json.encode({
-                  'userId': _userId,
-                  'fullName': fullName,
-                  'phoneNumber': phoneNumber,
-                  'homeAddress': homeAddress,
-                  'emailAddress': email,
-                  'roleID': '',
-                  'departmentID': '',
-                  'companyID': '',
-                  'imageUrl': '',
-                }),
-              );
-              final userResponseData = json.decode(userResponse.body);
-              if (userResponseData['error'] != null) {
-                throw HttpException(responseData['error']['message']);
+
+            if (extractedData == null) {
+              //execute this when insert users table successfully
+              try {
+                final administratorResponse =
+                    await http //await will wait for this operation finish then will only execute the later code
+                        .post(
+                  administratorUrl,
+                  body: json.encode({
+                    'userId': _userId,
+                  }),
+                );
+                final administratorResponseData =
+                    json.decode(administratorResponse.body);
+                if (administratorResponseData['error'] != null) {
+                  throw HttpException(responseData['error']['message']);
+                }
+                _isAdministrator = true;
+                // notifyListeners();
+              } catch (error) {
+                throw (error);
               }
-            } catch (error) {
-              throw (error);
+            } else {
+              //register as normal user
+
+              _isAdministrator = false;
+              // notifyListeners();
+              // final userURL = Uri.parse(
+              //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+              // try {
+              //   final userResponse =
+              //       await http //await will wait for this operation finish then will only execute the later code
+              //           .post(
+              //     userURL,
+              //     body: json.encode({
+              //       'userId': tempUserId,
+              //       'fullName': fullName,
+              //       'phoneNumber': phoneNumber,
+              //       'homeAddress': homeAddress,
+              //       'emailAddress': email,
+              //       'roleID': '',
+              //       'departmentID': '',
+              //       'companyID': '',
+              //       'imageUrl': '',
+              //     }),
+              //   );
+              //   userResponseData = json.decode(userResponse.body);
+              //   if (userResponseData['error'] != null) {
+              //     throw HttpException(responseData['error']['message']);
+              //   }
+
+              //   _userId = userResponseData['name'];
+              // } catch (error) {
+              //   throw (error);
+              // }
+
             }
-            notifyListeners();
+          } catch (error) {
+            throw (error);
           }
         } else {
-          var userId = null;
           extractedData.forEach((profileId, profileData) {
+            // userId = profileId;
             userId = profileData['userId'];
-
-            notifyListeners();
           });
+
+          print(userId);
+          print(tempUserId);
 
           if (userId == _userId) {
             _isAdministrator = true;
           } else {
             _isAdministrator = false;
           }
-          notifyListeners();
         }
       } catch (error) {
         throw (error);
@@ -145,7 +182,7 @@ class AuthProvider with ChangeNotifier {
 
       _autoLogout();
       notifyListeners(); //to trigger consumer widget in main
-
+      print(_isAdministrator);
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode(
         {

@@ -24,12 +24,14 @@ class ProfileProvider with ChangeNotifier {
     return _profile.where((data) => data.fullName.contains(fullName));
   }
 
-  Future<void> fetchAndSetNonAdmin() async {
+  Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
+    String searchTerm =
+        filterByCompanyID ? 'orderBy="companyID"&equalTo=' '' : '';
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="companyID"&equalTo=''');
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+
       final extractedData = json.decode(response.body) as Map<String,
           dynamic>; //String key with dynamic value since flutter do not know the nested data
 
@@ -41,7 +43,7 @@ class ProfileProvider with ChangeNotifier {
       extractedData.forEach((profileId, profileData) {
         loadedProfile.add(
           Profile(
-            id: userId,
+            id: profileId,
             fullName: profileData['fullName'],
             emailAddress: profileData['emailAddress'],
             homeAddress: profileData['homeAddress'],
@@ -64,23 +66,26 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProfile() async {
+    print(userId);
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$userId"');
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+
       final extractedData = json.decode(response.body) as Map<String,
           dynamic>; //String key with dynamic value since flutter do not know the nested data
 
       final List<Profile> loadedProfile = [];
       if (extractedData == null) {
+        print("error");
         return;
       }
 
       extractedData.forEach((profileId, profileData) {
+        print(profileData['fullName']);
         loadedProfile.add(
           Profile(
-            id: userId,
+            id: profileId,
             fullName: profileData['fullName'],
             emailAddress: profileData['emailAddress'],
             homeAddress: profileData['homeAddress'],
@@ -124,40 +129,45 @@ class ProfileProvider with ChangeNotifier {
         orElse: () => null);
   }
 
-  Future<void> updateProfile(String id, Profile profile) async {
-    final _profileIndex = _profile.indexWhere((_profile) => _profile.id == id);
-    if (_profileIndex >= 0) {
-      final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
-      await http.patch(url, //update data
-          body: json.encode({
-            'userId': userId,
-            'fullName': profile.fullName,
-            'emailAddress': profile.emailAddress,
-            'homeAddress': profile.homeAddress,
-            'phoneNumber': profile.phoneNumber,
-            'roleID': profile.roleId,
-            'departmentID': profile.departmentId,
-            'companyID': profile.companyId,
-          })); //merge data that is incoming and the data that existing in the database
-
-      _profile[_profileIndex] = profile;
-      notifyListeners();
-    } else {
-      print('...');
-    }
+  Profile findByAdminId(String id) {
+    return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
+        orElse: () => null);
   }
 
-  void deleteContactPerson(String id) {
-    final existingContactPersonIndex =
-        _profile.indexWhere((contactPerson) => contactPerson.id == id);
-    var existingContactPerson = _profile[existingContactPersonIndex];
+  Future<void> updateProfile(String id, Profile newProfile) async {
+    final profileIndex = _profile.indexWhere((prof) => prof.id == id);
+    final url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
+    try {
+      final response = await http.get(url);
+      print(json.decode(response.body.toString())['name']);
+      final extractedData = json.decode(response.body) as Map<String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-    if (existingContactPerson != null) {
-      _profile.removeAt(existingContactPersonIndex);
+      final userId = extractedData['name'];
 
-      existingContactPerson = null;
-      notifyListeners();
+      if (profileIndex >= 0) {
+        final updateUrl = Uri.parse(
+            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+
+        await http.patch(updateUrl, //update data
+            body: json.encode({
+              'fullName': newProfile.fullName,
+              'emailAddress': newProfile.emailAddress,
+              'homeAddress': newProfile.homeAddress,
+              'phoneNumber': newProfile.phoneNumber,
+              'imageUrl': newProfile.imageUrl,
+            })); //merge data that is incoming and the data that existing in the database
+
+        _profile[profileIndex] = newProfile;
+        notifyListeners();
+      } else {
+        print('...');
+      }
+    } catch (error) {
+      print(error);
+
+      throw (error);
     }
   }
 }

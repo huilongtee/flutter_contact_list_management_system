@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/profile_provider.dart';
-import '../screens/editContactPerson_screen.dart';
 
-class PersonalContactItem extends StatelessWidget {
+import '../screens/addCompany_screen.dart';
+
+class CompaniesItem extends StatelessWidget {
   final String id;
-  final String userName;
-  final String imageUrl;
+  final String companyName;
 
-  PersonalContactItem(this.id, this.userName, this.imageUrl);
+  final String companyAdminFullName;
+ 
+
+  CompaniesItem(this.id, this.companyName, this.companyAdminFullName);
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold.of(context);
+
     return Dismissible(
       key: ValueKey(id),
       background: Container(
@@ -34,7 +35,7 @@ class PersonalContactItem extends StatelessWidget {
           builder: (ctx) => AlertDialog(
             title: Text('Are your sure?'),
             content: Text(
-                'Do you want to remove this contact person from the contact list'),
+                'Do you want to remove this company from the company list'),
             actions: [
               FlatButton(
                 child: Text('No'),
@@ -57,31 +58,15 @@ class PersonalContactItem extends StatelessWidget {
         //     id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
-        title: Text(userName),
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(
-            imageUrl,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.phone),
-              color: Theme.of(context).primaryColor,
-            ),
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.email),
-              color: Colors.black,
-            ),
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.maps_home_work),
-              color: Theme.of(context).primaryColor,
-            ),
-          ],
+        title: Text(companyName),
+        subtitle: Text('admin name: ' + companyAdminFullName),
+        trailing: IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, AddCompanyScreen.routeName,
+                arguments: id);
+          },
+          icon: Icon(Icons.manage_accounts),
+          color: Theme.of(context).primaryColor,
         ),
       ),
     );

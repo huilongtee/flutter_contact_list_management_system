@@ -52,6 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       listen: false,
     ).findById(widget.userId);
+    
 
     // final role = Provider.of<RoleProvider>(
     //   context,
@@ -75,8 +76,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              // Navigator.pushNamed(context, EditProfileScreen.routeName,
-              //     arguments: loadedProfile.id);
+              Navigator.pushNamed(context, EditProfileScreen.routeName,
+                  arguments: loadedProfile.id);
             },
             icon: Icon(Icons.edit),
           ),

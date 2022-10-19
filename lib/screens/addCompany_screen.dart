@@ -6,7 +6,6 @@ import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
 import '../widgets/administrator_app_drawer.dart';
 
-
 class AddCompanyScreen extends StatefulWidget {
   static const routeName = '/addCompany_page';
 
@@ -29,9 +28,9 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
     'companyName': '',
     'companyAdminId': '',
   };
-  var loadedAdmin;
-  List<dynamic> list = [{'id':'1','name':'tee hui long'},{'id':'2','name':'tee hui'}];
-  String selectedValue = null;
+  List loadedAdmin = [];
+
+  String selectedValue = 'XHM5YXMzFVOM25vvPeTBHT4xCiZ2';
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -39,24 +38,23 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
       if (companyId != null) {
         _editedCompany = Provider.of<CompanyProvider>(context, listen: false)
             .findById(companyId);
-        //  loadedAdmin =
-        //     Provider.of<ProfileProvider>(context, listen: false)
-        //         .findById(_editedCompany.companyAdminId);
+       
         _initValue = {
           'companyName': _editedCompany.companyName,
           'companyAdminId': _editedCompany.companyAdminId,
         };
-      } else {
-        Provider.of<ProfileProvider>(context, listen: false)
-            .fetchAndSetNonAdmin()
-            .then((_) {
-          setState(() {
-            _isLoading = false;
-          });
-        });
-        loadedAdmin =
-            Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
       }
+      //else {
+      //   Provider.of<ProfileProvider>(context, listen: false)
+      //       .fetchAndSetNonAdmin()
+      //       .then((_) {
+      //     setState(() {
+      //       _isLoading = false;
+      //     });
+      //   });
+      //   loadedAdmin =
+      //       Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
+      // }
     }
     super.didChangeDependencies();
   }
@@ -78,14 +76,27 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
       _isLoading = true;
     });
     if (_editedCompany.id != null) {
-      // Provider.of<CompanyProvider>(context, listen: false)
-      //     .updateCompany(_editedCompany.id, _editedCompany);
+      await Provider.of<CompanyProvider>(context, listen: false)
+          .updateCompany(_editedCompany.id, _editedCompany);
 
       Navigator.of(context).pop();
     } else {
+      if(_editedCompany.companyAdminId!=null){
       try {
-        // await Provider.of<CompanyProvider>(context, listen: false)
-        //     .addCompany(_editedCompany);
+       
+       
+        await Provider.of<ProfileProvider>(context, listen: false)
+            .fetchAndSetProfile()
+            .then((_) {
+          setState(() {
+            Profile loadedProfile = Provider.of<ProfileProvider>(context, listen: false)
+                .findById(_editedCompany.companyAdminId);
+            Provider.of<CompanyProvider>(context, listen: false)
+            .addCompany(_editedCompany, loadedProfile);
+          });
+        });
+
+        
       } catch (error) {
         await showDialog<Null>(
             context: context,
@@ -102,6 +113,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                   ],
                 ));
       }
+      }
     }
     setState(() {
       _isLoading = false;
@@ -116,7 +128,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(_initValue== null
+        title: Text(_initValue['companyAdminId']==''
             ? 'Add New Company Account'
             : 'Update Company details'),
         backgroundColor: Theme.of(context).primaryColor,
@@ -162,20 +174,83 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                             );
                           },
                         ),
-                        DropdownButtonFormField(
-                            hint: Text('Select Company Admin'),
-                            isExpanded: true,
-                            value: selectedValue,
-                            items: list.map((items) {
-                              return DropdownMenuItem(
-                                child: Text(items['name']),
-                                value: items['id'],
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              selectedValue = value;
-                              setState(() {});
-                            })
+
+                        TextFormField(
+                          initialValue: _initValue['companyAdminId'],
+                          decoration:
+                              InputDecoration(labelText: 'Company Admin Id'),
+                          textInputAction: TextInputAction
+                              .next, //prevent it from submmiting the form directly
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context)
+                                .requestFocus(_companyAdminIdFocusNode);
+                          }, //whenever the button right cover is pressed
+                          validator: (value) {
+                            // return null;//it means no problem
+                            if (value.isEmpty) {
+                              return 'Please provide a company admin id';
+                            }
+
+                            return null;
+                          },
+                          onSaved: (value) {
+                            _editedCompany = Company(
+                              companyName: _editedCompany.companyName,
+                              companyAdminId: value,
+                              id: _editedCompany.id,
+                            );
+                          },
+                        ),
+
+                        // DropdownButtonFormField<Profile>(
+                        //   hint: Text('Select Company Admin'),
+                        //   isExpanded: true,
+                        //   value: selectedValue,
+                        //   items: loadedAdmin.map((Profile items) {
+                        //     return DropdownMenuItem<String>(
+                        //       child: Text(items.fullName),
+                        //       value: items.departmentId,
+                        //     );
+                        //   }).toList(),
+                        //   onChanged: (value) {
+                        //     selectedValue = value;
+                        //     setState(() {});
+                        //   },
+                        // ),
+
+                        // DropdownButton<String>(
+                        //   hint: Text('Select Company Admin'),
+                        //   isExpanded: true,
+                        //   value: selectedValue,
+                        //   iconSize: 24,
+                        //   icon: Icon(Icons.arrow_drop_down,color: Colors.black,),
+                        //   items: loadedAdmin
+                        //       .map<DropdownMenuItem<String>>((item) {
+                        //     return DropdownMenuItem<String>(
+                        //       child: Text(item),
+                        //       value: item,
+                        //     );
+                        //   }).toList(),
+                        //   onChanged: (value) {
+                        //     setState(() {
+                        //       selectedValue = value;
+                        //     });
+                        //   },
+                        // validator: (value) {
+                        //   // return null;//it means no problem
+                        //   if (value.toString().isEmpty) {
+                        //     return 'Please select a company admin';
+                        //   }
+
+                        //   return null;
+                        // },
+                        // onSaved: (value) {
+                        //   _editedCompany = Company(
+                        //     companyName: _editedCompany.companyName,
+                        //     companyAdminId: value.toString(),
+                        //     id: _editedCompany.id,
+                        //   );
+                        // },
                       ],
                     ),
                   ),
@@ -183,7 +258,9 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                 Container(
                   child: ElevatedButton(
                     onPressed: _saveForm,
-                    child: Text('Add'),
+                    child: Text(_initValue['companyAdminId']==''
+            ? 'Add'
+            : 'Update'),
                     style: ElevatedButton.styleFrom(
                       primary: Theme.of(context).primaryColor,
                       textStyle: TextStyle(fontSize: 20),

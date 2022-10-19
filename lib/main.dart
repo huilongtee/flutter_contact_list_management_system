@@ -95,6 +95,7 @@ class MyApp extends StatelessWidget {
                           ? SplashScreen()
                           : LoginScreen())
               : auth.isAdministrator
+              
                   ? AdministratorScreen()
                   : PersonalContactListScreen(),
           routes: {
@@ -105,7 +106,7 @@ class MyApp extends StatelessWidget {
             ProfileScreen.routeName: (context) => ProfileScreen(auth.userId),
             RegisterScreen.routeName: (context) => RegisterScreen(),
             AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
-            // EditProfileScreen.routeName: (context) => EditProfileScreen(),
+            EditProfileScreen.routeName: (context) => EditProfileScreen(),
             // EditContactPersonScreen.routeName: (context) =>
             //     EditContactPersonScreen(),
           },

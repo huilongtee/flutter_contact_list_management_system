@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../providers/profile_provider.dart';
 import '../screens/addCompany_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/company_provider.dart';
 import '../widgets/administrator_app_drawer.dart';
+import '../widgets/companies_items.dart';
 
 class AdministratorScreen extends StatefulWidget {
   @override
@@ -13,23 +15,34 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
   var _isInit = true;
   var _isLoading = false;
   var _loadedData = null;
+
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
+      var result;
 
-      final result  = Provider.of<CompanyProvider>(
+      result = Provider.of<CompanyProvider>(
         context,
         listen: false,
       ).fetchAndSetCompany().then((_) {
-        setState(() {
+        Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetNonAdmin().then((_)  {
+      setState(() {
           _isLoading = false;
         });
-      });
-
+    });
+    });
+        
+    
+      
       _loadedData = result;
+
     }
     _isInit = false;
     super.didChangeDependencies();
@@ -51,24 +64,48 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
         ],
       ),
       drawer: AdministratorAppDrawer(),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Consumer<CompanyProvider>(
+                      builder: (context, _loadedData, _) => ListView.builder(
+                        itemCount: _loadedData.companies.length,
+                        itemBuilder: (_, index) {
+                          print("test " +
+                              _loadedData.companies[index].companyAdminId);
+                          var result = Provider.of<ProfileProvider>(
+                            context,
+                            listen: false,
+                          ).findByAdminId(
+                              _loadedData.companies[index].companyAdminId);
+                          print(result);
+                          var adminFullName = result.fullName;
 
-      body: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Container(
-          child: ListTile(
-            title: Text('company name'),
-            subtitle: Text('admin name: Tee Hui Long'),
-            trailing: IconButton(
-              onPressed: () {
-                // Navigator.pushNamed(context, EditContactPersonScreen.routeName,
-                //     arguments: widget.contactPersonId);
-              },
-              icon: Icon(Icons.manage_accounts),
-              color: Theme.of(context).primaryColor,
+                          return Column(
+                            children: [
+                              CompaniesItem(
+                                _loadedData.companies[index].id,
+                                _loadedData.companies[index].companyName,
+                                 adminFullName,
+                              ),
+                              Divider(
+                                thickness: 1,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
