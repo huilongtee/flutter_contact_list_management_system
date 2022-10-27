@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
 import '../screens/addCompany_screen.dart';
 import 'package:provider/provider.dart';
@@ -14,38 +15,63 @@ class AdministratorScreen extends StatefulWidget {
 class _AdministratorScreenState extends State<AdministratorScreen> {
   var _isInit = true;
   var _isLoading = false;
-  var _loadedData = null;
+  Future _loadedData;
 
+  Future _fetchAndSetNonAdmin() async {
+    await Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetNonAdmin();
+  }
 
+  Future _fetchAndSetCompany() async {
+    await Provider.of<CompanyProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetCompany();
+  }
+
+  Future _fetchAllData() async {
+    await Provider.of<CompanyProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetCompany();
+
+    await Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetNonAdmin();
+  }
+
+  // List<Profile> contactPerson;
   @override
   void didChangeDependencies() {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
-      var result;
+      print(_isInit);
+      _loadedData = _fetchAllData().then((_) {
+        setState(() {
+          _isLoading = false;
+          _isInit = false;
+        });
+      });
+    }
 
-      result = Provider.of<CompanyProvider>(
-        context,
-        listen: false,
-      ).fetchAndSetCompany().then((_) {
-        Provider.of<ProfileProvider>(
+    super.didChangeDependencies();
+  }
+
+  Future<void> _refreshCompanyList(BuildContext context) async {
+    await Provider.of<CompanyProvider>(
       context,
       listen: false,
-    ).fetchAndSetNonAdmin().then((_)  {
-      setState(() {
-          _isLoading = false;
-        });
+    ).fetchAndSetCompany().then((_) {
+      Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      ).fetchAndSetNonAdmin(); //listen:false because we don't want to listen to what have changed to the list but only fetch the list
     });
-    });
-        
-    
-      
-      _loadedData = result;
-
-    }
-    _isInit = false;
-    super.didChangeDependencies();
   }
 
   @override
@@ -64,48 +90,55 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
         ],
       ),
       drawer: AdministratorAppDrawer(),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Consumer<CompanyProvider>(
-                      builder: (context, _loadedData, _) => ListView.builder(
-                        itemCount: _loadedData.companies.length,
-                        itemBuilder: (_, index) {
-                          print("test " +
-                              _loadedData.companies[index].companyAdminId);
-                          var result = Provider.of<ProfileProvider>(
-                            context,
-                            listen: false,
-                          ).findByAdminId(
-                              _loadedData.companies[index].companyAdminId);
-                          print(result);
-                          var adminFullName = result.fullName;
-
-                          return Column(
-                            children: [
-                              CompaniesItem(
-                                _loadedData.companies[index].id,
-                                _loadedData.companies[index].companyName,
-                                 adminFullName,
-                              ),
-                              Divider(
-                                thickness: 1,
-                              ),
-                            ],
-                          );
-                        },
+      body: FutureBuilder(
+        future: _fetchAllData(),
+        builder: (context, snapshot) => snapshot.connectionState ==
+                ConnectionState.waiting
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : RefreshIndicator(
+                onRefresh: () => _refreshCompanyList(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Consumer<CompanyProvider>(
+                          builder: (context, _loadedData, _) =>
+                              ListView.builder(
+                            itemCount: _loadedData.companies.length,
+                            itemBuilder: (_, index) {
+                              var profileResult = Provider.of<ProfileProvider>(
+                                context,
+                                listen: false,
+                              ).findByNonAdminId(
+                                  _loadedData.companies[index].companyAdminId);
+                              print(Provider.of<ProfileProvider>(
+                                context,
+                                listen: false,
+                              ).nonAdmin);
+                              return Column(
+                                children: [
+                                  CompaniesItem(
+                                    _loadedData.companies[index].id,
+                                    _loadedData.companies[index].companyName,
+                                    profileResult.fullName,
+                                  ),
+                                  Divider(
+                                    thickness: 1,
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

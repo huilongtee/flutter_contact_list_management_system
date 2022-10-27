@@ -15,7 +15,6 @@ class AddCompanyScreen extends StatefulWidget {
 
 class _AddCompanyScreenState extends State<AddCompanyScreen> {
   final _companyNameFocusNode = FocusNode();
-  final _companyAdminIdFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
   var _editedCompany = Company(
     id: null,
@@ -28,34 +27,45 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
     'companyName': '',
     'companyAdminId': '',
   };
-  List loadedAdmin = [];
+  List<Profile> entireProfileList = [];
+  List<Profile> loadedAdmin = [];
 
-  String selectedValue = 'XHM5YXMzFVOM25vvPeTBHT4xCiZ2';
+  Profile selectedValue = null;
   @override
   void didChangeDependencies() {
     if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+
       final companyId = ModalRoute.of(context).settings.arguments as String;
+      // final profileList = ModalRoute.of(context).settings.arguments as List;
+      // entireProfileList = profileList;
       if (companyId != null) {
         _editedCompany = Provider.of<CompanyProvider>(context, listen: false)
             .findById(companyId);
-       
+        selectedValue = Provider.of<ProfileProvider>(context, listen: false)
+            .findById(_editedCompany.companyAdminId);
+
         _initValue = {
           'companyName': _editedCompany.companyName,
           'companyAdminId': _editedCompany.companyAdminId,
         };
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        Provider.of<ProfileProvider>(context, listen: false)
+            .fetchAndSetNonAdmin(true);
+        loadedAdmin =
+            Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
+        entireProfileList = loadedAdmin;
+        setState(() {
+          _isLoading = false;
+        });
       }
-      //else {
-      //   Provider.of<ProfileProvider>(context, listen: false)
-      //       .fetchAndSetNonAdmin()
-      //       .then((_) {
-      //     setState(() {
-      //       _isLoading = false;
-      //     });
-      //   });
-      //   loadedAdmin =
-      //       Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
-      // }
     }
+    _isInit = false;
     super.didChangeDependencies();
   }
 
@@ -81,22 +91,11 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
 
       Navigator.of(context).pop();
     } else {
-      if(_editedCompany.companyAdminId!=null){
       try {
-       
-       
-        await Provider.of<ProfileProvider>(context, listen: false)
-            .fetchAndSetProfile()
-            .then((_) {
-          setState(() {
-            Profile loadedProfile = Provider.of<ProfileProvider>(context, listen: false)
-                .findById(_editedCompany.companyAdminId);
-            Provider.of<CompanyProvider>(context, listen: false)
-            .addCompany(_editedCompany, loadedProfile);
-          });
-        });
+        await Provider.of<CompanyProvider>(context, listen: false)
+            .addCompany(_editedCompany, selectedValue, entireProfileList);
 
-        
+        Navigator.of(context).pop();
       } catch (error) {
         await showDialog<Null>(
             context: context,
@@ -113,7 +112,6 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                   ],
                 ));
       }
-      }
     }
     setState(() {
       _isLoading = false;
@@ -128,7 +126,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(_initValue['companyAdminId']==''
+        title: Text(_initValue['companyAdminId'] == ''
             ? 'Add New Company Account'
             : 'Update Company details'),
         backgroundColor: Theme.of(context).primaryColor,
@@ -175,48 +173,50 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                           },
                         ),
 
-                        TextFormField(
-                          initialValue: _initValue['companyAdminId'],
-                          decoration:
-                              InputDecoration(labelText: 'Company Admin Id'),
-                          textInputAction: TextInputAction
-                              .next, //prevent it from submmiting the form directly
-                          onFieldSubmitted: (_) {
-                            FocusScope.of(context)
-                                .requestFocus(_companyAdminIdFocusNode);
-                          }, //whenever the button right cover is pressed
-                          validator: (value) {
-                            // return null;//it means no problem
-                            if (value.isEmpty) {
-                              return 'Please provide a company admin id';
-                            }
+                        // TextFormField(
+                        //   initialValue: _initValue['companyAdminId'],
+                        //   decoration:
+                        //       InputDecoration(labelText: 'Company Admin Id'),
+                        //   textInputAction: TextInputAction
+                        //       .next, //prevent it from submmiting the form directly
+                        //   onFieldSubmitted: (_) {
+                        //     FocusScope.of(context)
+                        //         .requestFocus(_companyAdminIdFocusNode);
+                        //   }, //whenever the button right cover is pressed
+                        //   validator: (value) {
+                        //     // return null;//it means no problem
+                        //     if (value.isEmpty) {
+                        //       return 'Please provide a company admin id';
+                        //     }
 
-                            return null;
-                          },
-                          onSaved: (value) {
-                            _editedCompany = Company(
-                              companyName: _editedCompany.companyName,
-                              companyAdminId: value,
-                              id: _editedCompany.id,
-                            );
-                          },
-                        ),
-
-                        // DropdownButtonFormField<Profile>(
-                        //   hint: Text('Select Company Admin'),
-                        //   isExpanded: true,
-                        //   value: selectedValue,
-                        //   items: loadedAdmin.map((Profile items) {
-                        //     return DropdownMenuItem<String>(
-                        //       child: Text(items.fullName),
-                        //       value: items.departmentId,
+                        //     return null;
+                        //   },
+                        //   onSaved: (value) {
+                        //     _editedCompany = Company(
+                        //       companyName: _editedCompany.companyName,
+                        //       companyAdminId: value,
+                        //       id: _editedCompany.id,
                         //     );
-                        //   }).toList(),
-                        //   onChanged: (value) {
-                        //     selectedValue = value;
-                        //     setState(() {});
                         //   },
                         // ),
+
+                        DropdownButtonFormField(
+                          hint: Text('Select Company Admin'),
+                          isExpanded: true,
+                          value: selectedValue,
+                          items: loadedAdmin.map((Profile items) {
+                            return DropdownMenuItem<Profile>(
+                              child: Text(
+                                  items.fullName + " - " + items.emailAddress),
+                              value: items,
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedValue = value;
+                            });
+                          },
+                        ),
 
                         // DropdownButton<String>(
                         //   hint: Text('Select Company Admin'),
@@ -258,9 +258,8 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                 Container(
                   child: ElevatedButton(
                     onPressed: _saveForm,
-                    child: Text(_initValue['companyAdminId']==''
-            ? 'Add'
-            : 'Update'),
+                    child: Text(
+                        _initValue['companyAdminId'] == '' ? 'Add' : 'Update'),
                     style: ElevatedButton.styleFrom(
                       primary: Theme.of(context).primaryColor,
                       textStyle: TextStyle(fontSize: 20),

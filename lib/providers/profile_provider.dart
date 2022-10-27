@@ -25,9 +25,9 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
-    String searchTerm =
-        filterByCompanyID ? 'orderBy="companyID"&equalTo=' '' : '';
-    final url = Uri.parse(
+    final searchTerm =
+        filterByCompanyID ? 'orderBy="companyID"&equalTo=""' : '';
+    var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
@@ -54,10 +54,9 @@ class ProfileProvider with ChangeNotifier {
             imageUrl: profileData['imageUrl'],
           ),
         );
-        _nonAdmin = loadedProfile;
-
-        notifyListeners();
+        _nonAdmin = loadedProfile;notifyListeners();
       });
+      
     } catch (error) {
       print(error);
 
@@ -66,7 +65,6 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProfile() async {
-    print(userId);
     final url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
     try {
@@ -129,7 +127,7 @@ class ProfileProvider with ChangeNotifier {
         orElse: () => null);
   }
 
-  Profile findByAdminId(String id) {
+  Profile findByNonAdminId(String id) {
     return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
         orElse: () => null);
   }

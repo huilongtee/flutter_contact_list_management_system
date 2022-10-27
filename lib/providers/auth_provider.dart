@@ -76,56 +76,55 @@ class AuthProvider with ChangeNotifier {
 
         if (urlSegment == Mode.signupNewUser.name) {
 //if the administrator table is null, then then the first user who try to register the app will become the administrator
-//insert into user table
-          final userURL = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
-          try {
-            final userResponse =
-                await http //await will wait for this operation finish then will only execute the later code
-                    .post(
-              userURL,
-              body: json.encode({
-                'userId': _userId,
-                'fullName': fullName,
-                'phoneNumber': phoneNumber,
-                'homeAddress': homeAddress,
-                'emailAddress': email,
-                'roleID': '',
-                'departmentID': '',
-                'companyID': '',
-                'imageUrl': '',
-              }),
-            );
-            userResponseData = json.decode(userResponse.body);
 
-            if (userResponseData['error'] != null) {
-              throw HttpException(responseData['error']['message']);
-            }
-
-            if (extractedData == null) {
-              //execute this when insert users table successfully
-              try {
-                final administratorResponse =
-                    await http //await will wait for this operation finish then will only execute the later code
-                        .post(
-                  administratorUrl,
-                  body: json.encode({
-                    'userId': _userId,
-                  }),
-                );
-                final administratorResponseData =
-                    json.decode(administratorResponse.body);
-                if (administratorResponseData['error'] != null) {
-                  throw HttpException(responseData['error']['message']);
-                }
-                _isAdministrator = true;
-                // notifyListeners();
-              } catch (error) {
-                throw (error);
+          if (extractedData == null) {
+            //execute this when insert users table successfully
+            try {
+              final administratorResponse =
+                  await http //await will wait for this operation finish then will only execute the later code
+                      .post(
+                administratorUrl,
+                body: json.encode({
+                  'userId': _userId,
+                }),
+              );
+              final administratorResponseData =
+                  json.decode(administratorResponse.body);
+              if (administratorResponseData['error'] != null) {
+                throw HttpException(responseData['error']['message']);
               }
-            } else {
-              //register as normal user
+              _isAdministrator = true;
+              // notifyListeners();
+            } catch (error) {
+              throw (error);
+            }
+          } else {
+            //register as normal user
+            //insert into user table
+            final userURL = Uri.parse(
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+            try {
+              final userResponse =
+                  await http //await will wait for this operation finish then will only execute the later code
+                      .post(
+                userURL,
+                body: json.encode({
+                  'userId': _userId,
+                  'fullName': fullName,
+                  'phoneNumber': phoneNumber,
+                  'homeAddress': homeAddress,
+                  'emailAddress': email,
+                  'roleID': '',
+                  'departmentID': '',
+                  'companyID': '',
+                  'imageUrl': '',
+                }),
+              );
+              userResponseData = json.decode(userResponse.body);
 
+              if (userResponseData['error'] != null) {
+                throw HttpException(responseData['error']['message']);
+              }
               _isAdministrator = false;
               // notifyListeners();
               // final userURL = Uri.parse(
@@ -157,9 +156,9 @@ class AuthProvider with ChangeNotifier {
               //   throw (error);
               // }
 
+            } catch (error) {
+              throw (error);
             }
-          } catch (error) {
-            throw (error);
           }
         } else {
           extractedData.forEach((profileId, profileData) {
@@ -167,8 +166,7 @@ class AuthProvider with ChangeNotifier {
             userId = profileData['userId'];
           });
 
-          print(userId);
-          print(tempUserId);
+   
 
           if (userId == _userId) {
             _isAdministrator = true;

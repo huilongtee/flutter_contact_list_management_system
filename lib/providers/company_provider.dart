@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/http_exception.dart';
 import '../providers/profile.dart';
 
-class Company {
+class Company with ChangeNotifier {
   final String id;
   final String companyName;
   final String companyAdminId;
@@ -66,73 +66,70 @@ class CompanyProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addCompany(Company newCompany, Profile oldProfile) async {
+  Future<void> addCompany(Company newCompany, Profile oldProfile,
+      List<Profile> entireProfileList) async {
+    print(_companies);
+
     final id = oldProfile.id;
 
-    var companyId = "";
-
+    final profileIndex = entireProfileList.indexWhere((prof) => prof.id == id);
     var responseData;
     var extractedData;
     final userUrl = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
+    if (profileIndex >= 0) {
+      try {
+        final response = await http.get(userUrl);
 
-    try {
-      final response = await http.get(userUrl);
+        extractedData = json.decode(response.body) as Map<String,
+            dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      extractedData = json.decode(response.body) as Map<String,
-          dynamic>; //String key with dynamic value since flutter do not know the nested data
-      final List<Profile> loadedProfile = [];
+        //return null means this userId doesn't exists
+        if (extractedData == null) {
+          return;
+        } else {
+          final url = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
+          try {
+            final companyResponse = await http.post(url, //add data
+                body: json.encode({
+                  'companyName': newCompany.companyName,
+                  'companyAdminId': id,
+                })); //merge data that is incoming and the data that existing in the database
 
-      //return null means this userId doesn't exists
-      if (extractedData == null) {
-        return;
-      } else {
-        final url = Uri.parse(
-            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
-        try {
-          final response = await http.post(url, //add data
-              body: json.encode({
-                'companyName': newCompany.companyName,
-                'companyAdminId': id,
-              })); //merge data that is incoming and the data that existing in the database
+            responseData =
+                json.decode(companyResponse.body) as Map<String, dynamic>;
+            if (responseData['error'] != null) {
+              throw HttpException(responseData['error']['message']);
+            }
+            final companyId = responseData['name'];
 
-          responseData = json.decode(response.body) as Map<String, dynamic>;
-          if (responseData['error'] != null) {
-            throw HttpException(responseData['error']['message']);
-          }
-          companyId = responseData['name'];
-
-          responseData.forEach((id, companyData) {
-            _companies.add(
-              Company(
-                id: companyId,
-                companyName: companyData['companyName'],
-                companyAdminId: companyData['companyAdminId'],
-              ),
+            final addedCompany = Company(
+              id: companyId,
+              companyName: newCompany.companyName,
+              companyAdminId: id,
             );
+            _companies.add(addedCompany);
 
+            print(_companies);
+
+            await http.patch(userUrl, //update data
+                body: json.encode({
+                  'companyID': companyId.toString(),
+                })); //merge data that is incoming and the data that existing in the database
+            entireProfileList[profileIndex] = oldProfile;
             notifyListeners();
-          });
-        } catch (error) {
-          print(error);
-          throw error; //in the edit_product_screen can see the error message because the error has been thrown
+          } catch (error) {
+            print(error);
+            throw error;
+          }
         }
-
-        try {
-          await http.patch(userUrl, //update data
-              body: json.encode({
-                'companyID': companyId,
-              })); //merge data that is incoming and the data that existing in the database
-
-          notifyListeners();
-        } catch (error) {
-          print(error);
-          throw error;
-        }
+      } catch (error) {
+        print(error);
+        throw error;
       }
-    } catch (error) {
-      print(error);
-      throw error;
+    } else {
+      print('nothing fetched');
     }
   }
 

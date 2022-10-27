@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class Profile{
+class Profile with ChangeNotifier{
   final String id;
   final String fullName;
   final String emailAddress;
@@ -22,4 +22,6 @@ class Profile{
     @required this.roleId,
     @required this.departmentId,
   });
+
+  indexWhere(bool Function(dynamic prof) param0) {}
 }
