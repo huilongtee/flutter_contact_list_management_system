@@ -17,20 +17,6 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
   var _isLoading = false;
   Future _loadedData;
 
-  Future _fetchAndSetNonAdmin() async {
-    await Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    ).fetchAndSetNonAdmin();
-  }
-
-  Future _fetchAndSetCompany() async {
-    await Provider.of<CompanyProvider>(
-      context,
-      listen: false,
-    ).fetchAndSetCompany();
-  }
-
   Future _fetchAllData() async {
     await Provider.of<CompanyProvider>(
       context,
@@ -63,15 +49,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
   }
 
   Future<void> _refreshCompanyList(BuildContext context) async {
-    await Provider.of<CompanyProvider>(
-      context,
-      listen: false,
-    ).fetchAndSetCompany().then((_) {
-      Provider.of<ProfileProvider>(
-        context,
-        listen: false,
-      ).fetchAndSetNonAdmin(); //listen:false because we don't want to listen to what have changed to the list but only fetch the list
-    });
+    _fetchAllData();
   }
 
   @override
