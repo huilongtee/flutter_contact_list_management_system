@@ -14,7 +14,7 @@ enum Mode {
 class AuthProvider with ChangeNotifier {
   String _token;
   DateTime _expiryDate;
-  String _userId;
+  String _userId; //userID in Authentication table
   Timer _authTimer;
   bool _isAdministrator = false;
   var administratorResponseData = null;

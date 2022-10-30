@@ -54,9 +54,9 @@ class ProfileProvider with ChangeNotifier {
             imageUrl: profileData['imageUrl'],
           ),
         );
-        _nonAdmin = loadedProfile;notifyListeners();
+        _nonAdmin = loadedProfile;
+        notifyListeners();
       });
-      
     } catch (error) {
       print(error);
 
@@ -80,7 +80,6 @@ class ProfileProvider with ChangeNotifier {
       }
 
       extractedData.forEach((profileId, profileData) {
-        print(profileData['fullName']);
         loadedProfile.add(
           Profile(
             id: profileId,

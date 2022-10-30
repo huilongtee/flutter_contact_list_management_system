@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg_provider/flutter_svg_provider.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
 import '../screens/editContactPerson_screen.dart';
@@ -58,11 +60,22 @@ class PersonalContactItem extends StatelessWidget {
       },
       child: ListTile(
         title: Text(userName),
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(
-            imageUrl,
-          ),
-        ),
+        leading: imageUrl.isEmpty
+            ? CircleAvatar(
+                backgroundColor: Theme.of(context).primaryColor,
+                child: Text(
+                  userName[0].toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 28,
+                  ),
+                ),
+              )
+            : CircleAvatar(
+                backgroundImage: NetworkImage(
+                  imageUrl,
+                ),
+              ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

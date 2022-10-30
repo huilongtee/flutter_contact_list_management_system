@@ -43,9 +43,20 @@ class MyApp extends StatelessWidget {
                   : previousProfile
                       .profile), //update=provider version>=4.0.0, else=builder/create
         ),
-        ChangeNotifierProvider(
-          create: (context) => PersonalContactListProvider(),
+        // ChangeNotifierProvider(
+        //   create: (context) => PersonalContactListProvider(),
+        // ),
+
+ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
+          update: (context, auth, personalContactList) => PersonalContactListProvider(
+              auth.token,
+              auth.userId,
+              personalContactList == null
+                  ? []
+                  : personalContactList
+                      .personalContactList), //update=provider version>=4.0.0, else=builder/create
         ),
+
         ChangeNotifierProvider(
           create: (context) => SharedContactListProvider(),
         ),
