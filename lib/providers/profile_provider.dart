@@ -65,8 +65,11 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProfile() async {
-    final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+    // final url = Uri.parse(
+    //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
+    var url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -132,39 +135,35 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> updateProfile(String id, Profile newProfile) async {
+    print(id);
     final profileIndex = _profile.indexWhere((prof) => prof.id == id);
-    final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
-    try {
-      final response = await http.get(url);
-      print(json.decode(response.body.toString())['name']);
-      final extractedData = json.decode(response.body) as Map<String,
-          dynamic>; //String key with dynamic value since flutter do not know the nested data
+    // final url = Uri.parse(
+    //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
+    // try {
+    //   final response = await http.get(url);
+    //   print(json.decode(response.body.toString())['name']);
+    //   final extractedData = json.decode(response.body) as Map<String,
+    //       dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      final userId = extractedData['name'];
+    //   final userId = extractedData['name'];
+    print(profileIndex);
+    if (profileIndex >= 0) {
+      final updateUrl = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
 
-      if (profileIndex >= 0) {
-        final updateUrl = Uri.parse(
-            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+      await http.patch(updateUrl, //update data
+          body: json.encode({
+            'fullName': newProfile.fullName,
+            'emailAddress': newProfile.emailAddress,
+            'homeAddress': newProfile.homeAddress,
+            'phoneNumber': newProfile.phoneNumber,
+            'imageUrl': newProfile.imageUrl,
+          })); //merge data that is incoming and the data that existing in the database
 
-        await http.patch(updateUrl, //update data
-            body: json.encode({
-              'fullName': newProfile.fullName,
-              'emailAddress': newProfile.emailAddress,
-              'homeAddress': newProfile.homeAddress,
-              'phoneNumber': newProfile.phoneNumber,
-              'imageUrl': newProfile.imageUrl,
-            })); //merge data that is incoming and the data that existing in the database
-
-        _profile[profileIndex] = newProfile;
-        notifyListeners();
-      } else {
-        print('...');
-      }
-    } catch (error) {
-      print(error);
-
-      throw (error);
+      _profile[profileIndex] = newProfile;
+      notifyListeners();
+    } else {
+      print('...');
     }
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helper/location_helper.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/http_exception.dart';
+import 'package:flutter/services.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const routeName = '/register';
@@ -107,18 +109,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _authData['email'] = value;
                 },
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Phone Number'),
-                keyboardType: TextInputType.phone,
+
+              IntlPhoneField(
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                ),
+                initialCountryCode: 'MY',
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                disableLengthCheck: true,
                 validator: (value) {
-                  if (value.isEmpty || value.length < 10 || value.length > 11) {
+                  if (value.completeNumber.substring(1).isEmpty ||
+                      value.completeNumber.substring(1).length < 10 ||
+                      value.completeNumber.substring(1).length > 12) {
+                    
                     return 'Phone number must greater than 10 digits and lesser than 12';
                   }
                 },
                 onSaved: (value) {
-                  _authData['phoneNo'] = value;
+                  _authData['phoneNo'] = value.completeNumber.substring(1);
                 },
               ),
+
+              //     TextFormField(
+
+              //   decoration: InputDecoration(labelText: 'Phone Number'),
+              //   keyboardType: TextInputType.phone,
+
+              //   inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'[ \s-]'))],
+              //   validator: (value) {
+              //     if (value.isEmpty || value.length < 10 || value.length > 11) {
+              //       return 'Phone number must greater than 10 digits and lesser than 12';
+              //     }
+              //   },
+              //   onSaved: (value) {
+              //     _authData['phoneNo'] = value;
+              //   },
+              // ),
             ]),
           ),
         ),
@@ -236,6 +262,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         errorMessage = 'Could not find a user with that email.';
       } else if (error.toString().contains('INVALID_PASSWORD')) {
         errorMessage = 'Invalid password.';
+      } else if (error.toString().contains('phoneNumberExisted')) {
+        errorMessage = 'The phone number has been taken';
       }
       _showErrorDialog(errorMessage);
     } catch (error) {
@@ -247,7 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
     SharedPreferences _sharedPreferences =
         await SharedPreferences.getInstance();
-    if (_sharedPreferences.getString('userData').isNotEmpty) {
+    if (!_sharedPreferences.getString('userData').isEmpty) {
       Navigator.pop(context);
     }
   }

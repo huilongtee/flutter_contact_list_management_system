@@ -133,7 +133,7 @@ class PersonalContactListProvider with ChangeNotifier {
   Future<void> addContactPerson(String phoneNumber) async {
     bool isFound = false;
     //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
-
+    print(phoneNumber);
     _personalContactList.forEachIndexed((index, element) {
       if (element.phoneNumber.trim() == phoneNumber) {
         isFound = true;
@@ -144,11 +144,12 @@ class PersonalContactListProvider with ChangeNotifier {
 //if it is found, which means this contact person already added as contact person before
     //else add it now
     if (isFound == true) {
+      //return alert message to tell user that the contact person has been added into the personal contact list before
       return;
     } else {
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
-
+      print(contactPerson.id);
       final url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
       try {
@@ -173,4 +174,8 @@ class PersonalContactListProvider with ChangeNotifier {
 
     }
   }
+
+  //================================================ Delete Contact Person Start ================================================//
+
+  //================================================ Delete Contact Person End ================================================//
 }

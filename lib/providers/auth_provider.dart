@@ -40,160 +40,167 @@ class AuthProvider with ChangeNotifier {
       String phoneNumber, String homeAddress, String urlSegment) async {
     var userId;
     var userResponseData;
-    //create a new account for authenticate or login by checking the credentials in authenticate table
-    final url = Uri.parse(
-        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/$urlSegment?key=AIzaSyBkPkGSp8mpprO2dy0PCnHAbN5dBvBLoEU');
-    try {
-      final response = await http.post(
-        url,
-        body: json.encode(
-          {
-            'email': email,
-            'password': password,
-            'returnSecureToken': true,
-          },
-        ),
-      );
-      final responseData = json.decode(response.body);
-      if (responseData['error'] != null) {
-        throw HttpException(responseData['error']['message']);
-      }
-      _token = responseData['idToken'];
-      _userId = responseData['localId'];
-      _expiryDate = DateTime.now().add(
-        Duration(
-          seconds: int.parse(responseData['expiresIn']),
-        ),
-      );
 
-      //check whether got existed administrator
-      final administratorUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
-      try {
-        final response = await http.get(administratorUrl);
-        final extractedData = json.decode(response.body) as Map<String,
-            dynamic>; //String key with dynamic value since flutter do not know the nested data
+//================================================ check existing phone number start ================================================//
 
-        if (urlSegment == Mode.signupNewUser.name) {
+    
+        //create a new account for authenticate or login by checking the credentials in authenticate table
+        final url = Uri.parse(
+            'https://www.googleapis.com/identitytoolkit/v3/relyingparty/$urlSegment?key=AIzaSyBkPkGSp8mpprO2dy0PCnHAbN5dBvBLoEU');
+        try {
+          final response = await http.post(
+            url,
+            body: json.encode(
+              {
+                'email': email,
+                'password': password,
+                'returnSecureToken': true,
+              },
+            ),
+          );
+          final responseData = json.decode(response.body);
+          if (responseData['error'] != null) {
+            throw HttpException(responseData['error']['message']);
+          }
+          _token = responseData['idToken'];
+          _userId = responseData['localId'];
+          _expiryDate = DateTime.now().add(
+            Duration(
+              seconds: int.parse(responseData['expiresIn']),
+            ),
+          );
+
+          //check whether got existed administrator
+          final administratorUrl = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
+          try {
+            final response = await http.get(administratorUrl);
+            final extractedData = json.decode(response.body) as Map<String,
+                dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+            if (urlSegment == Mode.signupNewUser.name) {
 //if the administrator table is null, then then the first user who try to register the app will become the administrator
 
-          if (extractedData == null) {
-            //execute this when insert users table successfully
-            try {
-              final administratorResponse =
-                  await http //await will wait for this operation finish then will only execute the later code
-                      .post(
-                administratorUrl,
-                body: json.encode({
-                  'userId': _userId,
-                }),
-              );
-              final administratorResponseData =
-                  json.decode(administratorResponse.body);
-              if (administratorResponseData['error'] != null) {
-                throw HttpException(responseData['error']['message']);
+              if (extractedData == null) {
+                //execute this when insert users table successfully
+                try {
+                  final administratorResponse =
+                      await http //await will wait for this operation finish then will only execute the later code
+                          .post(
+                    administratorUrl,
+                    body: json.encode({
+                      'userId': _userId,
+                    }),
+                  );
+                  final administratorResponseData =
+                      json.decode(administratorResponse.body);
+                  if (administratorResponseData['error'] != null) {
+                    throw HttpException(responseData['error']['message']);
+                  }
+                  _isAdministrator = true;
+                  // notifyListeners();
+                } catch (error) {
+                  throw (error);
+                }
+              } else {
+                //================================================ register as normal user start ================================================//
+
+                //================================================ insert into user table start ================================================//
+                final userURL = Uri.parse(
+                    'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+                try {
+                  final userResponse =
+                      await http //await will wait for this operation finish then will only execute the later code
+                          .post(
+                    userURL,
+                    body: json.encode({
+                      'userId': _userId,
+                      'fullName': fullName,
+                      'phoneNumber': phoneNumber,
+                      'homeAddress': homeAddress,
+                      'emailAddress': email,
+                      'roleID': '',
+                      'departmentID': '',
+                      'companyID': '',
+                      'imageUrl': '',
+                    }),
+                  );
+                  userResponseData = json.decode(userResponse.body);
+
+                  if (userResponseData['error'] != null) {
+                    throw HttpException(responseData['error']['message']);
+                  }
+                  _isAdministrator = false;
+                  // notifyListeners();
+                  // final userURL = Uri.parse(
+                  //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+                  // try {
+                  //   final userResponse =
+                  //       await http //await will wait for this operation finish then will only execute the later code
+                  //           .post(
+                  //     userURL,
+                  //     body: json.encode({
+                  //       'userId': tempUserId,
+                  //       'fullName': fullName,
+                  //       'phoneNumber': phoneNumber,
+                  //       'homeAddress': homeAddress,
+                  //       'emailAddress': email,
+                  //       'roleID': '',
+                  //       'departmentID': '',
+                  //       'companyID': '',
+                  //       'imageUrl': '',
+                  //     }),
+                  //   );
+                  //   userResponseData = json.decode(userResponse.body);
+                  //   if (userResponseData['error'] != null) {
+                  //     throw HttpException(responseData['error']['message']);
+                  //   }
+
+                  //   _userId = userResponseData['name'];
+                  // } catch (error) {
+                  //   throw (error);
+                  // }
+
+                } catch (error) {
+                  throw (error);
+                }
+                //================================================ insert into user table end ================================================//
+
+                //================================================ register as normal user end ================================================//
               }
-              _isAdministrator = true;
-              // notifyListeners();
-            } catch (error) {
-              throw (error);
-            }
-          } else {
-            //register as normal user
-            //insert into user table
-            final userURL = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
-            try {
-              final userResponse =
-                  await http //await will wait for this operation finish then will only execute the later code
-                      .post(
-                userURL,
-                body: json.encode({
-                  'userId': _userId,
-                  'fullName': fullName,
-                  'phoneNumber': phoneNumber,
-                  'homeAddress': homeAddress,
-                  'emailAddress': email,
-                  'roleID': '',
-                  'departmentID': '',
-                  'companyID': '',
-                  'imageUrl': '',
-                }),
-              );
-              userResponseData = json.decode(userResponse.body);
+            } else {
+              extractedData.forEach((profileId, profileData) {
+                // userId = profileId;
+                userId = profileData['userId'];
+              });
 
-              if (userResponseData['error'] != null) {
-                throw HttpException(responseData['error']['message']);
+              if (userId == _userId) {
+                _isAdministrator = true;
+              } else {
+                _isAdministrator = false;
               }
-              _isAdministrator = false;
-              // notifyListeners();
-              // final userURL = Uri.parse(
-              //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
-              // try {
-              //   final userResponse =
-              //       await http //await will wait for this operation finish then will only execute the later code
-              //           .post(
-              //     userURL,
-              //     body: json.encode({
-              //       'userId': tempUserId,
-              //       'fullName': fullName,
-              //       'phoneNumber': phoneNumber,
-              //       'homeAddress': homeAddress,
-              //       'emailAddress': email,
-              //       'roleID': '',
-              //       'departmentID': '',
-              //       'companyID': '',
-              //       'imageUrl': '',
-              //     }),
-              //   );
-              //   userResponseData = json.decode(userResponse.body);
-              //   if (userResponseData['error'] != null) {
-              //     throw HttpException(responseData['error']['message']);
-              //   }
-
-              //   _userId = userResponseData['name'];
-              // } catch (error) {
-              //   throw (error);
-              // }
-
-            } catch (error) {
-              throw (error);
             }
+          } catch (error) {
+            throw (error);
           }
-        } else {
-          extractedData.forEach((profileId, profileData) {
-            // userId = profileId;
-            userId = profileData['userId'];
-          });
 
-   
-
-          if (userId == _userId) {
-            _isAdministrator = true;
-          } else {
-            _isAdministrator = false;
-          }
+          _autoLogout();
+          notifyListeners(); //to trigger consumer widget in main
+          print(_isAdministrator);
+          final prefs = await SharedPreferences.getInstance();
+          final userData = json.encode(
+            {
+              'token': _token,
+              'userId': _userId,
+              'expiryDate': _expiryDate.toIso8601String(),
+              'isAdministrator': _isAdministrator,
+            },
+          );
+          prefs.setString('userData', userData);
+        } catch (error) {
+          throw (error);
         }
-      } catch (error) {
-        throw (error);
-      }
-
-      _autoLogout();
-      notifyListeners(); //to trigger consumer widget in main
-      print(_isAdministrator);
-      final prefs = await SharedPreferences.getInstance();
-      final userData = json.encode(
-        {
-          'token': _token,
-          'userId': _userId,
-          'expiryDate': _expiryDate.toIso8601String(),
-          'isAdministrator': _isAdministrator,
-        },
-      );
-      prefs.setString('userData', userData);
-    } catch (error) {
-      throw (error);
-    }
+      
   }
 
   String get userId {

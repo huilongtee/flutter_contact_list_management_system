@@ -47,14 +47,15 @@ class MyApp extends StatelessWidget {
         //   create: (context) => PersonalContactListProvider(),
         // ),
 
-ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
-          update: (context, auth, personalContactList) => PersonalContactListProvider(
-              auth.token,
-              auth.userId,
-              personalContactList == null
-                  ? []
-                  : personalContactList
-                      .personalContactList), //update=provider version>=4.0.0, else=builder/create
+        ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
+          update: (context, auth, personalContactList) =>
+              PersonalContactListProvider(
+                  auth.token,
+                  auth.userId,
+                  personalContactList == null
+                      ? []
+                      : personalContactList
+                          .personalContactList), //update=provider version>=4.0.0, else=builder/create
         ),
 
         ChangeNotifierProvider(
@@ -106,7 +107,6 @@ ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
                           ? SplashScreen()
                           : LoginScreen())
               : auth.isAdministrator
-              
                   ? AdministratorScreen()
                   : PersonalContactListScreen(),
           routes: {
@@ -114,7 +114,7 @@ ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
                 SharedContactListScreen(auth.userId),
             PersonalContactListScreen.routeName: (context) =>
                 PersonalContactListScreen(),
-            ProfileScreen.routeName: (context) => ProfileScreen(auth.userId),
+            ProfileScreen.routeName: (context) => ProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
             AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
             EditProfileScreen.routeName: (context) => EditProfileScreen(),

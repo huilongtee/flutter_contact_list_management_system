@@ -15,44 +15,40 @@ import '../widgets/app_drawer.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
-  final String userId;
-  ProfileScreen(this.userId);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  var _isInit = true;
   var _isLoading = false;
+  var loadedProfile = null;
 
   @override
   void didChangeDependencies() {
-    if (_isInit) {
-      setState(() {
-        _isLoading = true;
-      });
+    print('yes');
+    setState(() {
+      _isLoading = true;
+    });
 
-      Provider.of<ProfileProvider>(
+    Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    ).fetchAndSetProfile().then((_) {
+      loadedProfile = Provider.of<ProfileProvider>(
         context,
         listen: false,
-      ).fetchAndSetProfile().then((_) {
-        setState(() {
-          _isLoading = false;
-        });
+      ).profile;
+      setState(() {
+        _isLoading = false;
       });
-    }
-    _isInit = false;
+    });
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-    final loadedProfile = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    ).findById(widget.userId);
-    
+    // print(loadedProfile[0].fullName);
 
     // final role = Provider.of<RoleProvider>(
     //   context,
@@ -77,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, EditProfileScreen.routeName,
-                  arguments: loadedProfile.id);
+                  arguments: loadedProfile[0].id);
             },
             icon: Icon(Icons.edit),
           ),
@@ -100,12 +96,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 70,
                             width: 70,
                             margin: const EdgeInsets.only(left: 20, right: 20),
-                            child: loadedProfile.imageUrl == ""
-                                ? SvgPicture.asset(
-                                    "assets/images/user-tie-solid.svg")
+                            child: loadedProfile[0].imageUrl.isEmpty
+                                ? CircleAvatar(
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: Text(
+                                      loadedProfile[0]
+                                          .fullName[0]
+                                          .toUpperCase(),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 28,
+                                      ),
+                                    ),
+                                  )
                                 : CircleAvatar(
                                     backgroundImage:
-                                        NetworkImage(loadedProfile.imageUrl),
+                                        NetworkImage(loadedProfile[0].imageUrl),
                                   ),
                           ),
                           Padding(
@@ -113,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  loadedProfile.fullName,
+                                  loadedProfile[0].fullName,
                                   style: TextStyle(
                                     fontSize: 20,
                                   ),
@@ -166,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.phoneNumber,
+                                        loadedProfile[0].phoneNumber,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -196,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.emailAddress,
+                                        loadedProfile[0].emailAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -226,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.homeAddress,
+                                        loadedProfile[0].homeAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],

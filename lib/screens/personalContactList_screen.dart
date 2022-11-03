@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../screens/viewContactPerson_screen.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
 import '../widgets/app_drawer.dart';
@@ -37,14 +39,11 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
       });
       Provider.of<PersonalContactListProvider>(context)
           .fetchAndSetPersonalContactList();
-      
+
       setState(() {
         _isLoading = false;
       });
       _isInit = false;
-
-      // final loadedProfile = profileProvider.profile;
-      // contactPerson = loadedProfile;
 
       super.didChangeDependencies();
     }
@@ -61,38 +60,64 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         builder: (context) => AlertDialog(
           title: Text('Phone Number'),
           content: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Form(
                 key: _form,
-                child: TextFormField(
+                child: IntlPhoneField(
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                  ),
                   autofocus: true,
-                  initialValue: _filledData,
-                  decoration: InputDecoration(labelText: 'Phone Number'),
                   textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) {
+                  onSubmitted: (_) {
                     _saveForm();
                   },
+                  initialValue:
+                      _filledData.isEmpty ? null : _filledData.substring(2),
+                  initialCountryCode: 'MY',
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  disableLengthCheck: true,
                   validator: (value) {
-                    // return null;//it means no problem
-                    if (value.isEmpty) {
-                      return 'Please provide a value';
+                    if (value.completeNumber.substring(1).isEmpty ||
+                        value.completeNumber.substring(1).length < 10 ||
+                        value.completeNumber.substring(1).length > 12) {
+                      return 'Phone number must greater than 10 digits and lesser than 12';
                     }
-
-                    return null;
                   },
                   onSaved: (value) {
-                    _filledData = value;
+                    _filledData = value.completeNumber.substring(1);
                   },
                 ),
+
+                // TextFormField(
+
+                //   autofocus: true,
+                //   initialValue: _filledData,
+                //   decoration: InputDecoration(labelText: 'Phone Number'),
+                //   textInputAction: TextInputAction.done,
+                //   onFieldSubmitted: (_) {
+                //     _saveForm();
+                //   },
+                //   validator: (value) {
+                //     // return null;//it means no problem
+                //     if (value.isEmpty) {
+                //       return 'Please provide a value';
+                //     }
+
+                //     return null;
+                //   },
+                //   onSaved: (value) {
+                //     _filledData = value;
+                //   },
+                // ),
               ),
-              Container(
-                child: ElevatedButton(
-                  onPressed: _saveForm,
-                  child: Text('Add New Contact Person'),
-                  style: ElevatedButton.styleFrom(
-                    primary: Theme.of(context).primaryColor,
-                    textStyle: TextStyle(fontSize: 20),
-                  ),
+              ElevatedButton(
+                onPressed: _saveForm,
+                child: Text('Add New Contact Person'),
+                style: ElevatedButton.styleFrom(
+                  primary: Theme.of(context).primaryColor,
+                  textStyle: TextStyle(fontSize: 20),
                 ),
               ),
             ],
@@ -109,7 +134,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     setState(() {
       _isLoading = true;
     });
-
+    print(_filledData);
     await Provider.of<PersonalContactListProvider>(context, listen: false)
         .addContactPerson(_filledData);
 
@@ -122,8 +147,8 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   @override
   Widget build(BuildContext context) {
     _contactPerson =
-          Provider.of<PersonalContactListProvider>(context).personalContactList;
-      print(_contactPerson);
+        Provider.of<PersonalContactListProvider>(context).personalContactList;
+    print(_contactPerson);
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),

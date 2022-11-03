@@ -56,7 +56,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (contactPersonId != null) {
         _editedProfile = Provider.of<ProfileProvider>(context, listen: false)
             .findById(contactPersonId);
-        
+
         _initValue = {
           'fullName': _editedProfile.fullName,
           'phoneNumber': _editedProfile.phoneNumber,
@@ -116,10 +116,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           .updateProfile(_editedProfile.id, _editedProfile);
 
       Navigator.of(context).pop();
-      setState(() {
-        _isLoading = false;
-      });
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
