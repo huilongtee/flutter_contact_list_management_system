@@ -1,4 +1,6 @@
 import 'dart:convert'; //convert data into json
+import 'dart:io'; //image file
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/http_exception.dart';
@@ -133,8 +135,20 @@ class ProfileProvider with ChangeNotifier {
     return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
         orElse: () => null);
   }
+// //======================================= Store image Start =========================================//
+
+//   Future<String> uploadImage(File image) async {
+//     Reference ref = FirebaseStorage.instance.ref().child("$userId/images");
+//     await ref.putFile(image);
+//     String downloadURL = await ref.getDownloadURL();
+//     return downloadURL;
+//   }
+
+//======================================= Store image End =========================================//
 
   Future<void> updateProfile(String id, Profile newProfile) async {
+    // Future<String> imageURL = uploadImage(image);
+
     print(id);
     final profileIndex = _profile.indexWhere((prof) => prof.id == id);
     // final url = Uri.parse(

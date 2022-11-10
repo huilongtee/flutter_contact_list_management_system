@@ -23,7 +23,7 @@ class PersonalContactListScreen extends StatefulWidget {
 class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   List<Profile> _contactPerson;
   String query = '';
-  // PersonalContactListProvider personalContactPersonProvider = null;
+  PersonalContactListProvider personalContactPersonProvider;
   DateTime lastPressed;
   final _phoneNumberFocusNode = FocusNode();
   var _isLoading = false;
@@ -32,14 +32,15 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   var _isInit = true;
   var _editedProfile = '';
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies([List<Profile> personalContactList]) {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
       Provider.of<PersonalContactListProvider>(context)
           .fetchAndSetPersonalContactList();
-
+      _contactPerson =
+          Provider.of<PersonalContactListProvider>(context).personalContactList;
       setState(() {
         _isLoading = false;
       });
@@ -146,8 +147,6 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _contactPerson =
-        Provider.of<PersonalContactListProvider>(context).personalContactList;
     print(_contactPerson);
     return Scaffold(
       appBar: AppBar(
@@ -165,66 +164,88 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
       ),
 
       drawer: AppDrawer(),
-      body: WillPopScope(
-        onWillPop: () async {
-          final now = DateTime.now();
-          final maxDuration = Duration(seconds: 2);
-          final isWarning =
-              lastPressed == null || now.difference(lastPressed) > maxDuration;
-          if (isWarning) {
-            lastPressed = DateTime.now();
-            final snackBar = SnackBar(
-              content: Text('Tap again to close app'),
-              duration: maxDuration,
-            );
+      body: _isLoading == true
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : WillPopScope(
+              onWillPop: () async {
+                final now = DateTime.now();
+                final maxDuration = Duration(seconds: 2);
+                final isWarning = lastPressed == null ||
+                    now.difference(lastPressed) > maxDuration;
+                if (isWarning) {
+                  lastPressed = DateTime.now();
+                  final snackBar = SnackBar(
+                    content: Text('Tap again to close app'),
+                    duration: maxDuration,
+                  );
 
-            ScaffoldMessenger.of(context)
-              ..removeCurrentSnackBar()
-              ..showSnackBar(snackBar);
-            return false;
-          } else {
-            return true;
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Column(children: [
-            // buildSearch(),
-            Expanded(
-              child: Consumer<PersonalContactListProvider>(
-                builder: (context, _contactPerson, _) => ListView.builder(
-                  itemCount: _contactPerson.personalContactList.length,
-                  itemBuilder: (_, index) => Column(
-                    children: [
-                      PersonalContactItem(
-                        _contactPerson.personalContactList[index].id,
-                        _contactPerson.personalContactList[index].fullName,
-                        _contactPerson.personalContactList[index].imageUrl,
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(snackBar);
+                  return false;
+                } else {
+                  return true;
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Column(children: [
+                  buildSearch(),
+                  Expanded(
+                    child: Consumer<PersonalContactListProvider>(
+                      builder: (context, _contactPerson, _) => ListView.builder(
+                        itemCount: _contactPerson.personalContactList.length,
+                        itemBuilder: (_, index) => Column(
+                          children: [
+                            PersonalContactItem(
+                              _contactPerson.personalContactList[index].id,
+                              _contactPerson
+                                  .personalContactList[index].fullName,
+                              _contactPerson
+                                  .personalContactList[index].imageUrl,
+                              _contactPerson
+                                  .personalContactList[index].phoneNumber,
+                              _contactPerson
+                                  .personalContactList[index].emailAddress,
+                              _contactPerson
+                                  .personalContactList[index].homeAddress,
+                            ),
+                            Divider(
+                              thickness: 1,
+                            ),
+                          ],
+                        ),
                       ),
-                      Divider(
-                        thickness: 1,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ]),
               ),
             ),
-          ]),
-        ),
-      ),
       //
     );
   }
 
-  // Widget buildSearch() => SearchField(
-  //       text: query,
-  //       hintText: 'Search by Contact Person Name',
-  //       onChanged: searchContactPerson,
-  //     );
+  Widget buildSearch() => SearchField(
+        text: query,
+        hintText: 'Search by Contact Person Name',
+        onChanged: searchContactPerson,
+      );
 
-  // void searchContactPerson(String query) {
-  //   setState(() {
-  //     _contactPerson = profileProvider.findByFullName(query);
-  //   });
-  // }
+  void searchContactPerson(String query) {
+    print(query);
+    Provider.of<PersonalContactListProvider>(context, listen: false)
+        .findByFullName(query.toLowerCase());
+    // if (query.isEmpty) {
+    //   Provider.of<PersonalContactListProvider>(context, listen: false)
+    //       .profileByName;
+    // }
+    // _isInit = true;
+
+    // print(v.toString());
+    // _contactPerson =
+    //     Provider.of<PersonalContactListProvider>(context, listen: false)
+    //         .personalContactList;
+  }
 }

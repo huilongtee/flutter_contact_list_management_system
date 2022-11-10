@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = '/editProfile_page';
@@ -17,6 +21,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailAddressFocusNode = FocusNode();
   final _homeAddressFocusNode = FocusNode();
   final _imageUrlController = TextEditingController();
+  File _image;
+  final imagePicker = ImagePicker();
+
   final _form = GlobalKey<FormState>();
   var _editedProfile = Profile(
     id: null,
@@ -87,6 +94,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     super.dispose();
   }
+
+//================================== Image Picker Start ==============================================//
+
+  Future imagePickerMethod() async {
+    final pick = await imagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (pick != null) {
+        _image = File(pick.path);
+      } else {}
+    });
+  }
+
+//================================== Image Picker End ==============================================//
 
   void _updateImageUrl() {
     if (!_imageUrlFocusNode.hasFocus) {
@@ -278,6 +298,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           },
                         ),
 
+                        //textfield for image link upload
+
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -353,6 +375,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ],
                         )
+
+//====================================== Image Picker ========================================//
+
+                        // Row(
+                        //   children: [
+                        //     Container(
+                        //       height: 70,
+                        //       width: 70,
+                        //       margin:
+                        //           const EdgeInsets.only(left: 20, right: 20),
+                        //       child: _image == null
+                        //           ? const Center(
+                        //               child: Text('No Image'),
+                        //             )
+                        //           : CircleAvatar(
+                        //               child: Image.file(_image),
+                        //             ),
+                        //     ),
+                        //     ElevatedButton(
+                        //       onPressed: () {
+                        //         imagePickerMethod();
+                        //       },
+                        //       child: Text('Select Image'),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),

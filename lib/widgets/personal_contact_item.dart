@@ -1,21 +1,58 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../screens/editContactPerson_screen.dart';
+//launch phone call indirectly
+import 'package:url_launcher/url_launcher.dart';
+//launch phone call directly
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+//launch map app
+import 'package:maps_launcher/maps_launcher.dart';
 
-class PersonalContactItem extends StatelessWidget {
+class PersonalContactItem extends StatefulWidget {
   final String id;
   final String userName;
   final String imageUrl;
+  final String phoneNumber;
+  final String emailAddress;
+  final String homeAddress;
 
-  PersonalContactItem(this.id, this.userName, this.imageUrl);
+  PersonalContactItem(this.id, this.userName, this.imageUrl, this.phoneNumber,
+      this.emailAddress, this.homeAddress);
+
+  @override
+  State<PersonalContactItem> createState() => _PersonalContactItemState();
+}
+
+class _PersonalContactItemState extends State<PersonalContactItem> {
+  
+  void onLongerPress() {
+    FlutterPhoneDirectCaller.callNumber(widget.phoneNumber);
+  }
+
+  void onShorterPress() {
+    launchUrl(Uri(scheme: 'tel', path: widget.phoneNumber));
+  }
+
+  void openEmailApp() {
+    launchUrl(Uri(scheme: 'mailTo', path: widget.emailAddress));
+  }
+
+  void openMapApp() {
+    MapsLauncher.launchQuery('1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA');
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold.of(context);
     return Dismissible(
-      key: ValueKey(id),
+      key: ValueKey(widget.id),
       background: Container(
         color: Theme.of(context).errorColor,
         child: Icon(
@@ -55,16 +92,17 @@ class PersonalContactItem extends StatelessWidget {
         );
       },
       onDismissed: (direction) {
-        // Provider.of<ProfileProvider>(context, listen: false).deleteContactPerson(
-        //     id); //listen:false to set it as dont want it set permenant listener
+        Provider.of<PersonalContactListProvider>(context, listen: false)
+            .deleteContactPerson(widget
+                .id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
-        title: Text(userName),
-        leading: imageUrl.isEmpty
+        title: Text(widget.userName),
+        leading: widget.imageUrl.isEmpty
             ? CircleAvatar(
                 backgroundColor: Theme.of(context).primaryColor,
                 child: Text(
-                  userName[0].toUpperCase(),
+                  widget.userName[0].toUpperCase(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 28,
@@ -73,26 +111,39 @@ class PersonalContactItem extends StatelessWidget {
               )
             : CircleAvatar(
                 backgroundImage: NetworkImage(
-                  imageUrl,
+                  widget.imageUrl,
                 ),
               ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.phone),
-              color: Theme.of(context).primaryColor,
+            GestureDetector(
+              onTap: () => onShorterPress(),
+              onLongPress: () => onLongerPress(),
+              child: Icon(
+                Icons.phone,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.email),
-              color: Colors.black,
+            SizedBox(
+              width: 20,
             ),
-            IconButton(
-              onPressed: null,
-              icon: Icon(Icons.maps_home_work),
-              color: Theme.of(context).primaryColor,
+            GestureDetector(
+              onTap: () => openEmailApp(),
+              child: Icon(
+                Icons.email,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+            SizedBox(
+              width: 20,
+            ),
+            GestureDetector(
+              onTap: () => openMapApp(),
+              child: Icon(
+                Icons.maps_home_work,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
           ],
         ),

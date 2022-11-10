@@ -11,12 +11,30 @@ class PersonalContactListProvider with ChangeNotifier {
   final String authToken;
   final String userId;
   List<Profile> _personalContactList = [];
-  List<Profile> _loadedData = [];
+  List<Profile> _backupList = [];
+
   PersonalContactListProvider(
       this.authToken, this.userId, this._personalContactList);
 
   List<Profile> get personalContactList {
     return [..._personalContactList];
+  }
+
+  void findByFullName(String name) {
+    print(name);
+    if (name.isEmpty) {
+      _personalContactList = _backupList;
+    } else {
+      _personalContactList = _personalContactList
+          .where((data) =>
+              data.fullName.toLowerCase().contains(name.toLowerCase()))
+          .toList();
+    }
+    notifyListeners();
+
+    // print('print');
+    // print(_personalContactList);
+    // return _personalContactList;
   }
 
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
@@ -52,6 +70,7 @@ class PersonalContactListProvider with ChangeNotifier {
         print(loadedProfile.length);
       });
       _personalContactList = loadedProfile;
+      _backupList = loadedProfile;
     } catch (error) {
       print(error);
 
@@ -176,6 +195,55 @@ class PersonalContactListProvider with ChangeNotifier {
   }
 
   //================================================ Delete Contact Person Start ================================================//
+
+  Future<void> deleteContactPerson(String id) async {
+    final searchTerm = 'orderBy="operatorID"&equalTo="$userId"';
+    String listID = null;
+
+    final url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
+    final existingContactPersonIndex =
+        _personalContactList.indexWhere((prof) => prof.id == id);
+    var existingContactPerson =
+        _personalContactList[existingContactPersonIndex];
+    _personalContactList.removeAt(existingContactPersonIndex);
+    notifyListeners();
+
+    try {
+      final checkingResponse = await http.get(url);
+
+      final extractedData = json.decode(checkingResponse.body) as Map<String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+      if (extractedData == null) {
+        return null;
+      }
+
+      extractedData.forEach((listId, listData) {
+        if (listData['contactPersonID'] == id) {
+          listID = listId;
+        }
+      });
+    } catch (error) {
+      print(error);
+
+      throw (error);
+    }
+
+    final deleteUrl = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList/$listID.json?auth=$authToken');
+
+    final response = await http.delete(deleteUrl);
+
+    if (response.statusCode >= 400) {
+      _personalContactList.insert(
+          existingContactPersonIndex, existingContactPerson);
+      notifyListeners();
+
+      throw HttpException('Could not delete this contact person.');
+    }
+    existingContactPerson = null;
+  }
 
   //================================================ Delete Contact Person End ================================================//
 }

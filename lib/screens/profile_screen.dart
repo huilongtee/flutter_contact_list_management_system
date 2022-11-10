@@ -8,7 +8,6 @@ import '../providers/profile_provider.dart';
 import '../providers/role_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/department_provider.dart';
-
 import '../screens/editProfile_screen.dart';
 import '../widgets/profile_items.dart';
 import '../widgets/app_drawer.dart';
@@ -99,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: loadedProfile[0].imageUrl.isEmpty
                                 ? CircleAvatar(
                                     backgroundColor:
-                                        Theme.of(context).primaryColor,
+                                        Colors.white,
                                     child: Text(
                                       loadedProfile[0]
                                           .fullName[0]

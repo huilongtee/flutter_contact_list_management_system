@@ -36,7 +36,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
       setState(() {
         _isLoading = true;
       });
-      print(_isInit);
+   
       _loadedData = _fetchAllData().then((_) {
         setState(() {
           _isLoading = false;
