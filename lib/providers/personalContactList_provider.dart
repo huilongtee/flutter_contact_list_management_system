@@ -31,12 +31,9 @@ class PersonalContactListProvider with ChangeNotifier {
           .toList();
     }
     notifyListeners();
-
-    // print('print');
-    // print(_personalContactList);
-    // return _personalContactList;
   }
 
+  /*==================================== retrieve a list of contact person ID and return their profile ============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
     var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
@@ -78,6 +75,7 @@ class PersonalContactListProvider with ChangeNotifier {
     }
   }
 
+  /*==================================== get a list of contact person ID and get their profile ============================================*/
   Future<void> fetchAndSetPersonalContactList() async {
     final searchTerm = 'orderBy="operatorID"&equalTo="$userId"';
     //fetch all contact person id who have been added by this user($userId)

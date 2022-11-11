@@ -11,8 +11,8 @@ import '../providers/company_provider.dart';
 import '../providers/role_provider.dart';
 import '../providers/administrator_provider.dart';
 
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/register_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/sharedContactList_screen.dart';
 import '../screens/personalContactList_screen.dart';
@@ -20,6 +20,10 @@ import '../screens/profile_screen.dart';
 import '../screens/editProfile_screen.dart';
 import '../screens/addCompany_screen.dart';
 import '../screens/editContactPerson_screen.dart';
+import '../screens/role_screen.dart';
+import '../screens/department_screen.dart';
+import '../screens/addRole_screen.dart';
+import '../screens/addDepartment_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -58,18 +62,35 @@ class MyApp extends StatelessWidget {
                           .personalContactList), //update=provider version>=4.0.0, else=builder/create
         ),
 
-        ChangeNotifierProvider(
-          create: (context) => SharedContactListProvider(),
+        ChangeNotifierProxyProvider<AuthProvider, SharedContactListProvider>(
+          update: (context, auth, sharedContactList) => SharedContactListProvider(
+              auth.token,
+              auth.userId,
+              sharedContactList == null
+                  ? []
+                  : sharedContactList
+                      .sharedContactList), //update=provider version>=4.0.0, else=builder/create
         ),
-        ChangeNotifierProvider(
-          create: (context) => RoleProvider(),
+
+        ChangeNotifierProxyProvider<AuthProvider, RoleProvider>(
+          update: (context, auth, roleList) => RoleProvider(
+              auth.token,
+              auth.userId,
+              roleList == null
+                  ? []
+                  : roleList
+                      .roleList), //update=provider version>=4.0.0, else=builder/create
         ),
-        ChangeNotifierProvider(
-          create: (context) => DepartmentProvider(),
+
+        ChangeNotifierProxyProvider<AuthProvider, DepartmentProvider>(
+          update: (context, auth, departmentList) => DepartmentProvider(
+              auth.token,
+              auth.userId,
+              departmentList == null
+                  ? []
+                  : departmentList
+                      .departmentList), //update=provider version>=4.0.0, else=builder/create
         ),
-        // ChangeNotifierProvider(
-        //   create: (context) => CompanyProvider(),
-        // ),
 
         ChangeNotifierProxyProvider<AuthProvider, CompanyProvider>(
           update: (context, auth, previousCompany) => CompanyProvider(
@@ -111,13 +132,17 @@ class MyApp extends StatelessWidget {
                   : PersonalContactListScreen(),
           routes: {
             SharedContactListScreen.routeName: (context) =>
-                SharedContactListScreen(auth.userId),
+                SharedContactListScreen(),
             PersonalContactListScreen.routeName: (context) =>
                 PersonalContactListScreen(),
             ProfileScreen.routeName: (context) => ProfileScreen(),
+            EditProfileScreen.routeName: (context) => EditProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
             AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
-            EditProfileScreen.routeName: (context) => EditProfileScreen(),
+            AddRoleScreen.routeName: (context) => AddRoleScreen(),
+            RoleScreen.routeName: (context) => RoleScreen(),
+            DepartmentScreen.routeName: (context) => DepartmentScreen(),
+            AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
             // EditContactPersonScreen.routeName: (context) =>
             //     EditContactPersonScreen(),
           },

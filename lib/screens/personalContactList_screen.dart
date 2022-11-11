@@ -32,7 +32,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   var _isInit = true;
   var _editedProfile = '';
   @override
-  void didChangeDependencies([List<Profile> personalContactList]) {
+  void didChangeDependencies() {
     if (_isInit) {
       setState(() {
         _isLoading = true;
@@ -90,28 +90,6 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                     _filledData = value.completeNumber.substring(1);
                   },
                 ),
-
-                // TextFormField(
-
-                //   autofocus: true,
-                //   initialValue: _filledData,
-                //   decoration: InputDecoration(labelText: 'Phone Number'),
-                //   textInputAction: TextInputAction.done,
-                //   onFieldSubmitted: (_) {
-                //     _saveForm();
-                //   },
-                //   validator: (value) {
-                //     // return null;//it means no problem
-                //     if (value.isEmpty) {
-                //       return 'Please provide a value';
-                //     }
-
-                //     return null;
-                //   },
-                //   onSaved: (value) {
-                //     _filledData = value;
-                //   },
-                // ),
               ),
               ElevatedButton(
                 onPressed: _saveForm,
@@ -237,15 +215,5 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     print(query);
     Provider.of<PersonalContactListProvider>(context, listen: false)
         .findByFullName(query.toLowerCase());
-    // if (query.isEmpty) {
-    //   Provider.of<PersonalContactListProvider>(context, listen: false)
-    //       .profileByName;
-    // }
-    // _isInit = true;
-
-    // print(v.toString());
-    // _contactPerson =
-    //     Provider.of<PersonalContactListProvider>(context, listen: false)
-    //         .personalContactList;
   }
 }

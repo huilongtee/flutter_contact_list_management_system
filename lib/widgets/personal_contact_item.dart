@@ -44,7 +44,7 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
   }
 
   void openMapApp() {
-    MapsLauncher.launchQuery('1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA');
+    MapsLauncher.launchQuery(widget.homeAddress);
   }
   
 

@@ -1,49 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg_provider/flutter_svg_provider.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
-import '../providers/sharedContactList_provider.dart';
-import '../providers/company_provider.dart';
-import '../providers/role_provider.dart';
-import '../providers/department_provider.dart';
 import '../screens/editContactPerson_screen.dart';
+
 
 class SharedContactItem extends StatefulWidget {
   final String id;
-  final String companyId;
-  final String contactPersonId;
+  final String userName;
+  final String imageUrl;
+ 
 
-  SharedContactItem(this.id, this.companyId, this.contactPersonId);
+  SharedContactItem(this.id, this.userName, this.imageUrl);
 
   @override
   State<SharedContactItem> createState() => _SharedContactItemState();
 }
 
 class _SharedContactItemState extends State<SharedContactItem> {
-  String imageUrl = '';
-  String contactPersonName = '';
-  String roleName = '';
-  String departmentName = '';
-
-  @override
-  void didChangeDependencies() {
-   final loadedProfile = Provider.of<ProfileProvider>(
-      context,
-    ).findById('1');
-    imageUrl = loadedProfile.imageUrl;
-    contactPersonName = loadedProfile.fullName;
-    final role = Provider.of<RoleProvider>(
-      context,
-      listen: false,
-    ).findByRoleId(loadedProfile.roleId);
-    roleName = role.roleName;
-    final department = Provider.of<DepartmentProvider>(
-      context,
-      listen: false,
-    ).findByDepartmentId(loadedProfile.departmentId);
-    departmentName = department.departmentName;
-    super.didChangeDependencies();
-  }
-
+  
+ 
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold.of(context);
@@ -88,27 +68,32 @@ class _SharedContactItemState extends State<SharedContactItem> {
         );
       },
       onDismissed: (direction) {
-        // Provider.of<ProfileProvider>(context, listen: false)
-        //     .deleteContactPerson(widget
-        //         .contactPersonId); //listen:false to set it as dont want it set permenant listener
+        Provider.of<PersonalContactListProvider>(context, listen: false)
+            .deleteContactPerson(widget
+                .id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(
-            imageUrl,
-          ),
-        ),
-        title: Text(contactPersonName),
-        subtitle: Text(roleName + ' in ' + departmentName),
-        trailing: IconButton(
-          onPressed: () {
-            // Navigator.pushNamed(context, EditContactPersonScreen.routeName,
-            //     arguments: widget.contactPersonId);
-          },
-          icon: Icon(Icons.edit),
-          color: Theme.of(context).primaryColor,
-        ),
-      ),
+        title: Text(widget.userName),
+        leading: widget.imageUrl.isEmpty
+            ? CircleAvatar(
+                backgroundColor: Theme.of(context).primaryColor,
+                child: Text(
+                  widget.userName[0].toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 28,
+                  ),
+                ),
+              )
+            : CircleAvatar(
+                backgroundImage: NetworkImage(
+                  widget.imageUrl,
+                ),
+              ),
+              ),
+        
+         
+       
     );
   }
 }
