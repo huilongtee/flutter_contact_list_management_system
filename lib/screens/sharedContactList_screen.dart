@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
+import '../providers/department_provider.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
+import '../providers/role_provider.dart';
 import '../providers/sharedContactList_provider.dart';
 
 import '../screens/viewContactPerson_screen.dart';
@@ -42,10 +44,20 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       setState(() {
         _isLoading = true;
       });
-      Provider.of<SharedContactListProvider>(context,listen: false,)
+      Provider.of<SharedContactListProvider>(context, listen: false)
           .fetchAndSetSharedContactList();
+
       _contactPerson =
-          Provider.of<SharedContactListProvider>(context,listen: false,).sharedContactList;
+          Provider.of<SharedContactListProvider>(context, listen: false)
+              .sharedContactList;
+
+      final _companyId =
+          Provider.of<SharedContactListProvider>(context, listen: false)
+              .companyId;
+
+      Provider.of<RoleProvider>(context, listen: false).fetchAndSetRoleList();
+      Provider.of<DepartmentProvider>(context, listen: false)
+          .fetchAndSetDepartmentList();
       setState(() {
         _isLoading = false;
       });
@@ -210,6 +222,9 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                               _contactPerson.sharedContactList[index].id,
                               _contactPerson.sharedContactList[index].fullName,
                               _contactPerson.sharedContactList[index].imageUrl,
+                              _contactPerson.sharedContactList[index].roleId,
+                              _contactPerson
+                                  .sharedContactList[index].departmentId,
                             ),
                             Divider(
                               thickness: 1,

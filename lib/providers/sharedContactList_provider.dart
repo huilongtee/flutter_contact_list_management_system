@@ -21,8 +21,11 @@ class SharedContactListProvider with ChangeNotifier {
     return [..._sharedContactList];
   }
 
+  String get companyId {
+    return companyID;
+  }
+
   void findByFullName(String name) {
-    print(name);
     if (name.isEmpty) {
       _sharedContactList = _backupList;
     } else {
@@ -33,6 +36,15 @@ class SharedContactListProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
+
+
+     Profile findById(String id) {
+    return _sharedContactList.firstWhere((profile) => profile.id == id,
+        orElse: () => null);
+  }
+    
+  
 
   /*==================================== retrieve a list of collegues id and return their profile============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
@@ -65,7 +77,6 @@ class SharedContactListProvider with ChangeNotifier {
             ),
           );
         }
-        print(loadedProfile.length);
       });
       _sharedContactList = loadedProfile;
       _backupList = loadedProfile;
@@ -79,8 +90,11 @@ class SharedContactListProvider with ChangeNotifier {
   /*==================================== get a list of collegues id ============================================*/
   Future<void> fetchAndSetSharedContactList() async {
     //check whether current user got companyID
+    // var checkCompanyIDUrl = Uri.parse(
+    //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final checkCompanyIDResponse = await http.get(checkCompanyIDUrl);
 
@@ -95,13 +109,10 @@ class SharedContactListProvider with ChangeNotifier {
 
       //get current user companyID
       checkCompanyIDExtractedData.forEach((id, contactPersonData) {
-        print(contactPersonData['companyID']);
         companyID = contactPersonData['companyID'];
       });
-      print('companyID:' + companyID);
-      //fetch all colleague userId
+      //fetch all colleague userId based on the company id
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
-
       var url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
       try {
@@ -116,9 +127,8 @@ class SharedContactListProvider with ChangeNotifier {
 
         //get all contact person userID
         extractedData.forEach((id, contactPersonID) {
-          print(contactPersonID['contactPersonID']);
           loadedContactPersonID.add(
-            contactPersonID['contactPersonID'],
+            contactPersonID['operatorID'],
           );
         });
 
@@ -138,17 +148,17 @@ class SharedContactListProvider with ChangeNotifier {
     }
   }
 
+  //================================================ Add Contact Person Start ================================================//
+
   Future<void> addContactPerson(String phoneNumber) async {
     bool isFound = false;
     //check whether this user already add the user with this phone number as one of the contact person in shared contact list table
-    print(phoneNumber);
     _sharedContactList.forEachIndexed((index, element) {
       if (element.phoneNumber.trim() == phoneNumber) {
         isFound = true;
       }
     });
 
-    print(isFound);
 //if it is found, which means this contact person already added as contact person before
     //else add it now
     if (isFound == true) {
@@ -157,9 +167,7 @@ class SharedContactListProvider with ChangeNotifier {
     } else {
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
-      print(contactPerson.id);
       if (contactPerson.companyId.isEmpty) {
-        print('company id:' + companyID);
         final url = Uri.parse(
             'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
         try {
@@ -176,6 +184,15 @@ class SharedContactListProvider with ChangeNotifier {
           }
 
           _sharedContactList.add(contactPerson);
+
+//add company id for that contact person
+          final userUrl = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
+          await http.patch(userUrl, //update data
+              body: json.encode({
+                'companyID': companyID,
+              })); //merge data that is incoming and the data that existing in the database
+
           notifyListeners();
         } catch (error) {
           print(error);
@@ -189,6 +206,74 @@ class SharedContactListProvider with ChangeNotifier {
 
     }
   }
+  //================================================ Add Contact Person End ================================================//
+
+  //================================================ Delete Contact Person Start ================================================//
+
+  Future<void> deleteContactPerson(String id) async {
+    final searchTerm = 'orderBy="operatorID"&equalTo="$id"';
+    String listID = null;
+
+    final url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
+    final existingContactPersonIndex =
+        _sharedContactList.indexWhere((prof) => prof.id == id);
+    var existingContactPerson = _sharedContactList[existingContactPersonIndex];
+    _sharedContactList.removeAt(existingContactPersonIndex);
+
+    try {
+      final checkingResponse = await http.get(url);
+
+      final extractedData = json.decode(checkingResponse.body) as Map<String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+      if (extractedData == null) {
+        return null;
+      }
+
+      extractedData.forEach((listId, listData) {
+        if (listData['operatorID'] == id) {
+          listID = listId;
+        }
+      });
+    } catch (error) {
+      print(error);
+
+      throw (error);
+    }
+
+    final deleteUrl = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList/$listID.json?auth=$authToken');
+
+    final response = await http.delete(deleteUrl);
+
+    if (response.statusCode >= 400) {
+      _sharedContactList.insert(
+          existingContactPersonIndex, existingContactPerson);
+
+      throw HttpException('Could not delete this contact person.');
+    } else {
+      try {
+        final removecompanyIDURL = Uri.parse(
+            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
+        await http.patch(removecompanyIDURL, //update data
+            body: json.encode({
+              'companyID': '',
+              'roleID': '',
+              'departmentID': '',
+            })); //merge data that is incoming and the data that existing in the database
+
+        notifyListeners();
+      } catch (error) {
+        print(error);
+        throw error;
+      }
+    }
+
+    existingContactPerson = null;
+  }
+
+  //================================================ Delete Contact Person End ================================================//
 
   /*==================================== check whether this phone number existed ============================================*/
   Future<Profile> fetchAndReturnContactPersonProfile(String phoneNumber) async {
@@ -228,56 +313,41 @@ class SharedContactListProvider with ChangeNotifier {
     }
   }
 
-//   //================================================ Delete Contact Person Start ================================================//
+  //================================================ Edit Contact Person Start ================================================//
 
-//   Future<void> deleteContactPerson(String id) async {
-//     final searchTerm = 'orderBy="operatorID"&equalTo="$userId"';
-//     String listID = null;
+Future<void> editContactPerson(String id, Profile newProfile) async {
+    // Future<String> imageURL = uploadImage(image);
 
-//     final url = Uri.parse(
-//         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
-//     final existingContactPersonIndex =
-//         _personalContactList.indexWhere((prof) => prof.id == id);
-//     var existingContactPerson =
-//         _personalContactList[existingContactPersonIndex];
-//     _personalContactList.removeAt(existingContactPersonIndex);
-//     notifyListeners();
+    final profileIndex = _sharedContactList.indexWhere((prof) => prof.id == id);
+    // final url = Uri.parse(
+    //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
+    // try {
+    //   final response = await http.get(url);
+    //   print(json.decode(response.body.toString())['name']);
+    //   final extractedData = json.decode(response.body) as Map<String,
+    //       dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-//     try {
-//       final checkingResponse = await http.get(url);
+    //   final userId = extractedData['name'];
+    if (profileIndex >= 0) {
+      final updateUrl = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
 
-//       final extractedData = json.decode(checkingResponse.body) as Map<String,
-//           dynamic>; //String key with dynamic value since flutter do not know the nested data
+      await http.patch(updateUrl, //update data
+          body: json.encode({
+            'departmentID': newProfile.departmentId,
+            'roleID': newProfile.roleId,
+           
+          })); //merge data that is incoming and the data that existing in the database
 
-//       if (extractedData == null) {
-//         return null;
-//       }
+      _sharedContactList[profileIndex] = newProfile;
+      notifyListeners();
+    } else {
+      print('...');
+    }
+  }
 
-//       extractedData.forEach((listId, listData) {
-//         if (listData['contactPersonID'] == id) {
-//           listID = listId;
-//         }
-//       });
-//     } catch (error) {
-//       print(error);
+  //================================================ Edit Contact Person End ================================================//
 
-//       throw (error);
-//     }
 
-//     final deleteUrl = Uri.parse(
-//         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList/$listID.json?auth=$authToken');
 
-//     final response = await http.delete(deleteUrl);
-
-//     if (response.statusCode >= 400) {
-//       _personalContactList.insert(
-//           existingContactPersonIndex, existingContactPerson);
-//       notifyListeners();
-
-//       throw HttpException('Could not delete this contact person.');
-//     }
-//     existingContactPerson = null;
-//   }
-
-//   //================================================ Delete Contact Person End ================================================//
 }

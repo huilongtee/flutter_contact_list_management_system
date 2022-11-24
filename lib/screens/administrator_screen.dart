@@ -26,7 +26,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
     await Provider.of<ProfileProvider>(
       context,
       listen: false,
-    ).fetchAndSetNonAdmin();
+    ).fetchAndSetNonAdmin(true);
   }
 
   // List<Profile> contactPerson;
@@ -92,10 +92,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
                                 listen: false,
                               ).findByNonAdminId(
                                   _loadedData.companies[index].companyAdminId);
-                              print(Provider.of<ProfileProvider>(
-                                context,
-                                listen: false,
-                              ).nonAdmin);
+                              
                               return Column(
                                 children: [
                                   CompaniesItem(

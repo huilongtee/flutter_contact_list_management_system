@@ -38,7 +38,6 @@ class CompanyProvider with ChangeNotifier {
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String,
           dynamic>; //String key with dynamic value since flutter do not know the nested data
 
@@ -68,7 +67,6 @@ class CompanyProvider with ChangeNotifier {
 
   Future<void> addCompany(Company newCompany, Profile oldProfile,
       List<Profile> entireProfileList) async {
-    print(_companies);
 
     final id = oldProfile.id;
 
@@ -111,7 +109,6 @@ class CompanyProvider with ChangeNotifier {
             );
             _companies.add(addedCompany);
 
-            print(_companies);
 
             await http.patch(userUrl, //update data
                 body: json.encode({

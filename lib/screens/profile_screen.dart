@@ -20,28 +20,41 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  var _isInit = true;
   var _isLoading = false;
   var loadedProfile = null;
+  var role = null;
+  var department = null;
 
   @override
   void didChangeDependencies() {
-    print('yes');
-    setState(() {
-      _isLoading = true;
-    });
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    ).fetchAndSetProfile().then((_) {
-      loadedProfile = Provider.of<ProfileProvider>(
+      Provider.of<ProfileProvider>(
         context,
         listen: false,
-      ).profile;
-      setState(() {
-        _isLoading = false;
+      ).fetchAndSetProfile().then((_) {
+        loadedProfile = Provider.of<ProfileProvider>(
+          context,
+          listen: false,
+        ).profile;
+        Provider.of<RoleProvider>(context, listen: false).fetchAndSetRoleList();
+        Provider.of<DepartmentProvider>(context, listen: false)
+            .fetchAndSetDepartmentList();
+        role = Provider.of<RoleProvider>(context, listen: false)
+            .findById(loadedProfile[0].roleId);
+        department = Provider.of<DepartmentProvider>(context, listen: false)
+            .findById(loadedProfile[0].departmentId);
+        setState(() {
+          _isLoading = false;
+          _isInit = false;
+        });
       });
-    });
+    }
+
     super.didChangeDependencies();
   }
 
@@ -49,19 +62,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     // print(loadedProfile[0].fullName);
 
-    // final role = Provider.of<RoleProvider>(
-    //   context,
-    //   listen: false,
-    // ).findByRoleId(loadedProfile.roleId);
     // final company = Provider.of<CompanyProvider>(
     //   context,
     //   listen: false,
     // ).findByCompanyId(loadedProfile.companyId);
-
-    // final department = Provider.of<DepartmentProvider>(
-    //   context,
-    //   listen: false,
-    // ).findByDepartmentId(loadedProfile.departmentId);
 
     return Scaffold(
       appBar: AppBar(
@@ -97,8 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             margin: const EdgeInsets.only(left: 20, right: 20),
                             child: loadedProfile[0].imageUrl.isEmpty
                                 ? CircleAvatar(
-                                    backgroundColor:
-                                        Colors.white,
+                                    backgroundColor: Colors.white,
                                     child: Text(
                                       loadedProfile[0]
                                           .fullName[0]
@@ -125,7 +128,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'role.roleName',
+                                  role == null ? 'Role:-' : role.roleName,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                Text(
+                                  department == null
+                                      ? 'Department:-'
+                                      : department.departmentName,
                                   style: TextStyle(
                                     fontSize: 20,
                                   ),

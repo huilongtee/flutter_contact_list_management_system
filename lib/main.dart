@@ -143,8 +143,8 @@ class MyApp extends StatelessWidget {
             RoleScreen.routeName: (context) => RoleScreen(),
             DepartmentScreen.routeName: (context) => DepartmentScreen(),
             AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
-            // EditContactPersonScreen.routeName: (context) =>
-            //     EditContactPersonScreen(),
+            EditContactPersonScreen.routeName: (context) =>
+                EditContactPersonScreen(),
           },
         ),
       ),

@@ -27,8 +27,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
     'companyName': '',
     'companyAdminId': '',
   };
-  List<Profile> entireProfileList = [];
-  List<Profile> loadedAdmin = [];
+  List<Profile> loadedNonAdmin = [];
 
   Profile selectedValue = null;
   @override
@@ -45,8 +44,8 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
         _editedCompany = Provider.of<CompanyProvider>(context, listen: false)
             .findById(companyId);
         selectedValue = Provider.of<ProfileProvider>(context, listen: false)
-            .findById(_editedCompany.companyAdminId);
-
+            .findByNonAdminId(_editedCompany.companyAdminId);
+        
         _initValue = {
           'companyName': _editedCompany.companyName,
           'companyAdminId': _editedCompany.companyAdminId,
@@ -55,11 +54,10 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
           _isLoading = false;
         });
       } else {
-        Provider.of<ProfileProvider>(context, listen: false)
-            .fetchAndSetNonAdmin(true);
-        loadedAdmin =
+        // Provider.of<ProfileProvider>(context, listen: false)
+        //     .fetchAndSetNonAdmin();
+        loadedNonAdmin =
             Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
-        entireProfileList = loadedAdmin;
         setState(() {
           _isLoading = false;
         });
@@ -93,7 +91,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
     } else {
       try {
         await Provider.of<CompanyProvider>(context, listen: false)
-            .addCompany(_editedCompany, selectedValue, entireProfileList);
+            .addCompany(_editedCompany, selectedValue, loadedNonAdmin);
 
         Navigator.of(context).pop();
       } catch (error) {
@@ -204,7 +202,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                           hint: Text('Select Company Admin'),
                           isExpanded: true,
                           value: selectedValue,
-                          items: loadedAdmin.map((Profile items) {
+                          items: loadedNonAdmin.map((Profile items) {
                             return DropdownMenuItem<Profile>(
                               child: Text(
                                   items.fullName + " - " + items.emailAddress),

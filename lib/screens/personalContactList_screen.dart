@@ -40,7 +40,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
       Provider.of<PersonalContactListProvider>(context)
           .fetchAndSetPersonalContactList();
       _contactPerson =
-          Provider.of<PersonalContactListProvider>(context).personalContactList;
+          Provider.of<PersonalContactListProvider>(context,).personalContactList;
       setState(() {
         _isLoading = false;
       });

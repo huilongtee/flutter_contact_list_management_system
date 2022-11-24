@@ -28,7 +28,9 @@ class ProfileProvider with ChangeNotifier {
 
   Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
     final searchTerm =
-        filterByCompanyID ? 'orderBy="companyID"&equalTo=""' : '';
+        filterByCompanyID ? '' : 'orderBy="companyID"&equalTo=""';
+
+
     var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
@@ -149,7 +151,6 @@ class ProfileProvider with ChangeNotifier {
   Future<void> updateProfile(String id, Profile newProfile) async {
     // Future<String> imageURL = uploadImage(image);
 
-    print(id);
     final profileIndex = _profile.indexWhere((prof) => prof.id == id);
     // final url = Uri.parse(
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
@@ -160,7 +161,6 @@ class ProfileProvider with ChangeNotifier {
     //       dynamic>; //String key with dynamic value since flutter do not know the nested data
 
     //   final userId = extractedData['name'];
-    print(profileIndex);
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
