@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_contact_list_management_system/screens/administrator_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
@@ -9,8 +8,9 @@ import '../providers/personalContactList_provider.dart';
 import '../providers/department_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/role_provider.dart';
-import '../providers/administrator_provider.dart';
 
+import '../screens/administrator_screen.dart';
+import '../screens/contactPersonDetail.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/splash_screen.dart';
@@ -110,7 +110,9 @@ class MyApp extends StatelessWidget {
           //consumer only will rebuilt the MaterialApp
           title: 'My-List',
           theme: ThemeData(
-            primaryColor: Color.fromARGB(255, 255, 196, 0),
+            // primaryColor: Color.fromARGB(255, 255, 196, 0),
+            primaryColor: Color.fromARGB(255, 150, 41, 246),
+
             fontFamily: 'Lato',
             textTheme: ThemeData.light().textTheme.copyWith(
                   bodyText1: TextStyle(
@@ -145,6 +147,8 @@ class MyApp extends StatelessWidget {
             AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
             EditContactPersonScreen.routeName: (context) =>
                 EditContactPersonScreen(),
+                ContactPersonDetailScreen.routeName: (context) =>
+                ContactPersonDetailScreen(),
           },
         ),
       ),

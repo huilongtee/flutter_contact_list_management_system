@@ -32,8 +32,10 @@ class DepartmentProvider with ChangeNotifier {
   /*==================================== fetch all departments that created by this company start ============================================*/
   Future<void> fetchAndSetDepartmentList() async {
     //check whether current user got companyID
+
+    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final checkCompanyIDResponse = await http.get(checkCompanyIDUrl);
 
@@ -48,10 +50,8 @@ class DepartmentProvider with ChangeNotifier {
 
       //get current user companyID
       checkCompanyIDExtractedData.forEach((id, contactPersonData) {
-        print(contactPersonData['companyID']);
         companyID = contactPersonData['companyID'];
       });
-      print('companyID:' + companyID);
       //fetch all colleague userId
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
 
@@ -130,7 +130,8 @@ class DepartmentProvider with ChangeNotifier {
   /*==================================== update department start ============================================*/
 
   Future<void> updateDepartment(String id, Department newDepartment) async {
-    final departmentIndex = _departments.indexWhere((department) => department.id == id);
+    final departmentIndex =
+        _departments.indexWhere((department) => department.id == id);
 
     if (departmentIndex >= 0) {
       final url = Uri.parse(
@@ -152,7 +153,8 @@ class DepartmentProvider with ChangeNotifier {
   /*==================================== find department id start ============================================*/
 
   Department findById(String id) {
-    return _departments.firstWhere((department) => department.id == id, orElse: () => null);
+    return _departments.firstWhere((department) => department.id == id,
+        orElse: () => null);
   }
   /*==================================== find department id end ============================================*/
 

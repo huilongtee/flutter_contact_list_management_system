@@ -6,6 +6,8 @@ import 'dart:convert'; //convert data into json
 import 'package:http/http.dart' as http;
 import '../models/http_exception.dart';
 import '../providers/profile.dart';
+import 'department_provider.dart';
+import 'role_provider.dart';
 
 class SharedContactListProvider with ChangeNotifier {
   final String authToken;
@@ -37,14 +39,10 @@ class SharedContactListProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
-     Profile findById(String id) {
+  Profile findById(String id) {
     return _sharedContactList.firstWhere((profile) => profile.id == id,
         orElse: () => null);
   }
-    
-  
 
   /*==================================== retrieve a list of collegues id and return their profile============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
@@ -315,9 +313,11 @@ class SharedContactListProvider with ChangeNotifier {
 
   //================================================ Edit Contact Person Start ================================================//
 
-Future<void> editContactPerson(String id, Profile newProfile) async {
+  Future<void> editContactPerson(String id, Role newRole,
+      Department newDepartment, Profile oldProfile) async {
     // Future<String> imageURL = uploadImage(image);
-
+    print(newRole.id);
+    print(newDepartment.id);
     final profileIndex = _sharedContactList.indexWhere((prof) => prof.id == id);
     // final url = Uri.parse(
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&orderBy="userId"&equalTo="$id"');
@@ -330,14 +330,25 @@ Future<void> editContactPerson(String id, Profile newProfile) async {
     //   final userId = extractedData['name'];
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${id}.json?auth=$authToken');
 
       await http.patch(updateUrl, //update data
           body: json.encode({
-            'departmentID': newProfile.departmentId,
-            'roleID': newProfile.roleId,
-           
+            'departmentID': newDepartment.id,
+            'roleID': newRole.id,
           })); //merge data that is incoming and the data that existing in the database
+
+      final newProfile = Profile(
+        id: id,
+        fullName: oldProfile.fullName,
+        emailAddress: oldProfile.emailAddress,
+        homeAddress: oldProfile.homeAddress,
+        phoneNumber: oldProfile.phoneNumber,
+        imageUrl: oldProfile.imageUrl,
+        companyId: companyId,
+        roleId: newRole.id,
+        departmentId: newDepartment.id,
+      );
 
       _sharedContactList[profileIndex] = newProfile;
       notifyListeners();
@@ -347,7 +358,5 @@ Future<void> editContactPerson(String id, Profile newProfile) async {
   }
 
   //================================================ Edit Contact Person End ================================================//
-
-
 
 }

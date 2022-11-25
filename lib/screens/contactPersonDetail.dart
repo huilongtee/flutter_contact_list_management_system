@@ -1,34 +1,24 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/personalContactList_provider.dart';
 import '../providers/profile.dart';
-import '../providers/profile_provider.dart';
-import '../providers/role_provider.dart';
 import '../providers/company_provider.dart';
-import '../providers/department_provider.dart';
-import '../screens/editProfile_screen.dart';
 import '../widgets/profile_items.dart';
-import '../widgets/app_drawer.dart';
 
-class ProfileScreen extends StatefulWidget {
-  static const routeName = '/profile';
+class ContactPersonDetailScreen extends StatefulWidget {
+  static const routeName = '/contactPersonDetailScreen';
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<ContactPersonDetailScreen> createState() =>
+      _ContactPersonDetailScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
   var _isInit = true;
   var _isLoading = false;
-  var loadedProfile = null;
-  var role = null;
-  var department = null;
-  var company = null;
+
+  var _contactPerson;
+  var companyNameResult;
 
   @override
   void didChangeDependencies() {
@@ -36,25 +26,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isLoading = true;
       });
+      final contactPersonId =
+          ModalRoute.of(context).settings.arguments as String;
 
-      Provider.of<ProfileProvider>(
-        context,
-        listen: false,
-      ).fetchAndSetProfile().then((_) {
-        Provider.of<RoleProvider>(context, listen: false)
-            .fetchAndSetRoleList()
-            .then((_) {
-          Provider.of<DepartmentProvider>(context, listen: false)
-              .fetchAndSetDepartmentList()
-              .then((_) {
-            setState(() {
-              _isLoading = false;
-            });
-          });
+      _contactPerson = Provider.of<PersonalContactListProvider>(context)
+          .findById(contactPersonId);
+
+      if (_contactPerson.companyId.isNotEmpty) {
+        Provider.of<CompanyProvider>(context, listen: false)
+            .fetchAndSetCompanyName(_contactPerson.companyId);
+
+        setState(() {
+          _isLoading = false;
+          _isInit = false;
         });
-        _isInit = false;
-
-      });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _isInit = false;
+        });
+      }
     }
 
     super.didChangeDependencies();
@@ -62,42 +53,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final result = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    ).profile;
-    final loadedProfile = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    ).findById(result[0].id);
-    final role = Provider.of<RoleProvider>(context, listen: false)
-        .findById(loadedProfile.roleId);
-    final department = Provider.of<DepartmentProvider>(context, listen: false)
-        .findById(loadedProfile.departmentId);
-
-    Provider.of<CompanyProvider>(context, listen: false)
-        .fetchAndSetCompanyName(loadedProfile.companyId);
-
     final companyNameResult =
         Provider.of<CompanyProvider>(context, listen: false).getCompanyName;
 
-    print(companyNameResult);
+    print('the result is: ' + companyNameResult);
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),
         elevation: 0,
         backgroundColor: Theme.of(context).primaryColor,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, EditProfileScreen.routeName,
-                  arguments: loadedProfile.id);
-            },
-            icon: Icon(Icons.edit),
-          ),
-        ],
       ),
-      drawer: AppDrawer(),
       body: _isLoading == true
           ? Center(
               child: CircularProgressIndicator(),
@@ -114,13 +79,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 70,
                             width: 70,
                             margin: const EdgeInsets.only(left: 20, right: 20),
-                            child: loadedProfile.imageUrl.isEmpty
+                            child: _contactPerson.imageUrl.isEmpty
                                 ? CircleAvatar(
                                     backgroundColor: Colors.white,
                                     child: Text(
-                                      loadedProfile
-                                          .fullName[0]
-                                          .toUpperCase(),
+                                      _contactPerson.fullName[0].toUpperCase(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
@@ -129,37 +92,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   )
                                 : CircleAvatar(
                                     backgroundImage:
-                                        NetworkImage(loadedProfile.imageUrl),
+                                        NetworkImage(_contactPerson.imageUrl),
                                   ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 30),
-                            child: Column(
-                              children: [
-                                Text(
-                                  loadedProfile.fullName,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  role == null ? 'Role:-' : role.roleName,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  department == null
-                                      ? 'Department:-'
-                                      : department.departmentName,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              _contactPerson.fullName,
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
                             ),
                           ),
                         ]),
@@ -201,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.phoneNumber,
+                                        _contactPerson.phoneNumber,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -231,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.emailAddress,
+                                        _contactPerson.emailAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -261,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        loadedProfile.homeAddress,
+                                        _contactPerson.homeAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -272,34 +214,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             SizedBox(
                               height: 20,
                             ),
-                            Row(
-                              children: [
-                                ProfileWidget(
-                                  size: 25,
-                                  width: 50,
-                                  height: 50,
-                                  bgColor: Theme.of(context).primaryColor,
-                                  index: 3,
-                                  borderColor: Colors.grey,
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            _contactPerson.companyId.isEmpty
+                                ? null
+                                : Row(
                                     children: [
-                                      Text(
-                                        // 'company.companyName',
-                                        companyNameResult,
-                                        style: TextStyle(fontSize: 18),
+                                      ProfileWidget(
+                                        size: 25,
+                                        width: 50,
+                                        height: 50,
+                                        bgColor: Theme.of(context).primaryColor,
+                                        index: 3,
+                                        borderColor: Colors.grey,
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              companyNameResult,
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
                             SizedBox(
                               height: 20,
                             ),

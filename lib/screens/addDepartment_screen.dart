@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_list_management_system/providers/company_provider.dart';
 import 'package:provider/provider.dart';
-import '../providers/administrator_provider.dart';
+// import '../providers/administrator_provider.dart';
 import '../providers/department_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';

@@ -9,6 +9,7 @@ import '../providers/department_provider.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/sharedContactList_provider.dart';
+import '../screens/contactPersonDetail.dart';
 import '../screens/editContactPerson_screen.dart';
 
 class SharedContactItem extends StatefulWidget {
@@ -78,6 +79,8 @@ class _SharedContactItemState extends State<SharedContactItem> {
                 .id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
+       onTap: () => Navigator.pushNamed(context, ContactPersonDetailScreen.routeName,
+                  arguments: widget.id),
         title: Text(widget.userName),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

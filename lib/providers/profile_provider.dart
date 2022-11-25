@@ -133,6 +133,8 @@ class ProfileProvider with ChangeNotifier {
         orElse: () => null);
   }
 
+
+
   Profile findByNonAdminId(String id) {
     return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
         orElse: () => null);

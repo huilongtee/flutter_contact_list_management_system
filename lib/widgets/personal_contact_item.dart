@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
+import '../screens/contactPersonDetail.dart';
 import '../screens/editContactPerson_screen.dart';
 //launch phone call indirectly
 import 'package:url_launcher/url_launcher.dart';
@@ -97,6 +98,8 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
                 .id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
+        onTap: () => Navigator.pushNamed(context, ContactPersonDetailScreen.routeName,
+                  arguments: widget.id),
         title: Text(widget.userName),
         leading: widget.imageUrl.isEmpty
             ? CircleAvatar(

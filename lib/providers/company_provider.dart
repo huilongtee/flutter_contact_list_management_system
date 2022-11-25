@@ -22,6 +22,7 @@ class CompanyProvider with ChangeNotifier {
 
   List<Company> _companies = [];
   List<Profile> _profile = [];
+  String _companyNameResult = '';
 
   CompanyProvider(this.authToken, this._companies);
 
@@ -31,6 +32,14 @@ class CompanyProvider with ChangeNotifier {
 
   List<Profile> get profile {
     return [..._profile];
+  }
+
+  // String get getCompanyName {
+  //   return companyName;
+  // }
+
+  String get getCompanyName {
+    return _companyNameResult;
   }
 
   Future<void> fetchAndSetCompany() async {
@@ -65,9 +74,35 @@ class CompanyProvider with ChangeNotifier {
     }
   }
 
+  //fetch company name by searching company id
+  Future<void> fetchAndSetCompanyName(String companyID) async {
+    final url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
+
+    try {
+      final response = await http.get(url);
+      final extractedData = json.decode(response.body) as Map<String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
+      if (extractedData == null) {
+        return null;
+      }
+
+      extractedData.forEach((companyId, companyData) {
+        if (companyId == 'companyName') {
+          print('entered');
+          _companyNameResult = companyData;
+        }
+      });
+      notifyListeners();
+    } catch (error) {
+      print(error);
+
+      throw (error);
+    }
+  }
+
   Future<void> addCompany(Company newCompany, Profile oldProfile,
       List<Profile> entireProfileList) async {
-
     final id = oldProfile.id;
 
     final profileIndex = entireProfileList.indexWhere((prof) => prof.id == id);
@@ -108,7 +143,6 @@ class CompanyProvider with ChangeNotifier {
               companyAdminId: id,
             );
             _companies.add(addedCompany);
-
 
             await http.patch(userUrl, //update data
                 body: json.encode({

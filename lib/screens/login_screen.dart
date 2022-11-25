@@ -24,8 +24,8 @@ class LoginScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color.fromRGBO(255, 188, 117, 1),
-                  Color.fromRGBO(255, 188, 117, 1).withOpacity(0.5),
+                  Color.fromARGB(255, 150, 41, 246),
+                  Color.fromARGB(255, 150, 41, 246).withOpacity(0.5),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -49,6 +49,8 @@ class LoginScreen extends StatelessWidget {
                         style: TextStyle(
                           color:
                               Theme.of(context).accentTextTheme.headline1.color,
+                              // Theme.of(context).primaryTextTheme.headline1.color,
+
                           fontSize: 50,
                           fontFamily: 'Anton',
                           fontWeight: FontWeight.normal,

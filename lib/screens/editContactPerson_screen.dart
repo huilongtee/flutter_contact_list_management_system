@@ -18,23 +18,24 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
   var _isLoading = false;
   var _isInit = true;
   final _form = GlobalKey<FormState>();
-  var _editedContactPersonDetail = Profile(
-    id: null,
+
+  var _editedRole = Role(id: '', roleName: '');
+  var _editedDepartment = Department(id: '', departmentName: '');
+
+  List<Role> loadedRole = [];
+  List<Department> loadedDepartment = [];
+  var contactPersonID;
+  var contactPerson = Profile(
+    id: '',
     fullName: '',
-    phoneNumber: '',
-    homeAddress: '',
     emailAddress: '',
+    homeAddress: '',
+    phoneNumber: '',
     imageUrl: '',
     companyId: '',
     roleId: '',
     departmentId: '',
   );
-
-  List<Role> loadedRole = [];
-  List<Department> loadedDepartment = [];
-  Role _role = null;
-  Department _department = null;
-
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -42,32 +43,31 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
         _isLoading = true;
       });
 
-      final contactPersonID =
-          ModalRoute.of(context).settings.arguments as String;
-      final contactPerson =
+      contactPersonID = ModalRoute.of(context).settings.arguments as String;
+      contactPerson =
           Provider.of<SharedContactListProvider>(context, listen: false)
               .findById(contactPersonID);
 
-      _role = Provider.of<RoleProvider>(context, listen: false)
-          .findById(contactPerson.roleId);
-
-      _department = Provider.of<DepartmentProvider>(context, listen: false)
-          .findById(contactPerson.departmentId);
-
+      // role and department list getter
       loadedRole = Provider.of<RoleProvider>(context, listen: false).roleList;
       loadedDepartment = Provider.of<DepartmentProvider>(context, listen: false)
           .departmentList;
-      _editedContactPersonDetail = Profile(
-        id: contactPersonID,
-        fullName: contactPerson.fullName,
-        phoneNumber: contactPerson.phoneNumber,
-        emailAddress: contactPerson.emailAddress,
-        homeAddress: contactPerson.homeAddress,
-        imageUrl: contactPerson.imageUrl,
-        companyId: contactPerson.companyId,
-        roleId: contactPerson.roleId,
-        departmentId: contactPerson.departmentId,
-      );
+
+//check the current assigned role to this user
+      final _role = Provider.of<RoleProvider>(context, listen: false)
+          .findById(contactPerson.roleId);
+      _editedRole = Role(
+          id: _role == null ? null : _role.id,
+          roleName: _role == null ? null : _role.roleName);
+
+//check the current assigned department to this user
+      final _department =
+          Provider.of<DepartmentProvider>(context, listen: false)
+              .findById(contactPerson.departmentId);
+      _editedDepartment = Department(
+          id: _department == null ? null : _department.id,
+          departmentName:
+              _department == null ? null : _department.departmentName);
 
       setState(() {
         _isLoading = false;
@@ -87,13 +87,11 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
     setState(() {
       _isLoading = true;
     });
-    if (_editedContactPersonDetail.id != null) {
-      await Provider.of<SharedContactListProvider>(context, listen: false)
-          .editContactPerson(
-              _editedContactPersonDetail.id, _editedContactPersonDetail);
 
-      Navigator.of(context).pop();
-    }
+    await Provider.of<SharedContactListProvider>(context, listen: false)
+        .editContactPerson(contactPersonID, _editedRole, _editedDepartment,contactPerson);
+
+    Navigator.of(context).pop();
 
     setState(() {
       _isLoading = false;
@@ -127,30 +125,16 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Role'),
                           isExpanded: true,
-                          value: _editedContactPersonDetail.roleId,
+                          value: _editedRole.id==null?loadedRole[0]:_editedRole,
                           items: loadedRole.map((Role roles) {
-                            return DropdownMenuItem<String>(
+                            return DropdownMenuItem<Role>(
                               child: Text(roles.roleName),
-                              value: roles.id,
+                              value: roles,
                             );
                           }).toList(),
                           onChanged: (value) {
                             setState(() {
-                              _editedContactPersonDetail = Profile(
-                                id: _editedContactPersonDetail.id,
-                                fullName: _editedContactPersonDetail.fullName,
-                                phoneNumber:
-                                    _editedContactPersonDetail.phoneNumber,
-                                emailAddress:
-                                    _editedContactPersonDetail.emailAddress,
-                                homeAddress:
-                                    _editedContactPersonDetail.homeAddress,
-                                imageUrl: _editedContactPersonDetail.imageUrl,
-                                companyId: _editedContactPersonDetail.companyId,
-                                roleId: value,
-                                departmentId:
-                                    _editedContactPersonDetail.departmentId,
-                              );
+                             _editedRole = value;
                             });
                           },
                         ),
@@ -159,29 +143,16 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Department'),
                           isExpanded: true,
-                          value: _editedContactPersonDetail,
+                          value: _editedDepartment.id==null?loadedDepartment[0]:_editedDepartment,
                           items: loadedDepartment.map((Department departments) {
-                            return DropdownMenuItem<String>(
+                            return DropdownMenuItem<Department>(
                               child: Text(departments.departmentName),
-                              value: departments.id,
+                              value: departments,
                             );
                           }).toList(),
                           onChanged: (value) {
                             setState(() {
-                              _editedContactPersonDetail = Profile(
-                                id: _editedContactPersonDetail.id,
-                                fullName: _editedContactPersonDetail.fullName,
-                                phoneNumber:
-                                    _editedContactPersonDetail.phoneNumber,
-                                emailAddress:
-                                    _editedContactPersonDetail.emailAddress,
-                                homeAddress:
-                                    _editedContactPersonDetail.homeAddress,
-                                imageUrl: _editedContactPersonDetail.imageUrl,
-                                companyId: _editedContactPersonDetail.companyId,
-                                roleId: _editedContactPersonDetail.roleId,
-                                departmentId: value,
-                              );
+                              _editedDepartment = value;
                             });
                           },
                         ),

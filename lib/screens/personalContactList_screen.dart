@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../screens/viewContactPerson_screen.dart';
+// import '../screens/viewContactPerson_screen.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
@@ -31,16 +34,19 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   var _filledData = '';
   var _isInit = true;
   var _editedProfile = '';
+  
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
+
       Provider.of<PersonalContactListProvider>(context)
           .fetchAndSetPersonalContactList();
       _contactPerson =
-          Provider.of<PersonalContactListProvider>(context,).personalContactList;
+          Provider.of<PersonalContactListProvider>(context).personalContactList;
       setState(() {
         _isLoading = false;
       });
@@ -125,7 +131,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(_contactPerson);
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),

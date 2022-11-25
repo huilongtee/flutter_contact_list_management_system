@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_list_management_system/providers/company_provider.dart';
 import 'package:provider/provider.dart';
-import '../providers/administrator_provider.dart';
+// import '../providers/administrator_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
 import '../widgets/administrator_app_drawer.dart';
@@ -29,7 +29,8 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
   };
   List<Profile> loadedNonAdmin = [];
 
-  Profile selectedValue = null;
+  Profile selectedValue;
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -38,14 +39,14 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
       });
 
       final companyId = ModalRoute.of(context).settings.arguments as String;
-      // final profileList = ModalRoute.of(context).settings.arguments as List;
-      // entireProfileList = profileList;
+      //if company id not null, means the company has been created before
       if (companyId != null) {
         _editedCompany = Provider.of<CompanyProvider>(context, listen: false)
             .findById(companyId);
         selectedValue = Provider.of<ProfileProvider>(context, listen: false)
             .findByNonAdminId(_editedCompany.companyAdminId);
-        
+
+        // print(selectedValue.id);
         _initValue = {
           'companyName': _editedCompany.companyName,
           'companyAdminId': _editedCompany.companyAdminId,
@@ -54,8 +55,6 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
           _isLoading = false;
         });
       } else {
-        // Provider.of<ProfileProvider>(context, listen: false)
-        //     .fetchAndSetNonAdmin();
         loadedNonAdmin =
             Provider.of<ProfileProvider>(context, listen: false).nonAdmin;
         setState(() {
@@ -118,6 +117,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // selectedValue = null;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -201,7 +201,6 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Company Admin'),
                           isExpanded: true,
-                          value: selectedValue,
                           items: loadedNonAdmin.map((Profile items) {
                             return DropdownMenuItem<Profile>(
                               child: Text(
@@ -209,6 +208,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                               value: items,
                             );
                           }).toList(),
+                          value: selectedValue,
                           onChanged: (value) {
                             setState(() {
                               selectedValue = value;
