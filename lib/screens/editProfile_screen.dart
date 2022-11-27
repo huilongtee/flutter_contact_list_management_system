@@ -48,10 +48,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     'roleId': '',
     'departmentId': '',
   };
+  var userId = '';
   @override
   void initState() {
     _imageUrlFocusNode.addListener(_updateImageUrl);
     super.initState();
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('An Error Occurred'),
+        content: Text(message),
+        actions: [
+          FlatButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Okay'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -60,10 +79,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_isInit) {
       final contactPersonId =
           ModalRoute.of(context).settings.arguments as String;
+      userId = contactPersonId;
+
       if (contactPersonId != null) {
         _editedProfile = Provider.of<ProfileProvider>(context, listen: false)
             .findById(contactPersonId);
-
         _initValue = {
           'fullName': _editedProfile.fullName,
           'phoneNumber': _editedProfile.phoneNumber,
@@ -99,11 +119,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future imagePickerMethod() async {
     final pick = await imagePicker.pickImage(source: ImageSource.gallery);
+
     setState(() {
-      if (pick != null) {
-        _image = File(pick.path);
-      } else {}
+      _image = File(pick.path);
+      print('image path' + _image.toString());
     });
+
+    //Get a reference to storage root
+    Reference ref = FirebaseStorage.instance.ref();
+    Reference referenceDirImages = ref.child('images');
+
+    //create a reference for the image to be stored
+    Reference referenceImageToUpload = referenceDirImages.child(userId);
+
+    await referenceImageToUpload.putFile(_image);
+    String downloadURL = await referenceImageToUpload.getDownloadURL();
+    print(downloadURL);
+    return downloadURL;
   }
 
 //================================== Image Picker End ==============================================//
@@ -325,82 +357,82 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       ),
                                     ),
                             ),
-                            Expanded(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: 'Image URL',
+                            // Expanded(
+                            //   child: TextFormField(
+                            //     decoration: InputDecoration(
+                            //       labelText: 'Image URL',
+                            //     ),
+                            //     keyboardType: TextInputType.url,
+                            //     textInputAction: TextInputAction.done,
+                            //     controller:
+                            //         _imageUrlController, //if you have controller then you shopuld not have initial value
+                            //     onEditingComplete: () {
+                            //       setState(() {});
+                            //     },
+                            //     focusNode: _imageUrlFocusNode,
+                            //     onFieldSubmitted: (_) {
+                            //       //why don't just use _saveForm instead, because _saveForm function doesn't take String input, and _saveForm is String format
+                            //       _saveForm();
+                            //     },
+                            //     validator: (value) {
+                            //       // return null;//it means no problem
+
+                            //       if (!value.isEmpty &&
+                            //           !value.startsWith('http') &&
+                            //           !value.startsWith('https')) {
+                            //         return 'Please provide a valid URL';
+                            //       }
+                            //       if (!value.isEmpty &&
+                            //           !value.endsWith('.png') &&
+                            //           !value.endsWith('.jpeg') &&
+                            //           !value.endsWith('.jpg')) {
+                            //         return 'Please provide a valid image URL';
+                            //       }
+                            //       return null;
+                            //     },
+                            //     onSaved: (value) {
+                            //       _editedProfile = Profile(
+                            //         fullName: _editedProfile.fullName,
+                            //         homeAddress: _editedProfile.homeAddress,
+                            //         phoneNumber: _editedProfile.phoneNumber,
+                            //         emailAddress: _editedProfile.emailAddress,
+                            //         imageUrl: value,
+                            //         id: _editedProfile.id,
+                            //         companyId: _editedProfile.companyId,
+                            //         roleId: _editedProfile.roleId,
+                            //         departmentId: _editedProfile.departmentId,
+                            //       );
+                            //     },
+                            //   ),
+                            // ),
+//====================================== Image Picker start ========================================//
+
+                            Row(
+                              children: [
+                                Container(
+                                  height: 70,
+                                  width: 70,
+                                  margin: const EdgeInsets.only(
+                                      left: 20, right: 20),
+                                  child: _image == null
+                                      ? const Center(
+                                          child: Text('No Image'),
+                                        )
+                                      : CircleAvatar(
+                                          child: Image.file(_image),
+                                        ),
                                 ),
-                                keyboardType: TextInputType.url,
-                                textInputAction: TextInputAction.done,
-                                controller:
-                                    _imageUrlController, //if you have controller then you shopuld not have initial value
-                                onEditingComplete: () {
-                                  setState(() {});
-                                },
-                                focusNode: _imageUrlFocusNode,
-                                onFieldSubmitted: (_) {
-                                  //why don't just use _saveForm instead, because _saveForm function doesn't take String input, and _saveForm is String format
-                                  _saveForm();
-                                },
-                                validator: (value) {
-                                  // return null;//it means no problem
-
-                                  if (!value.isEmpty &&
-                                      !value.startsWith('http') &&
-                                      !value.startsWith('https')) {
-                                    return 'Please provide a valid URL';
-                                  }
-                                  if (!value.isEmpty &&
-                                      !value.endsWith('.png') &&
-                                      !value.endsWith('.jpeg') &&
-                                      !value.endsWith('.jpg')) {
-                                    return 'Please provide a valid image URL';
-                                  }
-                                  return null;
-                                },
-                                onSaved: (value) {
-                                  _editedProfile = Profile(
-                                    fullName: _editedProfile.fullName,
-                                    homeAddress: _editedProfile.homeAddress,
-                                    phoneNumber: _editedProfile.phoneNumber,
-                                    emailAddress: _editedProfile.emailAddress,
-                                    imageUrl: value,
-                                    id: _editedProfile.id,
-                                    companyId: _editedProfile.companyId,
-                                    roleId: _editedProfile.roleId,
-                                    departmentId: _editedProfile.departmentId,
-                                  );
-                                },
-                              ),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    imagePickerMethod();
+                                  },
+                                  child: Text('Select Image'),
+                                ),
+                              ],
                             ),
+//====================================== Image Picker end ========================================//
                           ],
-                        )
-
-//====================================== Image Picker ========================================//
-
-                        // Row(
-                        //   children: [
-                        //     Container(
-                        //       height: 70,
-                        //       width: 70,
-                        //       margin:
-                        //           const EdgeInsets.only(left: 20, right: 20),
-                        //       child: _image == null
-                        //           ? const Center(
-                        //               child: Text('No Image'),
-                        //             )
-                        //           : CircleAvatar(
-                        //               child: Image.file(_image),
-                        //             ),
-                        //     ),
-                        //     ElevatedButton(
-                        //       onPressed: () {
-                        //         imagePickerMethod();
-                        //       },
-                        //       child: Text('Select Image'),
-                        //     ),
-                        //   ],
-                        // ),
+                        ),
                       ],
                     ),
                   ),

@@ -103,6 +103,8 @@ class _SharedContactItemState extends State<SharedContactItem> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 28,
+                    color: Colors.white,
+
                   ),
                 ),
               )

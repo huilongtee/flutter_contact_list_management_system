@@ -109,6 +109,7 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 28,
+                    color: Colors.white,
                   ),
                 ),
               )

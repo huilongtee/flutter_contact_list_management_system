@@ -214,35 +214,35 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                             SizedBox(
                               height: 20,
                             ),
-                            _contactPerson.companyId.isEmpty
-                                ? null
-                                : Row(
+                            Row(
+                              children: [
+                                ProfileWidget(
+                                  size: 25,
+                                  width: 50,
+                                  height: 50,
+                                  bgColor: Theme.of(context).primaryColor,
+                                  index: 3,
+                                  borderColor: Colors.grey,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      ProfileWidget(
-                                        size: 25,
-                                        width: 50,
-                                        height: 50,
-                                        bgColor: Theme.of(context).primaryColor,
-                                        index: 3,
-                                        borderColor: Colors.grey,
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              companyNameResult,
-                                              style: TextStyle(fontSize: 18),
-                                            ),
-                                          ],
-                                        ),
+                                      Text(
+                                        companyNameResult.isEmpty
+                                            ? ''
+                                            : companyNameResult,
+                                        style: TextStyle(fontSize: 18),
                                       ),
                                     ],
                                   ),
+                                ),
+                              ],
+                            ),
                             SizedBox(
                               height: 20,
                             ),

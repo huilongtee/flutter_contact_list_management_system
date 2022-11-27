@@ -76,6 +76,7 @@ class CompanyProvider with ChangeNotifier {
 
   //fetch company name by searching company id
   Future<void> fetchAndSetCompanyName(String companyID) async {
+    // _companyNameResult = '';
     final url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
 

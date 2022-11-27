@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
@@ -25,12 +26,19 @@ import '../screens/department_screen.dart';
 import '../screens/addRole_screen.dart';
 import '../screens/addDepartment_screen.dart';
 
-void main() => runApp(MyApp());
+// void main() => runApp(MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
+      
       providers: [
         ChangeNotifierProvider(
           create: (context) => AuthProvider(),
@@ -111,7 +119,7 @@ class MyApp extends StatelessWidget {
           title: 'My-List',
           theme: ThemeData(
             // primaryColor: Color.fromARGB(255, 255, 196, 0),
-            primaryColor: Color.fromARGB(255, 150, 41, 246),
+            primaryColor: Color.fromARGB(255, 154, 77, 22),
 
             fontFamily: 'Lato',
             textTheme: ThemeData.light().textTheme.copyWith(
@@ -147,7 +155,7 @@ class MyApp extends StatelessWidget {
             AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
             EditContactPersonScreen.routeName: (context) =>
                 EditContactPersonScreen(),
-                ContactPersonDetailScreen.routeName: (context) =>
+            ContactPersonDetailScreen.routeName: (context) =>
                 ContactPersonDetailScreen(),
           },
         ),

@@ -30,7 +30,6 @@ class ProfileProvider with ChangeNotifier {
     final searchTerm =
         filterByCompanyID ? '' : 'orderBy="companyID"&equalTo=""';
 
-
     var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
@@ -133,20 +132,25 @@ class ProfileProvider with ChangeNotifier {
         orElse: () => null);
   }
 
-
-
   Profile findByNonAdminId(String id) {
     return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
         orElse: () => null);
   }
 // //======================================= Store image Start =========================================//
 
-//   Future<String> uploadImage(File image) async {
-//     Reference ref = FirebaseStorage.instance.ref().child("$userId/images");
-//     await ref.putFile(image);
-//     String downloadURL = await ref.getDownloadURL();
-//     return downloadURL;
-//   }
+  // Future<String> uploadImage(File image) async {
+  //   //Get a reference to storage root
+  //   Reference ref = FirebaseStorage.instance.ref();
+  //   Reference referenceDirImages = ref.child('images');
+
+  //   //create a reference for the image to be stored
+  //   Reference referenceImageToUpload = referenceDirImages.child(userId);
+
+  //   await ref.putFile(image);
+  //   String downloadURL = await ref.getDownloadURL();
+
+  //   return downloadURL;
+  // }
 
 //======================================= Store image End =========================================//
 

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "271212292056",
+    "firebase_url": "https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "eclms-9fed2",
+    "storage_bucket": "eclms-9fed2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:271212292056:android:8bcc2be98a64c30f9674ad",
+        "android_client_info": {
+          "package_name": "com.example.flutter_contact_list_management_system"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "271212292056-bbqv73mg5kealak0k4gak15r39lt1mo1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVzN50hMsk89SZSKL5-oW2ePUMTXXaC3w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "271212292056-bbqv73mg5kealak0k4gak15r39lt1mo1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

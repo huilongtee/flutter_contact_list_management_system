@@ -53,22 +53,6 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
       loadedDepartment = Provider.of<DepartmentProvider>(context, listen: false)
           .departmentList;
 
-//check the current assigned role to this user
-      final _role = Provider.of<RoleProvider>(context, listen: false)
-          .findById(contactPerson.roleId);
-      _editedRole = Role(
-          id: _role == null ? null : _role.id,
-          roleName: _role == null ? null : _role.roleName);
-
-//check the current assigned department to this user
-      final _department =
-          Provider.of<DepartmentProvider>(context, listen: false)
-              .findById(contactPerson.departmentId);
-      _editedDepartment = Department(
-          id: _department == null ? null : _department.id,
-          departmentName:
-              _department == null ? null : _department.departmentName);
-
       setState(() {
         _isLoading = false;
         _isInit = false;
@@ -89,7 +73,8 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
     });
 
     await Provider.of<SharedContactListProvider>(context, listen: false)
-        .editContactPerson(contactPersonID, _editedRole, _editedDepartment,contactPerson);
+        .editContactPerson(
+            contactPersonID, _editedRole, _editedDepartment, contactPerson);
 
     Navigator.of(context).pop();
 
@@ -100,6 +85,20 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
 
   @override
   Widget build(BuildContext context) {
+//check the current assigned role to this user
+    final _role = Provider.of<RoleProvider>(context, listen: false)
+        .findById(contactPerson.roleId);
+    _editedRole = Role(
+        id: _role == null ? null : _role.id,
+        roleName: _role == null ? null : _role.roleName);
+
+//check the current assigned department to this user
+    final _department = Provider.of<DepartmentProvider>(context, listen: false)
+        .findById(contactPerson.departmentId);
+    _editedDepartment = Department(
+        id: _department == null ? null : _department.id,
+        departmentName:
+            _department == null ? null : _department.departmentName);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -125,7 +124,9 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Role'),
                           isExpanded: true,
-                          value: _editedRole.id==null?loadedRole[0]:_editedRole,
+                          value: _editedRole.id == null
+                              ? loadedRole[0]
+                              : _editedRole,
                           items: loadedRole.map((Role roles) {
                             return DropdownMenuItem<Role>(
                               child: Text(roles.roleName),
@@ -134,7 +135,7 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                           }).toList(),
                           onChanged: (value) {
                             setState(() {
-                             _editedRole = value;
+                              _editedRole = value;
                             });
                           },
                         ),
@@ -143,7 +144,9 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Department'),
                           isExpanded: true,
-                          value: _editedDepartment.id==null?loadedDepartment[0]:_editedDepartment,
+                          value: _editedDepartment.id == null
+                              ? loadedDepartment[0]
+                              : _editedDepartment,
                           items: loadedDepartment.map((Department departments) {
                             return DropdownMenuItem<Department>(
                               child: Text(departments.departmentName),
