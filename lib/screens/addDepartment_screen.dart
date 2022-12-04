@@ -94,7 +94,7 @@ class _AddDepartmentScreenState extends State<AddDepartmentScreen> {
                   title: Text('An error occurred'),
                   content: Text('Something went wrong'),
                   actions: [
-                    FlatButton(
+                    TextButton(
                         onPressed: () {
                           Navigator.of(ctx)
                               .pop(); //once this show dialog pop, then will only execute the then function

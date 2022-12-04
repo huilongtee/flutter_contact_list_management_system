@@ -57,13 +57,13 @@ class _SharedContactItemState extends State<SharedContactItem> {
             content: Text(
                 'Do you want to remove this contact person from the contact list'),
             actions: [
-              FlatButton(
+              TextButton(
                 child: Text('No'),
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
               ),
-              FlatButton(
+              TextButton(
                 child: Text('Yes'),
                 onPressed: () {
                   Navigator.of(context).pop(true);

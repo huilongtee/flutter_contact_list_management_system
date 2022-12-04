@@ -100,12 +100,13 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                   title: Text('An error occurred'),
                   content: Text('Something went wrong'),
                   actions: [
-                    FlatButton(
-                        onPressed: () {
-                          Navigator.of(ctx)
-                              .pop(); //once this show dialog pop, then will only execute the then function
-                        },
-                        child: Text('Okey'))
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx)
+                            .pop(); //once this show dialog pop, then will only execute the then function
+                      },
+                      child:Text('OK'),
+                    ),
                   ],
                 ));
       }

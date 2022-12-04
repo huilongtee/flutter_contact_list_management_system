@@ -97,6 +97,13 @@ class AuthProvider with ChangeNotifier {
                   if (administratorResponseData['error'] != null) {
                     throw HttpException(responseData['error']['message']);
                   }
+
+
+
+
+
+
+                  
                   _isAdministrator = true;
                   // notifyListeners();
                 } catch (error) {

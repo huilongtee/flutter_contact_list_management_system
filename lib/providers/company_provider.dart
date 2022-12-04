@@ -145,23 +145,70 @@ class CompanyProvider with ChangeNotifier {
             );
             _companies.add(addedCompany);
 
-            await http.patch(userUrl, //update data
-                body: json.encode({
-                  'companyID': companyId.toString(),
-                })); //merge data that is incoming and the data that existing in the database
-            entireProfileList[profileIndex] = oldProfile;
-            notifyListeners();
+            //create role called company admin for this company
+            final createRoleUrl = Uri.parse(
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
+            try {
+              final createRoleResponse = await http.post(
+                  createRoleUrl, //add data
+                  body: json.encode({
+                    'companyid': companyId,
+                    'roleName': 'Admin',
+                  })); //merge data that is incoming and the data that existing in the database
+
+              final createRoleResponseData =
+                  json.decode(createRoleResponse.body) as Map<String, dynamic>;
+              if (responseData['error'] != null) {
+                throw HttpException(createRoleResponseData['error']['message']);
+              }
+              var roleId = '';
+              createRoleResponseData.forEach((id, createRoleResponseData) {
+                roleId = createRoleResponseData;
+              });
+
+              //assign this role for this admin, wo indicate this user role is admin
+              await http.patch(userUrl, //update data
+                  body: json.encode({
+                    'companyID': companyId.toString(),
+                    'roleID': roleId,
+                  }));
+              entireProfileList[profileIndex] = oldProfile;
+
+              //add into shared contact list
+              final addIntoSharedContactListUrl = Uri.parse(
+                  'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+              try {
+                final addIntoSharedContactListResponse = await http.post(
+                    addIntoSharedContactListUrl, //add data
+                    body: json.encode({
+                      'companyid': companyId,
+                      'operatorID': id,
+                    })); //merge data that is incoming and the data that existing in the database
+
+                final addIntoSharedContactListResponseData =
+                    json.decode(addIntoSharedContactListResponse.body)
+                        as Map<String, dynamic>;
+                if (responseData['error'] != null) {
+                  throw HttpException(
+                      addIntoSharedContactListResponseData['error']['message']);
+                }
+
+                notifyListeners();
+              } catch (error) {
+                throw HttpException(error);
+              }
+            } catch (error) {
+              throw HttpException(error);
+            }
           } catch (error) {
-            print(error);
-            throw error;
+            throw HttpException(error);
           }
         }
       } catch (error) {
-        print(error);
-        throw error;
+        throw HttpException(error);
       }
     } else {
-      print('nothing fetched');
+      throw HttpException('Something wrong');
     }
   }
 

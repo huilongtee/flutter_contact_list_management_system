@@ -220,7 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: Text('An Error Occurred'),
         content: Text(message),
         actions: [
-          FlatButton(
+          TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },

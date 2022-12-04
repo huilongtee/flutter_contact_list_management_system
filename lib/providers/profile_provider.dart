@@ -55,6 +55,7 @@ class ProfileProvider with ChangeNotifier {
             departmentId: profileData['departmentID'],
             companyId: profileData['companyID'],
             imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
           ),
         );
         _nonAdmin = loadedProfile;
@@ -97,6 +98,7 @@ class ProfileProvider with ChangeNotifier {
             departmentId: profileData['departmentID'],
             companyId: profileData['companyID'],
             imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
           ),
         );
         _profile = loadedProfile;
@@ -127,6 +129,56 @@ class ProfileProvider with ChangeNotifier {
   //   );
   //   notifyListeners();
   // }
+ //======================================= Update image URL Start =========================================//
+
+  Future<void> uploadImage(String imageUrl, Profile newProfile) async {
+   
+
+    final profileIndex =
+        _profile.indexWhere((prof) => prof.id == newProfile.id);
+
+    if (profileIndex >= 0) {
+      final updateUrl = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
+
+      await http.patch(updateUrl, //update data
+          body: json.encode({
+            'imageUrl': imageUrl,
+          })); //merge data that is incoming and the data that existing in the database
+
+      _profile[profileIndex] = newProfile;
+      notifyListeners();
+    } else {
+      print('...');
+    }
+  }
+ //======================================= Update image URL End =========================================//
+
+ //======================================= Update QR image URL Start =========================================//
+
+  Future<void> uploadQRImage(String qrUrl, Profile newProfile) async {
+
+
+    final profileIndex =
+        _profile.indexWhere((prof) => prof.id == newProfile.id);
+
+    if (profileIndex >= 0) {
+      final updateUrl = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
+
+      await http.patch(updateUrl, //update data
+          body: json.encode({
+            'qrUrl': qrUrl,
+          })); //merge data that is incoming and the data that existing in the database
+
+      _profile[profileIndex] = newProfile;
+      notifyListeners();
+    } else {
+      print('...');
+    }
+  }
+ //======================================= Update image URL End =========================================//
+
   Profile findById(String id) {
     return _profile.firstWhere((profile) => profile.id == id,
         orElse: () => null);
@@ -136,23 +188,6 @@ class ProfileProvider with ChangeNotifier {
     return _nonAdmin.firstWhere((nonAdmin) => nonAdmin.id == id,
         orElse: () => null);
   }
-// //======================================= Store image Start =========================================//
-
-  // Future<String> uploadImage(File image) async {
-  //   //Get a reference to storage root
-  //   Reference ref = FirebaseStorage.instance.ref();
-  //   Reference referenceDirImages = ref.child('images');
-
-  //   //create a reference for the image to be stored
-  //   Reference referenceImageToUpload = referenceDirImages.child(userId);
-
-  //   await ref.putFile(image);
-  //   String downloadURL = await ref.getDownloadURL();
-
-  //   return downloadURL;
-  // }
-
-//======================================= Store image End =========================================//
 
   Future<void> updateProfile(String id, Profile newProfile) async {
     // Future<String> imageURL = uploadImage(image);

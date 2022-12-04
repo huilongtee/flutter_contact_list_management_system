@@ -72,6 +72,8 @@ class SharedContactListProvider with ChangeNotifier {
               departmentId: profileData['departmentID'],
               companyId: profileData['companyID'],
               imageUrl: profileData['imageUrl'],
+          qrUrl: profileData['qrUrl'],
+
             ),
           );
         }
@@ -87,6 +89,8 @@ class SharedContactListProvider with ChangeNotifier {
 
   /*==================================== get a list of collegues id ============================================*/
   Future<void> fetchAndSetSharedContactList() async {
+    String userID = '';
+
     //check whether current user got companyID
     // var checkCompanyIDUrl = Uri.parse(
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
@@ -108,6 +112,8 @@ class SharedContactListProvider with ChangeNotifier {
       //get current user companyID
       checkCompanyIDExtractedData.forEach((id, contactPersonData) {
         companyID = contactPersonData['companyID'];
+        userID = id;
+        print(userID);
       });
       //fetch all colleague userId based on the company id
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
@@ -125,9 +131,13 @@ class SharedContactListProvider with ChangeNotifier {
 
         //get all contact person userID
         extractedData.forEach((id, contactPersonID) {
-          loadedContactPersonID.add(
-            contactPersonID['operatorID'],
-          );
+          if (contactPersonID['operatorID'] != userID) {
+            loadedContactPersonID.add(
+              contactPersonID['operatorID'],
+            );
+          } else {
+            print('found');
+          }
         });
 
 //pass the contact person userID list to fetch their whole profile details
@@ -136,7 +146,6 @@ class SharedContactListProvider with ChangeNotifier {
         notifyListeners();
       } catch (error) {
         print(error);
-
         throw (error);
       }
     } catch (error) {
@@ -300,6 +309,7 @@ class SharedContactListProvider with ChangeNotifier {
           departmentId: profileData['departmentID'],
           companyId: profileData['companyID'],
           imageUrl: profileData['imageUrl'],
+          qrUrl: profileData['qrUrl'],
         );
       });
 
@@ -345,7 +355,8 @@ class SharedContactListProvider with ChangeNotifier {
         homeAddress: oldProfile.homeAddress,
         phoneNumber: oldProfile.phoneNumber,
         imageUrl: oldProfile.imageUrl,
-        companyId: companyId,
+        qrUrl: oldProfile.qrUrl,
+         companyId: companyId,
         roleId: newRole.id,
         departmentId: newDepartment.id,
       );

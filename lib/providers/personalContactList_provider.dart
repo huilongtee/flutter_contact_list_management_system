@@ -66,6 +66,7 @@ class PersonalContactListProvider with ChangeNotifier {
               departmentId: profileData['departmentID'],
               companyId: profileData['companyID'],
               imageUrl: profileData['imageUrl'],
+              qrUrl: profileData['qrUrl'],
             ),
           );
         }
@@ -138,6 +139,7 @@ class PersonalContactListProvider with ChangeNotifier {
           departmentId: profileData['departmentID'],
           companyId: profileData['companyID'],
           imageUrl: profileData['imageUrl'],
+          qrUrl: profileData['qrUrl'],
         );
       });
 

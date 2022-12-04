@@ -7,6 +7,7 @@ class Profile with ChangeNotifier{
   final String homeAddress;
   final String phoneNumber;
   final String imageUrl;
+  final String qrUrl;
   final String companyId;
   final String roleId;
   final String departmentId;
@@ -18,6 +19,7 @@ class Profile with ChangeNotifier{
     @required this.homeAddress,
     @required this.phoneNumber,
     @required this.imageUrl,
+    @required this.qrUrl,
     @required this.companyId,
     @required this.roleId,
     @required this.departmentId,

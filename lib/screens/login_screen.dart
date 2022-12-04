@@ -49,7 +49,7 @@ class LoginScreen extends StatelessWidget {
                         style: TextStyle(
                           color:
                               Theme.of(context).accentTextTheme.headline1.color,
-                              // Theme.of(context).primaryTextTheme.headline1.color,
+                          // Theme.of(context).primaryTextTheme.headline1.color,
 
                           fontSize: 50,
                           fontFamily: 'Anton',
@@ -98,7 +98,7 @@ class _AuthCardState extends State<AuthCard> {
         title: Text('An Error Occurred'),
         content: Text(message),
         actions: [
-          FlatButton(
+          TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -212,26 +212,34 @@ class _AuthCardState extends State<AuthCard> {
                   SizedBox(
                     height: 20,
                   ),
-                RaisedButton(
-                  child: Text('LOGIN',style: TextStyle(color: Colors.white,),),
-                  onPressed: _submit,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                ElevatedButton(
+                  child: Text(
+                    'LOGIN',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
                   ),
-                  padding:
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),padding:
                       EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
-                  color: Theme.of(context).primaryColor,
+                  foregroundColor: Theme.of(context).primaryColor,),
+                 
                 ),
-                FlatButton(
+                TextButton(
                   child: Text(
                       '${_authMode == AuthMode.Login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
                   onPressed: () {
                     Navigator.pushNamed(context, RegisterScreen.routeName);
                   },
-                  
-                  padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textColor: Theme.of(context).primaryColor,
+                  style: TextButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
+                    foregroundColor: Theme.of(context).primaryColor,
+
+                  ),
                 ),
               ],
             ),

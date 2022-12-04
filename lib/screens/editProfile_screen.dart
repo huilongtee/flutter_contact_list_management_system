@@ -17,7 +17,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _fullNameFocusNode = FocusNode();
   final _phoneNumberFocusNode = FocusNode();
-  final _imageUrlFocusNode = FocusNode();
+  // final _imageUrlFocusNode = FocusNode();
   final _emailAddressFocusNode = FocusNode();
   final _homeAddressFocusNode = FocusNode();
   final _imageUrlController = TextEditingController();
@@ -51,7 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   var userId = '';
   @override
   void initState() {
-    _imageUrlFocusNode.addListener(_updateImageUrl);
+    // _imageUrlFocusNode.addListener(_updateImageUrl);
     super.initState();
   }
 
@@ -62,7 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: Text('An Error Occurred'),
         content: Text(message),
         actions: [
-          FlatButton(
+          TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -104,13 +104,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void dispose() {
     //to reduce the memory usage if already read the data
-    _imageUrlFocusNode.removeListener(_updateImageUrl);
+    // _imageUrlFocusNode.removeListener(_updateImageUrl);
     _fullNameFocusNode.dispose();
     _phoneNumberFocusNode.dispose();
     _emailAddressFocusNode.dispose();
     _homeAddressFocusNode.dispose();
     _imageUrlController.dispose();
-    _imageUrlFocusNode.dispose();
+    _editedProfile.dispose();
+    // _imageUrlFocusNode.dispose();
 
     super.dispose();
   }
@@ -118,7 +119,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 //================================== Image Picker Start ==============================================//
 
   Future imagePickerMethod() async {
-    final pick = await imagePicker.pickImage(source: ImageSource.gallery);
+    final pick = await imagePicker.pickImage(
+        source: ImageSource.gallery, imageQuality: 20);
 
     setState(() {
       _image = File(pick.path);
@@ -134,24 +136,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     await referenceImageToUpload.putFile(_image);
     String downloadURL = await referenceImageToUpload.getDownloadURL();
-    print(downloadURL);
-    return downloadURL;
+    print('downloadURL' + downloadURL);
+    setState(() {
+      _editedProfile = Profile(
+        fullName: _editedProfile.fullName,
+        homeAddress: _editedProfile.homeAddress,
+        phoneNumber: _editedProfile.phoneNumber,
+        emailAddress: _editedProfile.emailAddress,
+        imageUrl: downloadURL,
+        id: _editedProfile.id,
+        companyId: _editedProfile.companyId,
+        roleId: _editedProfile.roleId,
+        departmentId: _editedProfile.departmentId,
+      );
+    });
   }
 
 //================================== Image Picker End ==============================================//
 
-  void _updateImageUrl() {
-    if (!_imageUrlFocusNode.hasFocus) {
-      if ((!_imageUrlController.text.startsWith('http') &&
-              !_imageUrlController.text.startsWith('https')) ||
-          (!_imageUrlController.text.endsWith('.png') &&
-              !_imageUrlController.text.endsWith('.jpeg') &&
-              !_imageUrlController.text.endsWith('.jpg'))) {
-        return; //stop function
-      }
-      setState(() {});
-    }
-  }
+  // void _updateImageUrl() {
+  //   if (!_imageUrlFocusNode.hasFocus) {
+  //     if ((!_imageUrlController.text.startsWith('http') &&
+  //             !_imageUrlController.text.startsWith('https')) ||
+  //         (!_imageUrlController.text.endsWith('.png') &&
+  //             !_imageUrlController.text.endsWith('.jpeg') &&
+  //             !_imageUrlController.text.endsWith('.jpg'))) {
+  //       return; //stop function
+  //     }
+  //     setState(() {});
+  //   }
+  // }
 
   Future<void> _saveForm() async {
     final isValid = _form.currentState.validate(); //trigger all validator
