@@ -52,15 +52,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = true;
       });
 
+//fetch profile based on the userid
       Provider.of<ProfileProvider>(
         context,
         listen: false,
       ).fetchAndSetProfile().then((_) {
+        //get list
         final result = Provider.of<ProfileProvider>(
           context,
           listen: false,
         ).profile;
-        print('id: ' + result[0].id);
+        //filter list using first item in list
         final loadedProfile = Provider.of<ProfileProvider>(
           context,
           listen: false,
@@ -78,28 +80,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           qrUrl: loadedProfile.qrUrl,
         );
 
+        //fetch role based on the userid
         Provider.of<RoleProvider>(context, listen: false)
             .fetchAndSetRoleList()
             .then((_) {
+          //get list
           final result =
               Provider.of<RoleProvider>(context, listen: false).roleList;
+
+          //filter list using first item in list
           final role = Provider.of<RoleProvider>(context, listen: false)
               .findById(result[0].id);
 
           loadedRoleResult = Role(roleName: role.roleName, id: role.id);
 
+          //fetch department based on the userid
           Provider.of<DepartmentProvider>(context, listen: false)
               .fetchAndSetDepartmentList()
               .then((_) {
-            Provider.of<CompanyProvider>(context, listen: false)
-                .fetchAndSetCompany();
+            //get list
+            final result =
+                Provider.of<DepartmentProvider>(context, listen: false)
+                    .departmentList;
+
+            //filter list using first item in list
             final department =
                 Provider.of<DepartmentProvider>(context, listen: false)
-                    .findById(loadedProfileResult.departmentId);
-            print('department name: ' + department.departmentName);
+                    .findById(result[0].id);
+
             loadedDepartmentResult = Department(
                 departmentName: department.departmentName, id: department.id);
 
+            Provider.of<CompanyProvider>(context, listen: false)
+                .fetchAndSetCompany();
             Provider.of<CompanyProvider>(context, listen: false)
                 .fetchAndSetCompanyName(loadedProfileResult.companyId);
             final companyNameResult =
@@ -108,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             loadedCompanyResult = Company(
                 id: loadedProfile.companyId,
                 companyName: companyNameResult,
-                companyAdminId: loadedProfile.id);
+                companyAdminId: null);
             setState(() {
               _isLoading = false;
             });
@@ -262,6 +275,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Padding(
                 padding: EdgeInsets.all(10),
                 child: Text(companyName),
+              ),
+            ),
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(loadedProfileResult.fullName),
+              ),
+            ),
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(loadedProfileResult.emailAddress),
+              ),
+            ),
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(loadedDepartmentResult.departmentName),
+              ),
+            ),
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(loadedRoleResult.roleName),
               ),
             ),
             loadedProfileResult.qrUrl == null
