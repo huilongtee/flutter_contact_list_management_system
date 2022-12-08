@@ -40,7 +40,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File _image;
   final imagePicker = ImagePicker();
   Profile loadedProfileResult = null;
+  Role loadedRoleResult = null;
+  Department loadedDepartmentResult = null;
+  Company loadedCompanyResult = null;
   GlobalKey _renderObjectKey = new GlobalKey();
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -56,6 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           context,
           listen: false,
         ).profile;
+        print('id: ' + result[0].id);
         final loadedProfile = Provider.of<ProfileProvider>(
           context,
           listen: false,
@@ -72,21 +77,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           imageUrl: loadedProfile.imageUrl,
           qrUrl: loadedProfile.qrUrl,
         );
+
         Provider.of<RoleProvider>(context, listen: false)
             .fetchAndSetRoleList()
             .then((_) {
-          role = Provider.of<RoleProvider>(context, listen: false)
-              .findById(loadedProfileResult.roleId);
+          final result =
+              Provider.of<RoleProvider>(context, listen: false).roleList;
+          final role = Provider.of<RoleProvider>(context, listen: false)
+              .findById(result[0].id);
+
+          loadedRoleResult = Role(roleName: role.roleName, id: role.id);
 
           Provider.of<DepartmentProvider>(context, listen: false)
               .fetchAndSetDepartmentList()
               .then((_) {
+            Provider.of<CompanyProvider>(context, listen: false)
+                .fetchAndSetCompany();
+            final department =
+                Provider.of<DepartmentProvider>(context, listen: false)
+                    .findById(loadedProfileResult.departmentId);
+            print('department name: ' + department.departmentName);
+            loadedDepartmentResult = Department(
+                departmentName: department.departmentName, id: department.id);
+
+            Provider.of<CompanyProvider>(context, listen: false)
+                .fetchAndSetCompanyName(loadedProfileResult.companyId);
+            final companyNameResult =
+                Provider.of<CompanyProvider>(context, listen: false)
+                    .getCompanyName;
+            loadedCompanyResult = Company(
+                id: loadedProfile.companyId,
+                companyName: companyNameResult,
+                companyAdminId: loadedProfile.id);
             setState(() {
-              department =
-                  Provider.of<DepartmentProvider>(context, listen: false)
-                      .findById(loadedProfileResult.departmentId);
-              Provider.of<CompanyProvider>(context, listen: false)
-                  .fetchAndSetCompanyName(loadedProfileResult.companyId);
               _isLoading = false;
             });
           });
@@ -168,6 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           downloadURL);
     } catch (exception) {}
   }
+
 //================================== Save QR code image End ==============================================//
 
 //================================== Shared QR code image Start ==============================================//
@@ -179,13 +203,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await Share.share(loadedProfileResult.qrUrl);
     Navigator.of(context).pop();
   }
+
 //================================== Shared QR code image End ==============================================//
 
   @override
   Widget build(BuildContext context) {
-    final companyNameResult =
-        Provider.of<CompanyProvider>(context, listen: false).getCompanyName;
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -205,153 +227,212 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : Stack(
-              alignment: Alignment.center,
+          : ListView(
+              padding: EdgeInsets.zero,
               children: [
-                CustomPaint(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
+                // Container(
+                //   margin: EdgeInsets.only(bottom: 20),
+                //   child: buildTop(),
+                // ),
+                Container(
+                  margin: EdgeInsets.only(
+                    bottom: 20,
                   ),
-                  painter: HeaderCurvedContainer(context),
+                  child: buildTop(),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Text(
-                        'Profile',
-                        style: TextStyle(
-                          fontSize: 35,
-                          letterSpacing: 1.5,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      width: MediaQuery.of(context).size.width / 2,
-                      height: MediaQuery.of(context).size.width / 2,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 5,
-                        ),
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: NetworkImage(loadedProfileResult.imageUrl),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 280,
-                    left: 160,
-                  ),
-                  child: CircleAvatar(
-                    backgroundColor: Colors.black54,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.camera_alt_outlined,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        imagePickerMethod();
-                      },
-                    ),
-                  ),
-                ),
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 18,
-                      right: 18,
-                      top: 18,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        loadedProfileResult.qrUrl == null
-                            ? RepaintBoundary(
-                                key: _renderObjectKey,
-                                child: QrImage(
-                                  data: loadedProfileResult.id,
-                                  version: QrVersions.auto,
-                                  size: 165.0,
-                                  backgroundColor: Colors.white,
-                                  errorStateBuilder: (cxt, err) {
-                                    return Container(
-                                      child: Center(
-                                        child: Text(
-                                          "Something gone wrong ...",
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                            : Padding(
-                                padding: EdgeInsets.all(5),
-                                child: Image.network(loadedProfileResult.qrUrl),
-                              ),
-                        loadedProfileResult.qrUrl == null
-                            ? FloatingActionButton(
-                                onPressed: _getWidgetImage,
-                              )
-                            : FloatingActionButton(
-                                //
-                                onPressed: () => showDialog<Null>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: Text(
-                                        "Confirmation for sharing QR code"),
-                                    content: Column(
-                                      children: [
-                                        Text(
-                                            'The QR code link may keeps sharing by the receiver of this QR code link'),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Text('Would you link to continue?'),
-                                      ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        child: Text("Cancel"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: Text("Continue"),
-                                        onPressed: () {
-                                          sharedQRCode();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                      ],
-                    ),
-                  ),
-                ),
+
+                buildContent(loadedCompanyResult.companyName.toString()),
               ],
             ),
+    );
+  }
+
+  Widget buildContent(String companyName) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 18,
+          right: 18,
+          top: 18,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(companyName),
+              ),
+            ),
+            loadedProfileResult.qrUrl == null
+                ? RepaintBoundary(
+                    key: _renderObjectKey,
+                    child: QrImage(
+                      data: loadedProfileResult.id,
+                      version: QrVersions.auto,
+                      size: 130.0,
+                      backgroundColor: Colors.white,
+                      errorStateBuilder: (cxt, err) {
+                        return Container(
+                          child: Center(
+                            child: Text(
+                              "Something gone wrong ...",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Padding(
+                    padding: EdgeInsets.all(5),
+                    child: Image.network(loadedProfileResult.qrUrl),
+                  ),
+            loadedProfileResult.qrUrl == null
+                ? FloatingActionButton(
+                    child: Icon(Icons.share),
+                    onPressed: _getWidgetImage,
+                  )
+                : FloatingActionButton(
+                    child: Icon(Icons.share),
+                    onPressed: () => showDialog<Null>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text("Confirmation for sharing QR code"),
+                        content: Column(
+                          children: [
+                            Text(
+                                'The QR code link may keeps sharing by the receiver of this QR code link'),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text('Would you link to continue?'),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          TextButton(
+                            child: Text("Continue"),
+                            onPressed: () {
+                              sharedQRCode();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTop() {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        CustomPaint(
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 3,
+          ),
+          painter: HeaderCurvedContainer(context),
+        ),
+        Positioned(
+          top: 10,
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 35,
+                letterSpacing: 1.5,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        loadedProfileResult.imageUrl.isEmpty
+            ? Positioned(
+                top: MediaQuery.of(context).size.width / 4,
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  width: MediaQuery.of(context).size.width / 2,
+                  height: MediaQuery.of(context).size.width / 2,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 5,
+                    ),
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      loadedProfileResult.fullName[0].toUpperCase(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: MediaQuery.of(context).size.width / 4,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : Positioned(
+                top: MediaQuery.of(context).size.width / 4,
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  width: MediaQuery.of(context).size.width / 2,
+                  height: MediaQuery.of(context).size.width / 2,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 5,
+                    ),
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: NetworkImage(loadedProfileResult.imageUrl),
+                    ),
+                  ),
+                ),
+              ),
+        Positioned(
+          top: 200,
+          left: MediaQuery.of(context).size.width / 2 + 50,
+          child: CircleAvatar(
+            backgroundColor: Colors.black54,
+            child: IconButton(
+              icon: Icon(
+                Icons.camera_alt_outlined,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                imagePickerMethod();
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
 class HeaderCurvedContainer extends CustomPainter {
   final BuildContext context;
+
   HeaderCurvedContainer(this.context);
+
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()..color = Theme.of(context).primaryColor;

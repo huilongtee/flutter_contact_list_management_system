@@ -8,12 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
+import '../models/http_exception.dart';
 import '../widgets/app_drawer.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
 import '../widgets/personal_contact_item.dart';
 import '../widgets/searchField.dart';
+import '../widgets/dialog.dart';
 
 class PersonalContactListScreen extends StatefulWidget {
   static const routeName = '/personalContactList_page';
@@ -33,8 +35,6 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   final _form = GlobalKey<FormState>();
   var _filledData = '';
   var _isInit = true;
-  var _editedProfile = '';
-  
 
   @override
   void didChangeDependencies() {
@@ -62,53 +62,73 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     super.dispose();
   }
 
-  Future _openDialog() => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Phone Number'),
-          content: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Form(
-                key: _form,
-                child: IntlPhoneField(
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                  ),
-                  autofocus: true,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) {
-                    _saveForm();
-                  },
-                  initialValue:
-                      _filledData.isEmpty ? null : _filledData.substring(2),
-                  initialCountryCode: 'MY',
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  disableLengthCheck: true,
-                  validator: (value) {
-                    if (value.completeNumber.substring(1).isEmpty ||
-                        value.completeNumber.substring(1).length < 10 ||
-                        value.completeNumber.substring(1).length > 12) {
-                      return 'Phone number must greater than 10 digits and lesser than 12';
-                    }
-                  },
-                  onSaved: (value) {
-                    _filledData = value.completeNumber.substring(1);
-                  },
-                ),
-              ),
-              ElevatedButton(
-                onPressed: _saveForm,
-                child: Text('Add New Contact Person'),
-                style: ElevatedButton.styleFrom(
-                  primary: Theme.of(context).primaryColor,
-                  textStyle: TextStyle(fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+  // static Future<void> _showErrorDialog(String message) {
+  //   print('entered show dialog function');
+  //   print(message);
+  //   return showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('An Error Occurred'),
+  //       content: Text(message),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.of(context).pop();
+  //           },
+  //           child: Text('Okay'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  // Future _openDialog() => showDialog(
+  //       context: context,
+  //       builder: (context) => AlertDialog(
+  //         title: Text('Phone Number'),
+  //         content: Column(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Form(
+  //               key: _form,
+  //               child: IntlPhoneField(
+  //                 decoration: InputDecoration(
+  //                   labelText: 'Phone Number',
+  //                 ),
+  //                 autofocus: true,
+  //                 textInputAction: TextInputAction.done,
+  //                 onSubmitted: (_) {
+  //                   _saveForm();
+  //                 },
+  //                 initialValue:
+  //                     _filledData.isEmpty ? null : _filledData.substring(2),
+  //                 initialCountryCode: 'MY',
+  //                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+  //                 disableLengthCheck: true,
+  //                 validator: (value) {
+  //                   if (value.completeNumber.substring(1).isEmpty ||
+  //                       value.completeNumber.substring(1).length < 10 ||
+  //                       value.completeNumber.substring(1).length > 12) {
+  //                     return 'Phone number must greater than 10 digits and lesser than 12';
+  //                   }
+  //                 },
+  //                 onSaved: (value) {
+  //                   _filledData = value.completeNumber.substring(1);
+  //                 },
+  //               ),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: _saveForm,
+  //               child: Text('Add New Contact Person'),
+  //               style: ElevatedButton.styleFrom(
+  //                 primary: Theme.of(context).primaryColor,
+  //                 textStyle: TextStyle(fontSize: 20),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
 
   Future<void> _saveForm() async {
     final isValid = _form.currentState.validate(); //trigger all validator
@@ -119,19 +139,81 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     setState(() {
       _isLoading = true;
     });
-    print(_filledData);
-    await Provider.of<PersonalContactListProvider>(context, listen: false)
-        .addContactPerson(_filledData);
-
+    try {
+      final errMessage =
+          await Provider.of<PersonalContactListProvider>(context, listen: false)
+              .addContactPerson(_filledData);
+      if (errMessage.toString().isNotEmpty) {
+        Navigator.of(context).pop();
+        Dialogs.showMyDialog(context, errMessage.toString());
+      } else {}
+    } on HttpException catch (error) {
+      Dialogs.showMyDialog(context, error.toString());
+    } catch (error) {
+      Dialogs.showMyDialog(context, error.toString());
+    }
     Navigator.of(context).pop();
     setState(() {
       _isLoading = false;
     });
   }
 
+  void _showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Form(
+                    key: _form,
+                    child: IntlPhoneField(
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                      ),
+                      autofocus: true,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        _saveForm();
+                      },
+                      initialValue:
+                          _filledData.isEmpty ? null : _filledData.substring(2),
+                      initialCountryCode: 'MY',
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      disableLengthCheck: true,
+                      validator: (value) {
+                        if (value.completeNumber.substring(1).isEmpty ||
+                            value.completeNumber.substring(1).length < 10 ||
+                            value.completeNumber.substring(1).length > 12) {
+                          return 'Phone number must greater than 10 digits and lesser than 12';
+                        }
+                      },
+                      onSaved: (value) {
+                        _filledData = value.completeNumber.substring(1);
+                      },
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _saveForm,
+                    child: Text('Add New Contact Person'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      textStyle: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),
@@ -140,7 +222,8 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
           IconButton(
             onPressed: () {
               // profileProvider.addContactPerson();
-              _openDialog();
+              // _openDialog();
+              _showBottomSheet();
             },
             icon: Icon(Icons.add),
           ),

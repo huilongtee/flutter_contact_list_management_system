@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/department_provider.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile.dart';
 import '../providers/company_provider.dart';
+import '../providers/role_provider.dart';
 import '../widgets/profile_items.dart';
 
 class ContactPersonDetailScreen extends StatefulWidget {
@@ -19,6 +21,10 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
 
   var _contactPerson;
   var companyNameResult;
+  Profile loadedProfileResult = null;
+  Role loadedRoleResult = null;
+  Department loadedDepartmentResult = null;
+  Company loadedCompanyResult = null;
 
   @override
   void didChangeDependencies() {
@@ -29,12 +35,14 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
       final contactPersonId =
           ModalRoute.of(context).settings.arguments as String;
 
-      _contactPerson = Provider.of<PersonalContactListProvider>(context)
+      // _contactPerson = Provider.of<PersonalContactListProvider>(context)
+      //     .findById(contactPersonId);
+      loadedProfileResult = Provider.of<PersonalContactListProvider>(context)
           .findById(contactPersonId);
-
-      if (_contactPerson.companyId.isNotEmpty) {
+      if (loadedProfileResult.companyId.isNotEmpty) {
         Provider.of<CompanyProvider>(context, listen: false)
-            .fetchAndSetCompanyName(_contactPerson.companyId);
+            .fetchAndSetCompanyName(loadedProfileResult.companyId);
+        
 
         setState(() {
           _isLoading = false;
@@ -79,11 +87,11 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                             height: 70,
                             width: 70,
                             margin: const EdgeInsets.only(left: 20, right: 20),
-                            child: _contactPerson.imageUrl.isEmpty
+                            child: loadedProfileResult.imageUrl.isEmpty
                                 ? CircleAvatar(
                                     backgroundColor: Colors.white,
                                     child: Text(
-                                      _contactPerson.fullName[0].toUpperCase(),
+                                      loadedProfileResult.fullName[0].toUpperCase(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
@@ -92,13 +100,13 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                   )
                                 : CircleAvatar(
                                     backgroundImage:
-                                        NetworkImage(_contactPerson.imageUrl),
+                                        NetworkImage(loadedProfileResult.imageUrl),
                                   ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 30),
                             child: Text(
-                              _contactPerson.fullName,
+                              loadedProfileResult.fullName,
                               style: TextStyle(
                                 fontSize: 20,
                               ),
@@ -143,7 +151,7 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _contactPerson.phoneNumber,
+                                        loadedProfileResult.phoneNumber,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -173,7 +181,7 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _contactPerson.emailAddress,
+                                        loadedProfileResult.emailAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],
@@ -203,7 +211,7 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _contactPerson.homeAddress,
+                                        loadedProfileResult.homeAddress,
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ],

@@ -33,7 +33,7 @@ class DepartmentProvider with ChangeNotifier {
   Future<void> fetchAndSetDepartmentList() async {
     //check whether current user got companyID
 
-    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
+    final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {

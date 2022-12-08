@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-const GOOGLE_API_KEY = 'AIzaSyCAsTAm9AE0bZulYclrNITKy6Vq-tQOD4A';
+// const GOOGLE_API_KEY = 'AIzaSyCAsTAm9AE0bZulYclrNITKy6Vq-tQOD4A';
+const GOOGLE_API_KEY = 'AIzaSyCiNRfD39BXa1SkG5GXUGefm4IHwVIEOVI';
 
 class LocationHelper {
   static String generateLocationPreviewImage(
@@ -11,7 +12,8 @@ class LocationHelper {
   }
 
   static Future<String> getPlaceAddress(double lat, double long) async {
-    final url = Uri.parse('https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&key=$GOOGLE_API_KEY');
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&key=$GOOGLE_API_KEY');
     final response = await http.get(url);
     return json.decode(response.body)['results'][0]['formatted_address'];
   }

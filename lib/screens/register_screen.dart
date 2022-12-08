@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -7,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/http_exception.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const routeName = '/register';
@@ -121,7 +124,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value.completeNumber.substring(1).isEmpty ||
                       value.completeNumber.substring(1).length < 10 ||
                       value.completeNumber.substring(1).length > 12) {
-                    
                     return 'Phone number must greater than 10 digits and lesser than 12';
                   }
                 },
@@ -240,6 +242,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _isLoading = true;
     });
+
+       
+
     try {
       // Log user in
       await Provider.of<AuthProvider>(context, listen: false).signup(
@@ -270,14 +275,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       const errorMessage = 'Could not authenticate you. Please try again.';
       _showErrorDialog(errorMessage);
     }
-    setState(() {
-      _isLoading = false;
-    });
+    
     SharedPreferences _sharedPreferences =
         await SharedPreferences.getInstance();
     if (!_sharedPreferences.getString('userData').isEmpty) {
       Navigator.pop(context);
     }
+    setState(() {
+      _isLoading = false;
+    });
+    
   }
 
   @override

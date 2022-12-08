@@ -74,7 +74,6 @@ class PersonalContactListProvider with ChangeNotifier {
       _personalContactList = loadedProfile;
       _backupList = loadedProfile;
     } catch (error) {
-
       throw (error);
     }
   }
@@ -145,13 +144,13 @@ class PersonalContactListProvider with ChangeNotifier {
 
       return loadedContactPerson;
     } catch (error) {
-
       throw (error);
     }
   }
 
-  Future<void> addContactPerson(String phoneNumber) async {
+  Future<String> addContactPerson(String phoneNumber) async {
     bool isFound = false;
+    String errMessage = '';
     //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
     _personalContactList.forEachIndexed((index, element) {
       if (element.phoneNumber.trim() == phoneNumber) {
@@ -163,13 +162,19 @@ class PersonalContactListProvider with ChangeNotifier {
     //else add it now
     if (isFound == true) {
       //return alert message to tell user that the contact person has been added into the personal contact list before
-      return;
+      errMessage =
+          'This phone number is already added into the personal contact list';
+      return errMessage;
     } else {
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
       final url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
       try {
+        if (contactPerson == null) {
+          errMessage = 'This phone number is not found in the system';
+          return errMessage;
+        }
         final response = await http.post(url, //add data
             body: json.encode({
               'operatorID': userId,
@@ -183,9 +188,11 @@ class PersonalContactListProvider with ChangeNotifier {
 
         _personalContactList.add(contactPerson);
         notifyListeners();
+        errMessage = '';
+        return errMessage;
       } catch (error) {
         print(error);
-        throw error;
+        throw HttpException(error);
       }
       // bool isFound = await fetchAndCheckAddedContactPerson(contactPersonUserID);
 

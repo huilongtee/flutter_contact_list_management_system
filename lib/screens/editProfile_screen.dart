@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import '../helper/location_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = '/editProfile_page';
@@ -20,11 +19,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // final _imageUrlFocusNode = FocusNode();
   final _emailAddressFocusNode = FocusNode();
   final _homeAddressFocusNode = FocusNode();
-  final _imageUrlController = TextEditingController();
-  File _image;
-  final imagePicker = ImagePicker();
+  final homeAddressController = TextEditingController();
 
+  // final _imageUrlController = TextEditingController();
+  // File _image;
+  final imagePicker = ImagePicker();
   final _form = GlobalKey<FormState>();
+  var _isLocationLoading = false;
   var _editedProfile = Profile(
     id: null,
     fullName: '',
@@ -32,6 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     homeAddress: '',
     emailAddress: '',
     imageUrl: '',
+    qrUrl: '',
     companyId: '',
     roleId: '',
     departmentId: '',
@@ -47,6 +49,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     'companyId': '',
     'roleId': '',
     'departmentId': '',
+    'qrUrl': '',
   };
   var userId = '';
   @override
@@ -55,23 +58,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('An Error Occurred'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Okay'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showErrorDialog(String message) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('An Error Occurred'),
+  //       content: Text(message),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.of(context).pop();
+  //           },
+  //           child: Text('Okay'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   @override
   void didChangeDependencies() {
@@ -93,8 +96,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'companyId': _editedProfile.companyId,
           'roleId': _editedProfile.roleId,
           'departmentId': _editedProfile.departmentId,
+          'qrUrl': _editedProfile.qrUrl,
         };
-        _imageUrlController.text = _editedProfile.imageUrl;
+        homeAddressController.text = _editedProfile.homeAddress;
+
+        // _imageUrlController.text = _editedProfile.imageUrl;
       }
     }
     _isInit = false;
@@ -109,50 +115,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneNumberFocusNode.dispose();
     _emailAddressFocusNode.dispose();
     _homeAddressFocusNode.dispose();
-    _imageUrlController.dispose();
-    _editedProfile.dispose();
-    // _imageUrlFocusNode.dispose();
+    homeAddressController.dispose();
 
     super.dispose();
   }
 
-//================================== Image Picker Start ==============================================//
+// //================================== Image Picker Start ==============================================//
 
-  Future imagePickerMethod() async {
-    final pick = await imagePicker.pickImage(
-        source: ImageSource.gallery, imageQuality: 20);
+//   Future imagePickerMethod() async {
+//     final pick = await imagePicker.pickImage(
+//         source: ImageSource.gallery, imageQuality: 20);
 
-    setState(() {
-      _image = File(pick.path);
-      print('image path' + _image.toString());
-    });
+//     setState(() {
+//       _image = File(pick.path);
+//       print('image path' + _image.toString());
+//     });
 
-    //Get a reference to storage root
-    Reference ref = FirebaseStorage.instance.ref();
-    Reference referenceDirImages = ref.child('images');
+//     //Get a reference to storage root
+//     Reference ref = FirebaseStorage.instance.ref();
+//     Reference referenceDirImages = ref.child('images');
 
-    //create a reference for the image to be stored
-    Reference referenceImageToUpload = referenceDirImages.child(userId);
+//     //create a reference for the image to be stored
+//     Reference referenceImageToUpload = referenceDirImages.child(userId);
 
-    await referenceImageToUpload.putFile(_image);
-    String downloadURL = await referenceImageToUpload.getDownloadURL();
-    print('downloadURL' + downloadURL);
-    setState(() {
-      _editedProfile = Profile(
-        fullName: _editedProfile.fullName,
-        homeAddress: _editedProfile.homeAddress,
-        phoneNumber: _editedProfile.phoneNumber,
-        emailAddress: _editedProfile.emailAddress,
-        imageUrl: downloadURL,
-        id: _editedProfile.id,
-        companyId: _editedProfile.companyId,
-        roleId: _editedProfile.roleId,
-        departmentId: _editedProfile.departmentId,
-      );
-    });
-  }
+//     await referenceImageToUpload.putFile(_image);
+//     String downloadURL = await referenceImageToUpload.getDownloadURL();
+//     print('downloadURL' + downloadURL);
+//     setState(() {
+//       _editedProfile = Profile(
+//         fullName: _editedProfile.fullName,
+//         homeAddress: _editedProfile.homeAddress,
+//         phoneNumber: _editedProfile.phoneNumber,
+//         emailAddress: _editedProfile.emailAddress,
+//         imageUrl: downloadURL,
+//         id: _editedProfile.id,
+//         companyId: _editedProfile.companyId,
+//         roleId: _editedProfile.roleId,
+//         departmentId: _editedProfile.departmentId,
+//       );
+//     });
+//   }
 
-//================================== Image Picker End ==============================================//
+// //================================== Image Picker End ==============================================//
 
   // void _updateImageUrl() {
   //   if (!_imageUrlFocusNode.hasFocus) {
@@ -166,6 +170,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   //     setState(() {});
   //   }
   // }
+
+  Future<void> _getCurrentUserLocation() async {
+    setState(() {
+      _isLocationLoading = true;
+    });
+
+    try {
+      LocationPermission locpermission;
+      Position _position;
+
+      await Geolocator.requestPermission();
+
+      locpermission = await Geolocator.checkPermission();
+      if (locpermission == LocationPermission.denied) {
+        locpermission = await Geolocator.requestPermission();
+        if (locpermission == LocationPermission.denied) {
+          return;
+        }
+      }
+
+      if (locpermission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      if (locpermission == LocationPermission.always ||
+          locpermission == LocationPermission.whileInUse) {
+        _position = await Geolocator.getCurrentPosition();
+        var latitude = _position.latitude;
+        var longitude = _position.longitude;
+
+        final address =
+            await LocationHelper.getPlaceAddress(latitude, longitude);
+        print(address);
+        setState(() {
+          _initValue['homeAddress'] = address;
+          homeAddressController.text = address;
+          _isLocationLoading = false;
+        });
+      }
+    } catch (error) {
+      return;
+    }
+  }
 
   Future<void> _saveForm() async {
     final isValid = _form.currentState.validate(); //trigger all validator
@@ -232,16 +279,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           },
                           onSaved: (value) {
                             _editedProfile = Profile(
-                              fullName: value,
-                              homeAddress: _editedProfile.homeAddress,
-                              phoneNumber: _editedProfile.phoneNumber,
-                              emailAddress: _editedProfile.emailAddress,
-                              imageUrl: _editedProfile.imageUrl,
-                              id: _editedProfile.id,
-                              companyId: _editedProfile.companyId,
-                              roleId: _editedProfile.roleId,
-                              departmentId: _editedProfile.departmentId,
-                            );
+                                fullName: value,
+                                homeAddress: _editedProfile.homeAddress,
+                                phoneNumber: _editedProfile.phoneNumber,
+                                emailAddress: _editedProfile.emailAddress,
+                                imageUrl: _editedProfile.imageUrl,
+                                id: _editedProfile.id,
+                                companyId: _editedProfile.companyId,
+                                roleId: _editedProfile.roleId,
+                                departmentId: _editedProfile.departmentId,
+                                qrUrl: _editedProfile.qrUrl);
                           },
                         ), //TextFormField will automatically connected with the widget of Form
 
@@ -265,16 +312,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           },
                           onSaved: (value) {
                             _editedProfile = Profile(
-                              fullName: _editedProfile.fullName,
-                              homeAddress: _editedProfile.homeAddress,
-                              phoneNumber: value,
-                              emailAddress: _editedProfile.emailAddress,
-                              imageUrl: _editedProfile.imageUrl,
-                              id: _editedProfile.id,
-                              companyId: _editedProfile.companyId,
-                              roleId: _editedProfile.roleId,
-                              departmentId: _editedProfile.departmentId,
-                            );
+                                fullName: _editedProfile.fullName,
+                                homeAddress: _editedProfile.homeAddress,
+                                phoneNumber: value,
+                                emailAddress: _editedProfile.emailAddress,
+                                imageUrl: _editedProfile.imageUrl,
+                                id: _editedProfile.id,
+                                companyId: _editedProfile.companyId,
+                                roleId: _editedProfile.roleId,
+                                departmentId: _editedProfile.departmentId,
+                                qrUrl: _editedProfile.qrUrl);
                           },
                         ),
 
@@ -298,155 +345,170 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           },
                           onSaved: (value) {
                             _editedProfile = Profile(
-                              fullName: _editedProfile.fullName,
-                              homeAddress: _editedProfile.homeAddress,
-                              phoneNumber: _editedProfile.phoneNumber,
-                              emailAddress: value,
-                              imageUrl: _editedProfile.imageUrl,
-                              id: _editedProfile.id,
-                              companyId: _editedProfile.companyId,
-                              roleId: _editedProfile.roleId,
-                              departmentId: _editedProfile.departmentId,
-                            );
+                                fullName: _editedProfile.fullName,
+                                homeAddress: _editedProfile.homeAddress,
+                                phoneNumber: _editedProfile.phoneNumber,
+                                emailAddress: value,
+                                imageUrl: _editedProfile.imageUrl,
+                                id: _editedProfile.id,
+                                companyId: _editedProfile.companyId,
+                                roleId: _editedProfile.roleId,
+                                departmentId: _editedProfile.departmentId,
+                                qrUrl: _editedProfile.qrUrl);
                           },
                         ),
 
-                        TextFormField(
-                          initialValue: _initValue['homeAddress'],
-                          decoration:
-                              InputDecoration(labelText: 'Home Address'),
-                          textInputAction: TextInputAction
-                              .next, //prevent it from submmiting the form directly
-                          onFieldSubmitted: (_) {
-                            FocusScope.of(context)
-                                .requestFocus(_homeAddressFocusNode);
-                          }, //whenever the button right cover is pressed
-                          validator: (value) {
-                            // return null;//it means no problem
-                            if (value.isEmpty) {
-                              return 'Please provide a value';
-                            }
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                // initialValue: _initValue['homeAddress'],
+                                controller: homeAddressController,
 
-                            return null;
-                          },
-                          onSaved: (value) {
-                            _editedProfile = Profile(
-                              fullName: _editedProfile.fullName,
-                              homeAddress: value,
-                              phoneNumber: _editedProfile.phoneNumber,
-                              emailAddress: _editedProfile.emailAddress,
-                              imageUrl: _editedProfile.imageUrl,
-                              id: _editedProfile.id,
-                              companyId: _editedProfile.companyId,
-                              roleId: _editedProfile.roleId,
-                              departmentId: _editedProfile.departmentId,
-                            );
-                          },
+                                decoration:
+                                    InputDecoration(labelText: 'Home Address'),
+                                textInputAction: TextInputAction
+                                    .next, //prevent it from submmiting the form directly
+                                onFieldSubmitted: (_) {
+                                  FocusScope.of(context)
+                                      .requestFocus(_homeAddressFocusNode);
+                                }, //whenever the button right cover is pressed
+                                validator: (value) {
+                                  // return null;//it means no problem
+                                  if (value.isEmpty) {
+                                    return 'Please provide a value';
+                                  }
+
+                                  return null;
+                                },
+                                onSaved: (value) {
+                                  _editedProfile = Profile(
+                                      fullName: _editedProfile.fullName,
+                                      homeAddress: _initValue['homeAddress'],
+                                      phoneNumber: _editedProfile.phoneNumber,
+                                      emailAddress: _editedProfile.emailAddress,
+                                      imageUrl: _editedProfile.imageUrl,
+                                      id: _editedProfile.id,
+                                      companyId: _editedProfile.companyId,
+                                      roleId: _editedProfile.roleId,
+                                      departmentId: _editedProfile.departmentId,
+                                      qrUrl: _editedProfile.qrUrl);
+                                },
+                              ),
+                            ),
+                            if (_isLocationLoading)
+                              CircularProgressIndicator()
+                            else
+                              IconButton(
+                                icon: Icon(Icons.location_on),
+                                onPressed: _getCurrentUserLocation,
+                              ),
+                          ],
                         ),
 
                         //textfield for image link upload
 
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              margin: EdgeInsets.only(
-                                top: 8,
-                                right: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              child: _imageUrlController.text.isEmpty
-                                  ? Text('Enter a URL')
-                                  : FittedBox(
-                                      child: Image.network(
-                                        _imageUrlController.text,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                            ),
-                            // Expanded(
-                            //   child: TextFormField(
-                            //     decoration: InputDecoration(
-                            //       labelText: 'Image URL',
-                            //     ),
-                            //     keyboardType: TextInputType.url,
-                            //     textInputAction: TextInputAction.done,
-                            //     controller:
-                            //         _imageUrlController, //if you have controller then you shopuld not have initial value
-                            //     onEditingComplete: () {
-                            //       setState(() {});
-                            //     },
-                            //     focusNode: _imageUrlFocusNode,
-                            //     onFieldSubmitted: (_) {
-                            //       //why don't just use _saveForm instead, because _saveForm function doesn't take String input, and _saveForm is String format
-                            //       _saveForm();
-                            //     },
-                            //     validator: (value) {
-                            //       // return null;//it means no problem
+//                         Row(
+//                           crossAxisAlignment: CrossAxisAlignment.end,
+//                           children: [
+//                             Container(
+//                               width: 100,
+//                               height: 100,
+//                               margin: EdgeInsets.only(
+//                                 top: 8,
+//                                 right: 10,
+//                               ),
+//                               decoration: BoxDecoration(
+//                                 border: Border.all(
+//                                   width: 1,
+//                                   color: Colors.grey,
+//                                 ),
+//                               ),
+//                               child: _imageUrlController.text.isEmpty
+//                                   ? Text('Enter a URL')
+//                                   : FittedBox(
+//                                       child: Image.network(
+//                                         _imageUrlController.text,
+//                                         fit: BoxFit.cover,
+//                                       ),
+//                                     ),
+//                             ),
+//                             // Expanded(
+//                             //   child: TextFormField(
+//                             //     decoration: InputDecoration(
+//                             //       labelText: 'Image URL',
+//                             //     ),
+//                             //     keyboardType: TextInputType.url,
+//                             //     textInputAction: TextInputAction.done,
+//                             //     controller:
+//                             //         _imageUrlController, //if you have controller then you shopuld not have initial value
+//                             //     onEditingComplete: () {
+//                             //       setState(() {});
+//                             //     },
+//                             //     focusNode: _imageUrlFocusNode,
+//                             //     onFieldSubmitted: (_) {
+//                             //       //why don't just use _saveForm instead, because _saveForm function doesn't take String input, and _saveForm is String format
+//                             //       _saveForm();
+//                             //     },
+//                             //     validator: (value) {
+//                             //       // return null;//it means no problem
 
-                            //       if (!value.isEmpty &&
-                            //           !value.startsWith('http') &&
-                            //           !value.startsWith('https')) {
-                            //         return 'Please provide a valid URL';
-                            //       }
-                            //       if (!value.isEmpty &&
-                            //           !value.endsWith('.png') &&
-                            //           !value.endsWith('.jpeg') &&
-                            //           !value.endsWith('.jpg')) {
-                            //         return 'Please provide a valid image URL';
-                            //       }
-                            //       return null;
-                            //     },
-                            //     onSaved: (value) {
-                            //       _editedProfile = Profile(
-                            //         fullName: _editedProfile.fullName,
-                            //         homeAddress: _editedProfile.homeAddress,
-                            //         phoneNumber: _editedProfile.phoneNumber,
-                            //         emailAddress: _editedProfile.emailAddress,
-                            //         imageUrl: value,
-                            //         id: _editedProfile.id,
-                            //         companyId: _editedProfile.companyId,
-                            //         roleId: _editedProfile.roleId,
-                            //         departmentId: _editedProfile.departmentId,
-                            //       );
-                            //     },
-                            //   ),
-                            // ),
-//====================================== Image Picker start ========================================//
+//                             //       if (!value.isEmpty &&
+//                             //           !value.startsWith('http') &&
+//                             //           !value.startsWith('https')) {
+//                             //         return 'Please provide a valid URL';
+//                             //       }
+//                             //       if (!value.isEmpty &&
+//                             //           !value.endsWith('.png') &&
+//                             //           !value.endsWith('.jpeg') &&
+//                             //           !value.endsWith('.jpg')) {
+//                             //         return 'Please provide a valid image URL';
+//                             //       }
+//                             //       return null;
+//                             //     },
+//                             //     onSaved: (value) {
+//                             //       _editedProfile = Profile(
+//                             //         fullName: _editedProfile.fullName,
+//                             //         homeAddress: _editedProfile.homeAddress,
+//                             //         phoneNumber: _editedProfile.phoneNumber,
+//                             //         emailAddress: _editedProfile.emailAddress,
+//                             //         imageUrl: value,
+//                             //         id: _editedProfile.id,
+//                             //         companyId: _editedProfile.companyId,
+//                             //         roleId: _editedProfile.roleId,
+//                             //         departmentId: _editedProfile.departmentId,
+//                             //       );
+//                             //     },
+//                             //   ),
+//                             // ),
+// //====================================== Image Picker start ========================================//
 
-                            Row(
-                              children: [
-                                Container(
-                                  height: 70,
-                                  width: 70,
-                                  margin: const EdgeInsets.only(
-                                      left: 20, right: 20),
-                                  child: _image == null
-                                      ? const Center(
-                                          child: Text('No Image'),
-                                        )
-                                      : CircleAvatar(
-                                          child: Image.file(_image),
-                                        ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    imagePickerMethod();
-                                  },
-                                  child: Text('Select Image'),
-                                ),
-                              ],
-                            ),
-//====================================== Image Picker end ========================================//
-                          ],
-                        ),
+//                             Row(
+//                               children: [
+//                                 Container(
+//                                   height: 70,
+//                                   width: 70,
+//                                   margin: const EdgeInsets.only(
+//                                       left: 20, right: 20),
+//                                   child: _image == null
+//                                       ? const Center(
+//                                           child: Text('No Image'),
+//                                         )
+//                                       : CircleAvatar(
+//                                           child: Image.file(_image),
+//                                         ),
+//                                 ),
+//                                 ElevatedButton(
+//                                   onPressed: () async {
+//                                     imagePickerMethod();
+//                                   },
+//                                   child: Text('Select Image'),
+//                                 ),
+//                               ],
+//                             ),
+// //====================================== Image Picker end ========================================//
+//                           ],
+//                         ),
                       ],
                     ),
                   ),

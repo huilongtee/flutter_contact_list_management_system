@@ -33,7 +33,7 @@ class RoleProvider with ChangeNotifier {
   Future<void> fetchAndSetRoleList() async {
     //check whether current user got companyID
 
-    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
+    final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
@@ -54,7 +54,6 @@ class RoleProvider with ChangeNotifier {
       });
       //fetch all colleague userId
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
-
       var url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken&$searchTerm');
       try {
@@ -67,7 +66,7 @@ class RoleProvider with ChangeNotifier {
         }
 
         final List<Role> loadedRole = [];
-    
+
         extractedData.forEach((roleId, roleData) {
           loadedRole.add(
             Role(
@@ -75,6 +74,7 @@ class RoleProvider with ChangeNotifier {
               roleName: roleData['roleName'],
             ),
           );
+
           _roles = loadedRole;
           notifyListeners();
         });

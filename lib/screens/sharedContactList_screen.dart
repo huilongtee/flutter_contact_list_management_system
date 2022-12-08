@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ import '../screens/department_screen.dart';
 import '../screens/role_screen.dart';
 
 import '../widgets/app_drawer.dart';
+import '../widgets/dialog.dart';
 import '../widgets/searchField.dart';
 import '../widgets/personal_contact_item.dart';
 import '../widgets/shared_contact_item.dart';
@@ -40,7 +42,6 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   final _form = GlobalKey<FormState>();
   var _filledData = '';
   var _editedProfile = '';
- 
 
   @override
   void didChangeDependencies() {
@@ -48,7 +49,7 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       setState(() {
         _isLoading = true;
       });
- 
+
       Provider.of<SharedContactListProvider>(context, listen: false)
           .fetchAndSetSharedContactList();
 
@@ -77,7 +78,8 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   void onSelected(BuildContext context, int item) {
     switch (item) {
       case 0:
-        _openDialog();
+        // _openDialog();
+        _showBottomSheet();
         break;
       case 1:
         Navigator.pushNamed(context, RoleScreen.routeName);
@@ -146,14 +148,81 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       _isLoading = true;
     });
     print(_filledData);
-    await Provider.of<SharedContactListProvider>(context, listen: false)
-        .addContactPerson(_filledData);
+    try {
+      final errMessage =
+          await Provider.of<SharedContactListProvider>(context, listen: false)
+              .addContactPerson(_filledData);
+      if (errMessage.toString().isNotEmpty) {
+        Navigator.of(context).pop();
+        Dialogs.showMyDialog(context, errMessage.toString());
+      } else {}
+    } on HttpException catch (error) {
+      Dialogs.showMyDialog(context, error.toString());
+    } catch (error) {
+      Dialogs.showMyDialog(context, error.toString());
+    }
 
     Navigator.of(context).pop();
     setState(() {
       _isLoading = false;
     });
   }
+
+//show bottom sheet start
+  void _showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Form(
+                    key: _form,
+                    child: IntlPhoneField(
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                      ),
+                      autofocus: true,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        _saveForm();
+                      },
+                      initialValue:
+                          _filledData.isEmpty ? null : _filledData.substring(2),
+                      initialCountryCode: 'MY',
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      disableLengthCheck: true,
+                      validator: (value) {
+                        if (value.completeNumber.substring(1).isEmpty ||
+                            value.completeNumber.substring(1).length < 10 ||
+                            value.completeNumber.substring(1).length > 12) {
+                          return 'Phone number must greater than 10 digits and lesser than 12';
+                        }
+                      },
+                      onSaved: (value) {
+                        _filledData = value.completeNumber.substring(1);
+                      },
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _saveForm,
+                    child: Text('Add New Contact Person'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      textStyle: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+//show bottom sheet end
 
   @override
   Widget build(BuildContext context) {

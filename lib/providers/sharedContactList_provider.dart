@@ -72,8 +72,7 @@ class SharedContactListProvider with ChangeNotifier {
               departmentId: profileData['departmentID'],
               companyId: profileData['companyID'],
               imageUrl: profileData['imageUrl'],
-          qrUrl: profileData['qrUrl'],
-
+              qrUrl: profileData['qrUrl'],
             ),
           );
         }
@@ -94,7 +93,7 @@ class SharedContactListProvider with ChangeNotifier {
     //check whether current user got companyID
     // var checkCompanyIDUrl = Uri.parse(
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
-    final searchTerm = 'orderBy="userId"&equalTo="$userId"';
+    final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
@@ -113,7 +112,7 @@ class SharedContactListProvider with ChangeNotifier {
       checkCompanyIDExtractedData.forEach((id, contactPersonData) {
         companyID = contactPersonData['companyID'];
         userID = id;
-        print(userID);
+       
       });
       //fetch all colleague userId based on the company id
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
@@ -157,12 +156,18 @@ class SharedContactListProvider with ChangeNotifier {
 
   //================================================ Add Contact Person Start ================================================//
 
-  Future<void> addContactPerson(String phoneNumber) async {
+  Future<String> addContactPerson(String phoneNumber) async {
     bool isFound = false;
+    String errMessage = '';
+
     //check whether this user already add the user with this phone number as one of the contact person in shared contact list table
     _sharedContactList.forEachIndexed((index, element) {
       if (element.phoneNumber.trim() == phoneNumber) {
         isFound = true;
+        //return alert message to tell user that the contact person has been added into the personal contact list before
+        errMessage =
+            'This phone number is already added into the personal contact list';
+        return errMessage;
       }
     });
 
@@ -174,6 +179,10 @@ class SharedContactListProvider with ChangeNotifier {
     } else {
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
+      if (contactPerson == null) {
+        errMessage = 'This phone number is not found in the system';
+        return errMessage;
+      }
       if (contactPerson.companyId.isEmpty) {
         final url = Uri.parse(
             'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
@@ -201,6 +210,8 @@ class SharedContactListProvider with ChangeNotifier {
               })); //merge data that is incoming and the data that existing in the database
 
           notifyListeners();
+          errMessage = '';
+          return errMessage;
         } catch (error) {
           print(error);
           throw error;
@@ -356,7 +367,7 @@ class SharedContactListProvider with ChangeNotifier {
         phoneNumber: oldProfile.phoneNumber,
         imageUrl: oldProfile.imageUrl,
         qrUrl: oldProfile.qrUrl,
-         companyId: companyId,
+        companyId: companyId,
         roleId: newRole.id,
         departmentId: newDepartment.id,
       );

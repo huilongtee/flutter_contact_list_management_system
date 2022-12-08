@@ -60,7 +60,7 @@ class CompanyProvider with ChangeNotifier {
           Company(
             id: companyId,
             companyName: companyData['companyName'],
-            companyAdminId: companyData['companyAdminId'],
+            companyAdminId: companyData['companyAdminID'],
           ),
         );
         _companies = loadedCompanies;
@@ -76,7 +76,6 @@ class CompanyProvider with ChangeNotifier {
 
   //fetch company name by searching company id
   Future<void> fetchAndSetCompanyName(String companyID) async {
-    // _companyNameResult = '';
     final url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
 
@@ -87,10 +86,10 @@ class CompanyProvider with ChangeNotifier {
       if (extractedData == null) {
         return null;
       }
+    _companyNameResult = '';
 
       extractedData.forEach((companyId, companyData) {
         if (companyId == 'companyName') {
-          print('entered');
           _companyNameResult = companyData;
         }
       });
@@ -152,7 +151,7 @@ class CompanyProvider with ChangeNotifier {
               final createRoleResponse = await http.post(
                   createRoleUrl, //add data
                   body: json.encode({
-                    'companyid': companyId,
+                    'companyID': companyId,
                     'roleName': 'Admin',
                   })); //merge data that is incoming and the data that existing in the database
 
@@ -181,7 +180,7 @@ class CompanyProvider with ChangeNotifier {
                 final addIntoSharedContactListResponse = await http.post(
                     addIntoSharedContactListUrl, //add data
                     body: json.encode({
-                      'companyid': companyId,
+                      'companyID': companyId,
                       'operatorID': id,
                     })); //merge data that is incoming and the data that existing in the database
 
@@ -227,7 +226,7 @@ class CompanyProvider with ChangeNotifier {
       await http.patch(url, //update data
           body: json.encode({
             'companyName': newCompany.companyName,
-            'companyAdminId': newCompany.companyAdminId,
+            'companyAdminID': newCompany.companyAdminId,
           })); //merge data that is incoming and the data that existing in the database
 
       _companies[companyIndex] = newCompany;
