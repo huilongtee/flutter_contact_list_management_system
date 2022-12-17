@@ -37,6 +37,7 @@ class SharedContactListScreen extends StatefulWidget {
 class _SharedContactListScreenState extends State<SharedContactListScreen> {
   List<Profile> _contactPerson;
   List<Department> _departments;
+  List<Role> _roles;
   String query = '';
   DateTime lastPressed;
   var _isInit = true;
@@ -44,8 +45,8 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   final _phoneNumberFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
   var _filledData = '';
-  var _editedProfile = '';
-  List _mergedList;
+  // var _editedProfile = '';
+  // List _mergedList;
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -54,21 +55,33 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       });
 
       Provider.of<DepartmentProvider>(context, listen: false)
-          .fetchAndSetDepartmentList();
-      _departments = Provider.of<DepartmentProvider>(context, listen: false)
-          .departmentList;
-      Provider.of<RoleProvider>(context, listen: false).fetchAndSetRoleList();
-      Provider.of<SharedContactListProvider>(context, listen: false)
-          .fetchAndSetSharedContactList(context);
+          .fetchAndSetDepartmentList()
+          .then((_) {
+        _departments = Provider.of<DepartmentProvider>(context, listen: false)
+            .departmentList;
+        Provider.of<RoleProvider>(context, listen: false)
+            .fetchAndSetRoleList()
+            .then((_) {
+          _roles = Provider.of<RoleProvider>(context, listen: false).roleList;
 
-      _contactPerson =
           Provider.of<SharedContactListProvider>(context, listen: false)
-              .sharedContactList;
+              .fetchAndSetSharedContactList()
+              .then((_) {
+            _contactPerson =
+                Provider.of<SharedContactListProvider>(context, listen: false)
+                    .sharedContactList;
 
-      _mergedList =
-          Provider.of<SharedContactListProvider>(context, listen: false)
-              .mergedList;
-      print(_mergedList.length);
+            setState(() {
+              _isLoading = false;
+            });
+          });
+        });
+      });
+
+      // _mergedList =
+      //     Provider.of<SharedContactListProvider>(context, listen: false)
+      //         .mergedList;
+      // print(_mergedList.length);
       // _contactPerson.forEach((element) {
       //   _departments.forEach((e) {
       //     if (e.id == element.departmentId && element.departmentId.toString().isNotEmpty) {
@@ -106,9 +119,6 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       //   });
       // });
 
-      setState(() {
-        _isLoading = false;
-      });
       _isInit = false;
 
       super.didChangeDependencies();
@@ -261,7 +271,6 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(_contactPerson);
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),
@@ -317,82 +326,92 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                 padding: const EdgeInsets.all(5.0),
                 child: Column(children: [
                   buildSearch(),
-                  // Expanded(
-                  //   child: Consumer<SharedContactListProvider>(
-                  //     builder: (context, _contactPerson, _) => ListView.builder(
-                  //       itemCount: _contactPerson.sharedContactList.length,
-                  //       itemBuilder: (_, index) => Column(
-                  //         children: [
-                  //           SharedContactItem(
-                  //             _contactPerson.sharedContactList[index].id,
-                  //             _contactPerson.sharedContactList[index].fullName,
-                  //             _contactPerson.sharedContactList[index].imageUrl,
-                  //             _contactPerson.sharedContactList[index].roleId,
-                  //             _contactPerson
-                  //                 .sharedContactList[index].departmentId,
-                  //           ),
-                  //           Divider(
-                  //             thickness: 1,
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                  Expanded(
+                    child: _contactPerson == []
+                        ? Center(
+                            child: Text(
+                                'There is no contact person added into the list yet'),
+                          )
+                        : Consumer<SharedContactListProvider>(
+                            builder: (context, _contactPerson, _) =>
+                                ListView.builder(
+                              itemCount:
+                                  _contactPerson.sharedContactList.length,
+                              itemBuilder: (_, index) => Column(
+                                children: [
+                                  SharedContactItem(
+                                    _contactPerson.sharedContactList[index].id,
+                                    _contactPerson
+                                        .sharedContactList[index].fullName,
+                                    _contactPerson
+                                        .sharedContactList[index].imageUrl,
+                                    _contactPerson
+                                        .sharedContactList[index].roleId,
+                                    _contactPerson
+                                        .sharedContactList[index].departmentId,
+                                  ),
+                                  Divider(
+                                    thickness: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                  ),
 
                   //grouped list, current bug is failed to assign department and role
 
                   //there is still having a bug, only refresh again then can generate grouped list
-                  Expanded(
-                    child: GroupedListView<dynamic, String>(
-                      groupComparator: (element1, element2) => element1.compareTo(element2),
-                      useStickyGroupSeparators: true,
-                      // elements: _contactPerson,
-                      elements: _mergedList,
+                  // Expanded(
+                  //   child: GroupedListView<dynamic, String>(
+                  //     groupComparator: (element1, element2) => element1.compareTo(element2),
+                  //     useStickyGroupSeparators: true,
+                  //     // elements: _contactPerson,
+                  //     elements: _mergedList,
 
-                      // groupBy: (Profile element) => element.departmentId == null
-                      //     ? 'Other'
-                      //     : displayDepartmentName(element.departmentId).toString(),
-                       groupBy: ( item)=>item['departmentName'],
-                      groupSeparatorBuilder: (value) => Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(15),
-                        color: Colors.black,
-                        child: Text(
-                          value.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      itemBuilder: (context, element) => Column(
-                        children: [
-                          SharedContactItem(
-                            element['id'],
-                            element['fullName'],
-                            element['imageUrl'],
-                            element['roleID'],
-                            element['departmentID'],
+                  //     // groupBy: (Profile element) => element.departmentId == null
+                  //     //     ? 'Other'
+                  //     //     : displayDepartmentName(element.departmentId).toString(),
+                  //      groupBy: ( item)=>item['departmentName'],
+                  //     groupSeparatorBuilder: (value) => Container(
+                  //       width: double.infinity,
+                  //       padding: const EdgeInsets.all(15),
+                  //       color: Colors.black,
+                  //       child: Text(
+                  //         value.toString(),
+                  //         style: TextStyle(
+                  //           color: Colors.white,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     itemBuilder: (context, element) => Column(
+                  //       children: [
+                  //         SharedContactItem(
+                  //           element['id'],
+                  //           element['fullName'],
+                  //           element['imageUrl'],
+                  //           element['roleID'],
+                  //           element['departmentID'],
 
-                            // element.id,
-                            // element.fullName,
-                            // element.imageUrl,
-                            // element.roleId,
-                            // element.departmentId,
+                  //           // element.id,
+                  //           // element.fullName,
+                  //           // element.imageUrl,
+                  //           // element.roleId,
+                  //           // element.departmentId,
 
-                            // _contactPerson[element].id,
-                            // _contactPerson[element].fullName,
-                            // _contactPerson[element].imageUrl,
-                            // _contactPerson[element].roleId,
-                            // _contactPerson[element].departmentId,
-                          ),
-                          Divider(
-                            thickness: 1,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  //           // _contactPerson[element].id,
+                  //           // _contactPerson[element].fullName,
+                  //           // _contactPerson[element].imageUrl,
+                  //           // _contactPerson[element].roleId,
+                  //           // _contactPerson[element].departmentId,
+                  //         ),
+                  //         Divider(
+                  //           thickness: 1,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                 ]),
               ),
             ),

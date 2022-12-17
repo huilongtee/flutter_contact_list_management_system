@@ -19,13 +19,13 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
   var _editedCompany = Company(
     id: null,
     companyName: '',
-    companyAdminId: '',
+    companyAdminID: '',
   );
   var _isLoading = false;
   var _isInit = true;
   var _initValue = {
     'companyName': '',
-    'companyAdminId': '',
+    'companyAdminID': '',
   };
   List<Profile> loadedNonAdmin = [];
 
@@ -44,12 +44,12 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
         _editedCompany = Provider.of<CompanyProvider>(context, listen: false)
             .findById(companyId);
         selectedValue = Provider.of<ProfileProvider>(context, listen: false)
-            .findByNonAdminId(_editedCompany.companyAdminId);
+            .findByNonAdminId(_editedCompany.companyAdminID);
 
         // print(selectedValue.id);
         _initValue = {
           'companyName': _editedCompany.companyName,
-          'companyAdminId': _editedCompany.companyAdminId,
+          'companyAdminID': _editedCompany.companyAdminID,
         };
         setState(() {
           _isLoading = false;
@@ -125,7 +125,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(_initValue['companyAdminId'] == ''
+        title: Text(_initValue['companyAdminID'] == ''
             ? 'Add New Company Account'
             : 'Update Company details'),
         backgroundColor: Theme.of(context).primaryColor,
@@ -166,7 +166,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                           onSaved: (value) {
                             _editedCompany = Company(
                               companyName: value,
-                              companyAdminId: _editedCompany.companyAdminId,
+                              companyAdminID: _editedCompany.companyAdminID,
                               id: _editedCompany.id,
                             );
                           },
@@ -258,7 +258,7 @@ class _AddCompanyScreenState extends State<AddCompanyScreen> {
                   child: ElevatedButton(
                     onPressed: _saveForm,
                     child: Text(
-                        _initValue['companyAdminId'] == '' ? 'Add' : 'Update'),
+                        _initValue['companyAdminID'] == '' ? 'Add' : 'Update'),
                     style: ElevatedButton.styleFrom(
                       primary: Theme.of(context).primaryColor,
                       textStyle: TextStyle(fontSize: 20),

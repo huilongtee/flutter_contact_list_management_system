@@ -1,12 +1,12 @@
 // import 'dart:convert';
-//
+
 // import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
-//
+
 // // import '../screens/viewContactPerson_screen.dart';
 // import 'package:intl_phone_field/intl_phone_field.dart';
-//
+
 // import 'package:provider/provider.dart';
 // import '../models/http_exception.dart';
 // import '../widgets/app_drawer.dart';
@@ -15,15 +15,15 @@
 // import '../providers/profile.dart';
 // import '../widgets/personal_contact_item.dart';
 // import '../widgets/searchField.dart';
-//
+
 // class PersonalContactListScreen extends StatefulWidget {
 //   static const routeName = '/personalContactList_page';
-//
+
 //   @override
 //   State<PersonalContactListScreen> createState() =>
 //       _PersonalContactListScreenState();
 // }
-//
+
 // class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
 //   List<Profile> _contactPerson;
 //   String query = '';
@@ -34,14 +34,14 @@
 //   final _form = GlobalKey<FormState>();
 //   var _filledData = '';
 //   var _isInit = true;
-//
+
 //   @override
 //   void didChangeDependencies() {
 //     if (_isInit) {
 //       setState(() {
 //         _isLoading = true;
 //       });
-//
+
 //       Provider.of<PersonalContactListProvider>(context)
 //           .fetchAndSetPersonalContactList();
 //       _contactPerson =
@@ -50,17 +50,17 @@
 //         _isLoading = false;
 //       });
 //       _isInit = false;
-//
+
 //       super.didChangeDependencies();
 //     }
 //   }
-//
+
 //   @override
 //   void dispose() {
 //     _phoneNumberFocusNode.dispose();
 //     super.dispose();
 //   }
-//
+
 //   void _showErrorDialog(String message) {
 //     showDialog(
 //       context: context,
@@ -78,55 +78,7 @@
 //       ),
 //     );
 //   }
-//
-//   // Future _openDialog() => showDialog(
-//   //       context: context,
-//   //       builder: (context) => AlertDialog(
-//   //         title: Text('Phone Number'),
-//   //         content: Column(
-//   //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//   //           children: [
-//   //             Form(
-//   //               key: _form,
-//   //               child: IntlPhoneField(
-//   //                 decoration: InputDecoration(
-//   //                   labelText: 'Phone Number',
-//   //                 ),
-//   //                 autofocus: true,
-//   //                 textInputAction: TextInputAction.done,
-//   //                 onSubmitted: (_) {
-//   //                   _saveForm();
-//   //                 },
-//   //                 initialValue:
-//   //                     _filledData.isEmpty ? null : _filledData.substring(2),
-//   //                 initialCountryCode: 'MY',
-//   //                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-//   //                 disableLengthCheck: true,
-//   //                 validator: (value) {
-//   //                   if (value.completeNumber.substring(1).isEmpty ||
-//   //                       value.completeNumber.substring(1).length < 10 ||
-//   //                       value.completeNumber.substring(1).length > 12) {
-//   //                     return 'Phone number must greater than 10 digits and lesser than 12';
-//   //                   }
-//   //                 },
-//   //                 onSaved: (value) {
-//   //                   _filledData = value.completeNumber.substring(1);
-//   //                 },
-//   //               ),
-//   //             ),
-//   //             ElevatedButton(
-//   //               onPressed: _saveForm,
-//   //               child: Text('Add New Contact Person'),
-//   //               style: ElevatedButton.styleFrom(
-//   //                 primary: Theme.of(context).primaryColor,
-//   //                 textStyle: TextStyle(fontSize: 20),
-//   //               ),
-//   //             ),
-//   //           ],
-//   //         ),
-//   //       ),
-//   //     );
-//
+
 //   Future<void> _saveForm() async {
 //     final isValid = _form.currentState.validate(); //trigger all validator
 //     if (!isValid) {
@@ -156,7 +108,7 @@
 //       _isLoading = false;
 //     });
 //   }
-//
+
 // //show bottom sheet start
 //   void _showBottomSheet() {
 //     showModalBottomSheet(
@@ -212,7 +164,7 @@
 //         });
 //   }
 // //show bottom sheet end
-//
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
@@ -230,7 +182,7 @@
 //           ),
 //         ],
 //       ),
-//
+
 //       drawer: AppDrawer(),
 //       body: _isLoading == true
 //           ? Center(
@@ -248,7 +200,7 @@
 //                     content: Text('Tap again to close app'),
 //                     duration: maxDuration,
 //                   );
-//
+
 //                   ScaffoldMessenger.of(context)
 //                     ..removeCurrentSnackBar()
 //                     ..showSnackBar(snackBar);
@@ -294,13 +246,13 @@
 //       //
 //     );
 //   }
-//
+
 //   Widget buildSearch() => SearchField(
 //         text: query,
 //         hintText: 'Search by Contact Person Name',
 //         onChanged: searchContactPerson,
 //       );
-//
+
 //   void searchContactPerson(String query) {
 //     print(query);
 //     Provider.of<PersonalContactListProvider>(context, listen: false)

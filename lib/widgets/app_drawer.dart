@@ -17,7 +17,7 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           AppBar(
-            title: Text('My List'),
+            title: Text('My List',style: TextStyle(color: Colors.white),),
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context).primaryColor,
             

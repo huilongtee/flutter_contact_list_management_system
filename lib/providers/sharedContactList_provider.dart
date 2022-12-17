@@ -15,7 +15,7 @@ class SharedContactListProvider with ChangeNotifier {
   final String userId;
   List<Profile> _sharedContactList = [];
   List<Profile> _backupList = [];
-  List _mergedList = [];
+  // List _mergedList = [];
   var companyID = '';
 
   SharedContactListProvider(
@@ -25,9 +25,9 @@ class SharedContactListProvider with ChangeNotifier {
     return [..._sharedContactList];
   }
 
-  List get mergedList {
-    return [..._mergedList];
-  }
+  // List get mergedList {
+  //   return [..._mergedList];
+  // }
 
   String get companyId {
     return companyID;
@@ -50,9 +50,99 @@ class SharedContactListProvider with ChangeNotifier {
         orElse: () => null);
   }
 
+  // /*==================================== retrieve a list of collegues id and return their profile============================================*/
+  // Future<void> fetchAndSetContactPersonProfile(
+  //     List loadedData, BuildContext context) async {
+  //   var url = Uri.parse(
+  //       'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
+  //   try {
+  //     final response = await http.get(url);
+
+  //     final extractedData = json.decode(response.body) as Map<String,
+  //         dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+  //     final List<Profile> loadedProfile = [];
+  //     if (extractedData == null) {
+  //       return null;
+  //     }
+
+  //     List<Department> _departments =
+  //         await Provider.of<DepartmentProvider>(context, listen: false)
+  //             .departmentList;
+
+  //     extractedData.forEach((profileId, profileData) {
+  //       _departments.forEach((element) {
+  //         if (loadedData.contains(profileId) &&
+  //             profileData['departmentID'] == element.id) {
+  //           final Map<String, dynamic> data = new Map<String, dynamic>();
+  //           data["id"] = profileId;
+  //           data["companyID"] = profileData['companyID'];
+  //           data["departmentID"] = profileData['departmentID'];
+  //           data["departmentName"] = element.departmentName;
+  //           data["emailAddress"] = profileData['emailAddress'];
+  //           data["fullName"] = profileData['fullName'];
+  //           data["homeAddress"] = profileData['homeAddress'];
+  //           data["imageUrl"] = profileData['imageUrl'];
+  //           data["phoneNumber"] = profileData['phoneNumber'];
+  //           data["roleID"] = profileData['roleID'];
+  //           _mergedList.add(data);
+  //           loadedProfile.add(
+  //             Profile(
+  //               id: profileId,
+  //               fullName: profileData['fullName'],
+  //               emailAddress: profileData['emailAddress'],
+  //               homeAddress: profileData['homeAddress'],
+  //               phoneNumber: profileData['phoneNumber'],
+  //               roleId: profileData['roleID'],
+  //               departmentId: profileData['departmentID'],
+  //               companyId: profileData['companyID'],
+  //               imageUrl: profileData['imageUrl'],
+  //               qrUrl: profileData['qrUrl'],
+  //             ),
+  //           );
+  //         }else if (loadedData.contains(profileId) &&
+  //             profileData['departmentID'] != element.id) {
+  //           final Map<String, dynamic> data = new Map<String, dynamic>();
+  //           data["id"] = profileId;
+  //           data["companyID"] = profileData['companyID'];
+  //           data["departmentID"] = '';
+  //           data["departmentName"] = 'Other';
+  //           data["emailAddress"] = profileData['emailAddress'];
+  //           data["fullName"] = profileData['fullName'];
+  //           data["homeAddress"] = profileData['homeAddress'];
+  //           data["imageUrl"] = profileData['imageUrl'];
+  //           data["phoneNumber"] = profileData['phoneNumber'];
+  //           data["roleID"] = profileData['roleID'];
+  //           _mergedList.add(data);
+  //           loadedProfile.add(
+  //             Profile(
+  //               id: profileId,
+  //               fullName: profileData['fullName'],
+  //               emailAddress: profileData['emailAddress'],
+  //               homeAddress: profileData['homeAddress'],
+  //               phoneNumber: profileData['phoneNumber'],
+  //               roleId: profileData['roleID'],
+  //               departmentId: profileData['departmentID'],
+  //               companyId: profileData['companyID'],
+  //               imageUrl: profileData['imageUrl'],
+  //               qrUrl: profileData['qrUrl'],
+  //             ),
+  //           );
+  //         }
+  //       });
+  //     });
+
+  //     _sharedContactList = loadedProfile;
+  //     _backupList = loadedProfile;
+  //   } catch (error) {
+  //     print(error);
+
+  //     throw (error);
+  //   }
+  // }
+
   /*==================================== retrieve a list of collegues id and return their profile============================================*/
-  Future<void> fetchAndSetContactPersonProfile(
-      List loadedData, BuildContext context) async {
+  Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
     var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
     try {
@@ -66,70 +156,23 @@ class SharedContactListProvider with ChangeNotifier {
         return null;
       }
 
-      List<Department> _departments =
-          await Provider.of<DepartmentProvider>(context, listen: false)
-              .departmentList;
-
       extractedData.forEach((profileId, profileData) {
-        _departments.forEach((element) {
-          if (loadedData.contains(profileId) &&
-              profileData['departmentID'] == element.id) {
-            final Map<String, dynamic> data = new Map<String, dynamic>();
-            data["id"] = profileId;
-            data["companyID"] = profileData['companyID'];
-            data["departmentID"] = profileData['departmentID'];
-            data["departmentName"] = element.departmentName;
-            data["emailAddress"] = profileData['emailAddress'];
-            data["fullName"] = profileData['fullName'];
-            data["homeAddress"] = profileData['homeAddress'];
-            data["imageUrl"] = profileData['imageUrl'];
-            data["phoneNumber"] = profileData['phoneNumber'];
-            data["roleID"] = profileData['roleID'];
-            _mergedList.add(data);
-            loadedProfile.add(
-              Profile(
-                id: profileId,
-                fullName: profileData['fullName'],
-                emailAddress: profileData['emailAddress'],
-                homeAddress: profileData['homeAddress'],
-                phoneNumber: profileData['phoneNumber'],
-                roleId: profileData['roleID'],
-                departmentId: profileData['departmentID'],
-                companyId: profileData['companyID'],
-                imageUrl: profileData['imageUrl'],
-                qrUrl: profileData['qrUrl'],
-              ),
-            );
-          }else if (loadedData.contains(profileId) &&
-              profileData['departmentID'] != element.id) {
-            final Map<String, dynamic> data = new Map<String, dynamic>();
-            data["id"] = profileId;
-            data["companyID"] = profileData['companyID'];
-            data["departmentID"] = '';
-            data["departmentName"] = 'Other';
-            data["emailAddress"] = profileData['emailAddress'];
-            data["fullName"] = profileData['fullName'];
-            data["homeAddress"] = profileData['homeAddress'];
-            data["imageUrl"] = profileData['imageUrl'];
-            data["phoneNumber"] = profileData['phoneNumber'];
-            data["roleID"] = profileData['roleID'];
-            _mergedList.add(data);
-            loadedProfile.add(
-              Profile(
-                id: profileId,
-                fullName: profileData['fullName'],
-                emailAddress: profileData['emailAddress'],
-                homeAddress: profileData['homeAddress'],
-                phoneNumber: profileData['phoneNumber'],
-                roleId: profileData['roleID'],
-                departmentId: profileData['departmentID'],
-                companyId: profileData['companyID'],
-                imageUrl: profileData['imageUrl'],
-                qrUrl: profileData['qrUrl'],
-              ),
-            );
-          }
-        });
+        if (loadedData.contains(profileId)) {
+          loadedProfile.add(
+            Profile(
+              id: profileId,
+              fullName: profileData['fullName'],
+              emailAddress: profileData['emailAddress'],
+              homeAddress: profileData['homeAddress'],
+              phoneNumber: profileData['phoneNumber'],
+              roleId: profileData['roleID'],
+              departmentId: profileData['departmentID'],
+              companyId: profileData['companyID'],
+              imageUrl: profileData['imageUrl'],
+              qrUrl: profileData['qrUrl'],
+            ),
+          );
+        }
       });
 
       _sharedContactList = loadedProfile;
@@ -142,7 +185,7 @@ class SharedContactListProvider with ChangeNotifier {
   }
 
   /*==================================== get a list of collegues id ============================================*/
-  Future<void> fetchAndSetSharedContactList(BuildContext context) async {
+  Future<void> fetchAndSetSharedContactList() async {
     String userID = '';
 
     //check whether current user got companyID
@@ -190,11 +233,13 @@ class SharedContactListProvider with ChangeNotifier {
             );
           } else {
             print('found');
+            print(userID);
+            print(companyID);
           }
         });
 
 //pass the contact person userID list to fetch their whole profile details
-        await fetchAndSetContactPersonProfile(loadedContactPersonID, context);
+        await fetchAndSetContactPersonProfile(loadedContactPersonID);
 
         notifyListeners();
       } catch (error) {

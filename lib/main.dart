@@ -38,7 +38,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      
       providers: [
         ChangeNotifierProvider(
           create: (context) => AuthProvider(),
@@ -119,8 +118,9 @@ class MyApp extends StatelessWidget {
           title: 'My-List',
           theme: ThemeData(
             // primaryColor: Color.fromARGB(255, 255, 196, 0),
-            primaryColor: Color.fromARGB(255, 154, 77, 22),
-
+            // primaryColor: Color.fromARGB(255, 154, 77, 22),
+            primaryColor: Color.fromRGBO(204, 204, 255, 1),
+            secondaryHeaderColor: Color.fromRGBO(179, 136, 255, 1),
             fontFamily: 'Lato',
             textTheme: ThemeData.light().textTheme.copyWith(
                   bodyText1: TextStyle(

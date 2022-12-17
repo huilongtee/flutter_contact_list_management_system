@@ -44,9 +44,9 @@ class DepartmentProvider with ChangeNotifier {
               checkCompanyIDResponse.body) as Map<String,
           dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      if (checkCompanyIDExtractedData == null) {
-        return;
-      }
+      // if (checkCompanyIDExtractedData == null) {
+      //   return;
+      // }
 
       //get current user companyID
       checkCompanyIDExtractedData.forEach((id, contactPersonData) {

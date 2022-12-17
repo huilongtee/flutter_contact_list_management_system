@@ -80,7 +80,7 @@ class _SharedContactItemState extends State<SharedContactItem> {
       },
       child: ListTile(
        onTap: () => Navigator.pushNamed(context, ContactPersonDetailScreen.routeName,
-                  arguments: widget.id),
+                  arguments: ContactPersonDetailScreen(id:  widget.id,listType: 'shared',),),
         title: Text(widget.userName),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

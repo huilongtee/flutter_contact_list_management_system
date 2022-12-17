@@ -127,7 +127,7 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Role'),
                           isExpanded: true,
-                          value: _editedRole.isEmpty
+                          value: _editedRole == null
                               ? loadedRole[0].id
                               : _editedRole,
                           // value: _editedRole,
@@ -148,7 +148,7 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
                         DropdownButtonFormField(
                           hint: Text('Select Department'),
                           isExpanded: true,
-                          value: _editedDepartment.isEmpty
+                          value: _editedDepartment ==null
                               ? loadedDepartment[0].id
                               : _editedDepartment,
                           // value: _editedDepartment,

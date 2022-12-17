@@ -1,3 +1,5 @@
+//this do not have az listview
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -46,10 +48,64 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   final _form = GlobalKey<FormState>();
   var _filledData = '';
   var _isInit = true;
-  List<AZItem> items = [];
-  List<AZItem> _backupList = [];
+  // List<AZItem> items = [];
+  // List<AZItem> _backupList = [];
   // List<_KIndexBar> kIndexBar = [];
+  Profile loadedProfileResult = null;
+
   @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      ).fetchAndSetProfile().then((_) {
+        Provider.of<PersonalContactListProvider>(context, listen: false)
+            .fetchAndSetPersonalContactList()
+            .then((_) {
+          _contactPerson =
+              Provider.of<PersonalContactListProvider>(context, listen: false)
+                  .personalContactList;
+          //get list
+          final result = Provider.of<ProfileProvider>(
+            context,
+            listen: false,
+          ).profile;
+          //filter list using first item in list
+          final loadedProfile = Provider.of<ProfileProvider>(
+            context,
+            listen: false,
+          ).findById(result[0].id);
+          loadedProfileResult = Profile(
+            id: loadedProfile.id,
+            companyId: loadedProfile.companyId,
+            fullName: loadedProfile.fullName,
+            emailAddress: loadedProfile.emailAddress,
+            homeAddress: loadedProfile.homeAddress,
+            phoneNumber: loadedProfile.phoneNumber,
+            roleId: loadedProfile.roleId,
+            departmentId: loadedProfile.departmentId,
+            imageUrl: loadedProfile.imageUrl,
+            qrUrl: loadedProfile.qrUrl,
+          );
+        });
+
+        // convertToISuspensionList(_contactPerson);
+        // generateKIndexBar(kIndexBarData);
+      });
+
+      setState(() {
+        _isLoading = false;
+      });
+      _isInit = false;
+
+      super.didChangeDependencies();
+    }
+  }
+
   // void didChangeDependencies() {
   //   if (_isInit) {
   //     setState(() {
@@ -76,51 +132,25 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   //   }
   // }
 
-  void didChangeDependencies() {
-    if (_isInit) {
-      setState(() {
-        _isLoading = true;
-      });
+  // void convertToISuspensionList(List<Profile> items) {
+  //   print('entered');
+  //   this.items = items
+  //       .map((item) => AZItem(
+  //             title: item.fullName,
+  //             tag: item.fullName[0].toUpperCase(),
+  //             id: item.id,
+  //             fullName: item.fullName,
+  //             imageUrl: item.imageUrl,
+  //             phoneNumber: item.phoneNumber,
+  //             emailAddress: item.emailAddress,
+  //             homeAddress: item.homeAddress,
+  //           ))
+  //       .toList();
 
-      Provider.of<PersonalContactListProvider>(context)
-          .fetchAndSetPersonalContactList()
-          .then((_) {
-        _contactPerson =
-            Provider.of<PersonalContactListProvider>(context, listen: false)
-                .personalContactList;
-
-        convertToISuspensionList(_contactPerson);
-        // generateKIndexBar(kIndexBarData);
-      });
-
-      setState(() {
-        _isLoading = false;
-      });
-      _isInit = false;
-
-      super.didChangeDependencies();
-    }
-  }
-
-  void convertToISuspensionList(List<Profile> items) {
-    print('entered');
-    this.items = items
-        .map((item) => AZItem(
-              title: item.fullName,
-              tag: item.fullName[0].toUpperCase(),
-              id: item.id,
-              fullName: item.fullName,
-              imageUrl: item.imageUrl,
-              phoneNumber: item.phoneNumber,
-              emailAddress: item.emailAddress,
-              homeAddress: item.homeAddress,
-            ))
-        .toList();
-
-    SuspensionUtil.sortListBySuspensionTag(this.items);
-    SuspensionUtil.setShowSuspensionStatus(this.items);
-    setState(() {});
-  }
+  //   SuspensionUtil.sortListBySuspensionTag(this.items);
+  //   SuspensionUtil.setShowSuspensionStatus(this.items);
+  //   setState(() {});
+  // }
 
   // void generateKIndexBar(List<String> kIndexBarItems) {
   //   this.kIndexBar = kIndexBarItems
@@ -150,7 +180,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     try {
       final errMessage =
           await Provider.of<PersonalContactListProvider>(context, listen: false)
-              .addContactPerson(_filledData);
+              .addContactPerson(_filledData, loadedProfileResult);
 
       Navigator.of(context).pop();
 
@@ -249,7 +279,13 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My-List'),
+        title: Text(
+          'My List',
+          style: TextStyle(
+            // color: Theme.of(context).textTheme.bodyText1.color,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
           IconButton(
@@ -260,6 +296,9 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
               // _showErrorDialog('error');
             },
             icon: Icon(Icons.add),
+            // color: Theme.of(context).textTheme.bodyText1.color,
+            // color: Theme.of(context).secondaryHeaderColor,
+            color: Colors.white,
           ),
         ],
       ),
@@ -294,106 +333,106 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                 child: Column(children: [
                   buildSearch(),
                   Expanded(
-                    // child: Consumer<PersonalContactListProvider>(
-                    //   builder: (context, _contactPerson, _) => ListView.builder(
-                    //     itemCount: _contactPerson.personalContactList.length,
-                    //     itemBuilder: (_, index) => Column(
-                    //       children: [
-                    //         PersonalContactItem(
-                    //           _contactPerson.personalContactList[index].id,
-                    //           _contactPerson
-                    //               .personalContactList[index].fullName,
-                    //           _contactPerson
-                    //               .personalContactList[index].imageUrl,
-                    //           _contactPerson
-                    //               .personalContactList[index].phoneNumber,
-                    //           _contactPerson
-                    //               .personalContactList[index].emailAddress,
-                    //           _contactPerson
-                    //               .personalContactList[index].homeAddress,
-                    //         ),
-                    //         Divider(
-                    //           thickness: 1,
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
-
-                    child: LayoutBuilder(
-                      builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        return AzListView(
-                          data: items,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            final tag = item.getSuspensionTag();
-                            final offstage = !item.isShowSuspension;
-
-                            return Column(
-                              children: [
-                                Offstage(
-                                  offstage: offstage,
-                                  child: buildHeader(tag),
-                                ),
-
-                                Container(
-                                  margin: EdgeInsets.only(
-                                    right: 15,
-                                  ),
-                                  child: PersonalContactItem(
-                                    item.id,
-                                    item.fullName,
-                                    item.imageUrl,
-                                    item.phoneNumber,
-                                    item.emailAddress,
-                                    item.homeAddress,
-                                  ),
-                                ),
-                                // Divider(
-                                //   thickness: 1,
-                                // ),
-                              ],
-                            );
-                          },
-                          indexBarData:
-                              constraints.maxHeight > 400 ? kIndexBarData : [],
-                          indexHintBuilder: (context, hint) => Container(
-                            alignment: Alignment.center,
-                            child: Text(
-                              hint,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                              ),
+                    child: Consumer<PersonalContactListProvider>(
+                      builder: (context, _contactPerson, _) => ListView.builder(
+                        itemCount: _contactPerson.personalContactList.length,
+                        itemBuilder: (_, index) => Column(
+                          children: [
+                            PersonalContactItem(
+                              _contactPerson.personalContactList[index].id,
+                              _contactPerson
+                                  .personalContactList[index].fullName,
+                              _contactPerson
+                                  .personalContactList[index].imageUrl,
+                              _contactPerson
+                                  .personalContactList[index].phoneNumber,
+                              _contactPerson
+                                  .personalContactList[index].emailAddress,
+                              _contactPerson
+                                  .personalContactList[index].homeAddress,
                             ),
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
+                            Divider(
+                              thickness: 1,
                             ),
-                          ),
-                          // indexBarMargin: EdgeInsets.only(
-                          //   right: 5,
-                          // ),
-                          indexBarOptions: IndexBarOptions(
-                            needRebuild: true,
-                            indexHintAlignment: Alignment.centerRight,
-                            indexHintOffset: Offset(-20, 0),
-                            selectTextStyle: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            selectItemDecoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        );
-                      },
+                          ],
+                        ),
+                      ),
                     ),
+
+                    // child: LayoutBuilder(
+                    //   builder:
+                    //       (BuildContext context, BoxConstraints constraints) {
+                    //     return AzListView(
+                    //       data: items,
+                    //       itemCount: items.length,
+                    //       itemBuilder: (context, index) {
+                    //         final item = items[index];
+                    //         final tag = item.getSuspensionTag();
+                    //         final offstage = !item.isShowSuspension;
+
+                    //         return Column(
+                    //           children: [
+                    //             Offstage(
+                    //               offstage: offstage,
+                    //               child: buildHeader(tag),
+                    //             ),
+
+                    //             Container(
+                    //               margin: EdgeInsets.only(
+                    //                 right: 15,
+                    //               ),
+                    //               child: PersonalContactItem(
+                    //                 item.id,
+                    //                 item.fullName,
+                    //                 item.imageUrl,
+                    //                 item.phoneNumber,
+                    //                 item.emailAddress,
+                    //                 item.homeAddress,
+                    //               ),
+                    //             ),
+                    //             // Divider(
+                    //             //   thickness: 1,
+                    //             // ),
+                    //           ],
+                    //         );
+                    //       },
+                    //       indexBarData:
+                    //           constraints.maxHeight > 400 ? kIndexBarData : [],
+                    //       indexHintBuilder: (context, hint) => Container(
+                    //         alignment: Alignment.center,
+                    //         child: Text(
+                    //           hint,
+                    //           style: TextStyle(
+                    //             color: Colors.white,
+                    //             fontSize: 30,
+                    //           ),
+                    //         ),
+                    //         width: 60,
+                    //         height: 60,
+                    //         decoration: BoxDecoration(
+                    //           color: Colors.blue,
+                    //           shape: BoxShape.circle,
+                    //         ),
+                    //       ),
+                    //       // indexBarMargin: EdgeInsets.only(
+                    //       //   right: 5,
+                    //       // ),
+                    //       indexBarOptions: IndexBarOptions(
+                    //         needRebuild: true,
+                    //         indexHintAlignment: Alignment.centerRight,
+                    //         indexHintOffset: Offset(-20, 0),
+                    //         selectTextStyle: TextStyle(
+                    //           color: Colors.white,
+                    //           fontWeight: FontWeight.bold,
+                    //         ),
+                    //         selectItemDecoration: BoxDecoration(
+                    //           shape: BoxShape.circle,
+                    //           color: Colors.blue,
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                   ),
                 ]),
               ),
@@ -407,22 +446,22 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         onChanged: searchContactPerson,
       );
 
-  // void searchContactPerson(String query) {
-  //   print(query);
-  //   Provider.of<PersonalContactListProvider>(context, listen: false)
-  //       .findByFullName(query.toLowerCase());
-  // }
-
-  void searchContactPerson(String name) {
-    print(name);
-    if (name.isEmpty) {
-      items = _backupList;
-    } else {
-      items = items
-          .where((data) =>
-              data.fullName.toLowerCase().contains(name.toLowerCase()))
-          .toList();
-    }
-    // notifyListeners();
+  void searchContactPerson(String query) {
+    print(query);
+    Provider.of<PersonalContactListProvider>(context, listen: false)
+        .findByFullName(query.toLowerCase());
   }
+
+  // void searchContactPerson(String name) {
+  //   print(name);
+  //   if (name.isEmpty) {
+  //     items = _backupList;
+  //   } else {
+  //     items = items
+  //         .where((data) =>
+  //             data.fullName.toLowerCase().contains(name.toLowerCase()))
+  //         .toList();
+  //   }
+  //   // notifyListeners();
+  // }
 }

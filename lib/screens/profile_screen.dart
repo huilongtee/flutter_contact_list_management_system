@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   var loadedProfile = null;
   var role = null;
   var department = null;
-  var company = null;
+  var companyName = null;
   var result = null;
   File _image;
   final imagePicker = ImagePicker();
@@ -67,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           context,
           listen: false,
         ).findById(result[0].id);
+
         loadedProfileResult = Profile(
           id: loadedProfile.id,
           companyId: loadedProfile.companyId,
@@ -84,46 +85,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Provider.of<RoleProvider>(context, listen: false)
             .fetchAndSetRoleList()
             .then((_) {
-          //get list
-          final result =
-              Provider.of<RoleProvider>(context, listen: false).roleList;
-
-          //filter list using first item in list
-          final role = Provider.of<RoleProvider>(context, listen: false)
-              .findById(result[0].id);
-
-          loadedRoleResult = Role(roleName: role.roleName, id: role.id);
-
-          //fetch department based on the userid
           Provider.of<DepartmentProvider>(context, listen: false)
               .fetchAndSetDepartmentList()
               .then((_) {
-            //get list
-            final result =
-                Provider.of<DepartmentProvider>(context, listen: false)
-                    .departmentList;
-
-            //filter list using first item in list
-            final department =
-                Provider.of<DepartmentProvider>(context, listen: false)
-                    .findById(result[0].id);
-
-            loadedDepartmentResult = Department(
-                departmentName: department.departmentName, id: department.id);
-
             Provider.of<CompanyProvider>(context, listen: false)
-                .fetchAndSetCompany();
-            Provider.of<CompanyProvider>(context, listen: false)
-                .fetchAndSetCompanyName(loadedProfileResult.companyId);
-            final companyNameResult =
-                Provider.of<CompanyProvider>(context, listen: false)
-                    .getCompanyName;
-            loadedCompanyResult = Company(
-                id: loadedProfile.companyId,
-                companyName: companyNameResult,
-                companyAdminId: null);
-            setState(() {
-              _isLoading = false;
+                .fetchAndSetCompany()
+                .then((_) {
+              Provider.of<CompanyProvider>(context, listen: false)
+                  .fetchAndSetCompanyName(loadedProfileResult.companyId)
+                  .then((_) {
+                // //get list
+                // final result =
+                //     Provider.of<RoleProvider>(context, listen: false).roleList;
+                //filter role list using first item in list
+                final role = Provider.of<RoleProvider>(context, listen: false)
+                    .findById(loadedProfileResult.roleId);
+                if (role == null) {
+                  loadedRoleResult = null;
+                } else {
+                  loadedRoleResult = Role(roleName: role.roleName, id: role.id);
+                }
+
+                //fetch department based on the userid
+
+                // //get list
+                // final result =
+                //     Provider.of<DepartmentProvider>(context, listen: false)
+                //         .departmentList;
+
+                //filter department list using first item in list
+                final department =
+                    Provider.of<DepartmentProvider>(context, listen: false)
+                        .findById(loadedProfileResult.departmentId);
+                if (department == null) {
+                  loadedDepartmentResult = null;
+                } else {
+                  loadedDepartmentResult = Department(
+                      departmentName: department.departmentName,
+                      id: department.id);
+                }
+
+                final companyNameResult =
+                    Provider.of<CompanyProvider>(context, listen: false)
+                        .getCompanyName;
+                companyName = companyNameResult;
+                loadedCompanyResult = Company(
+                    id: loadedProfile.companyId,
+                    companyName: companyNameResult,
+                    companyAdminID: null);
+
+                setState(() {
+                  _isLoading = false;
+                });
+              });
             });
           });
         });
@@ -232,6 +246,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   arguments: loadedProfileResult.id);
             },
             icon: Icon(Icons.edit),
+            // color: Theme.of(context).textTheme.bodyText1.color,
+            color: Colors.white,
           ),
         ],
       ),
@@ -254,13 +270,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: buildTop(),
                 ),
 
-                buildContent(loadedCompanyResult.companyName.toString()),
+                buildContent(),
               ],
             ),
     );
   }
 
-  Widget buildContent(String companyName) {
+  Widget buildContent() {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.only(
@@ -289,16 +305,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(loadedProfileResult.emailAddress),
               ),
             ),
-            Container(
+            loadedDepartmentResult == null?Container():Container(
               child: Padding(
                 padding: EdgeInsets.all(10),
                 child: Text(loadedDepartmentResult.departmentName),
               ),
             ),
+           loadedRoleResult == null?Container():
+           
             Container(
               child: Padding(
                 padding: EdgeInsets.all(10),
-                child: Text(loadedRoleResult.roleName),
+                child: Text(
+                     loadedRoleResult.roleName),
               ),
             ),
             loadedProfileResult.qrUrl == null
@@ -390,6 +409,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 35,
                 letterSpacing: 1.5,
+                // color: Theme.of(context).textTheme.bodyText1.color,
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),

@@ -98,8 +98,13 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
       },
       child: ListTile(
         onTap: () => Navigator.pushNamed(
-            context, ContactPersonDetailScreen.routeName,
-            arguments: widget.id),
+          context,
+          ContactPersonDetailScreen.routeName,
+          arguments: ContactPersonDetailScreen(
+            id: widget.id,
+            listType: 'personal',
+          ),
+        ),
         title: Text(widget.userName),
         leading: widget.imageUrl.isEmpty
             ? CircleAvatar(
@@ -126,7 +131,7 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
               onLongPress: () => onLongerPress(),
               child: Icon(
                 Icons.phone,
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).secondaryHeaderColor,
               ),
             ),
             SizedBox(
@@ -136,7 +141,11 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
               onTap: () => openEmailApp(),
               child: Icon(
                 Icons.email,
-                color: Theme.of(context).primaryColor,
+                // color: Theme.of(context).primaryColor,
+                color: Theme.of(context).secondaryHeaderColor,
+                // shadows: [
+                //   BoxShadow(color: Colors.grey, spreadRadius: 5, blurRadius: 2)
+                // ],
               ),
             ),
             SizedBox(
@@ -146,7 +155,7 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
               onTap: () => openMapApp(),
               child: Icon(
                 Icons.maps_home_work,
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).secondaryHeaderColor,
               ),
             ),
           ],

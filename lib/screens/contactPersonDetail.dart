@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contact_list_management_system/providers/sharedContactList_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/department_provider.dart';
 import '../providers/personalContactList_provider.dart';
@@ -9,6 +10,11 @@ import '../widgets/profile_items.dart';
 
 class ContactPersonDetailScreen extends StatefulWidget {
   static const routeName = '/contactPersonDetailScreen';
+
+  final String id;
+  final String listType;
+
+  ContactPersonDetailScreen({this.id, this.listType});
 
   @override
   State<ContactPersonDetailScreen> createState() =>
@@ -32,31 +38,42 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
       setState(() {
         _isLoading = true;
       });
-      final contactPersonId =
-          ModalRoute.of(context).settings.arguments as String;
+      // final contactPersonId =
+      //     ModalRoute.of(context).settings.arguments as String;
 
       // _contactPerson = Provider.of<PersonalContactListProvider>(context)
       //     .findById(contactPersonId);
-      loadedProfileResult = Provider.of<PersonalContactListProvider>(context)
-          .findById(contactPersonId);
-      if (loadedProfileResult.companyId.isNotEmpty) {
+
+      final args = ModalRoute.of(context).settings.arguments
+          as ContactPersonDetailScreen;
+
+      if (args.listType == 'shared') {
+        loadedProfileResult =
+            Provider.of<SharedContactListProvider>(context, listen: false)
+                .findById(args.id);
+
         Provider.of<CompanyProvider>(context, listen: false)
             .fetchAndSetCompanyName(loadedProfileResult.companyId);
-        
-
-        setState(() {
-          _isLoading = false;
-          _isInit = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-          _isInit = false;
-        });
+      } else if (args.listType == 'personal') {
+        loadedProfileResult =
+            Provider.of<PersonalContactListProvider>(context, listen: false)
+                .findById(args.id);
+        if (loadedProfileResult.companyId.isNotEmpty) {
+          Provider.of<CompanyProvider>(context, listen: false)
+              .fetchAndSetCompanyName(loadedProfileResult.companyId);
+        } else {
+          setState(() {
+            _isLoading = false;
+            _isInit = false;
+          });
+        }
       }
+      setState(() {
+        _isLoading = false;
+        _isInit = false;
+      });
+      super.didChangeDependencies();
     }
-
-    super.didChangeDependencies();
   }
 
   @override
@@ -64,7 +81,6 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
     final companyNameResult =
         Provider.of<CompanyProvider>(context, listen: false).getCompanyName;
 
-    print('the result is: ' + companyNameResult);
     return Scaffold(
       appBar: AppBar(
         title: Text('My-List'),
@@ -91,7 +107,8 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                 ? CircleAvatar(
                                     backgroundColor: Colors.white,
                                     child: Text(
-                                      loadedProfileResult.fullName[0].toUpperCase(),
+                                      loadedProfileResult.fullName[0]
+                                          .toUpperCase(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
@@ -99,8 +116,8 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                                     ),
                                   )
                                 : CircleAvatar(
-                                    backgroundImage:
-                                        NetworkImage(loadedProfileResult.imageUrl),
+                                    backgroundImage: NetworkImage(
+                                        loadedProfileResult.imageUrl),
                                   ),
                           ),
                           Padding(

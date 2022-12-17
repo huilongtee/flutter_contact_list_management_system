@@ -8,12 +8,12 @@ import '../providers/profile.dart';
 class Company with ChangeNotifier {
   final String id;
   final String companyName;
-  final String companyAdminId;
+  final String companyAdminID;
 
   Company({
     @required this.id,
     @required this.companyName,
-    @required this.companyAdminId,
+    @required this.companyAdminID,
   });
 }
 
@@ -60,7 +60,7 @@ class CompanyProvider with ChangeNotifier {
           Company(
             id: companyId,
             companyName: companyData['companyName'],
-            companyAdminId: companyData['companyAdminID'],
+            companyAdminID: companyData['companyAdminID'],
           ),
         );
         _companies = loadedCompanies;
@@ -127,7 +127,7 @@ class CompanyProvider with ChangeNotifier {
             final companyResponse = await http.post(url, //add data
                 body: json.encode({
                   'companyName': newCompany.companyName,
-                  'companyAdminId': id,
+                  'companyAdminID': id,
                 })); //merge data that is incoming and the data that existing in the database
 
             responseData =
@@ -140,7 +140,7 @@ class CompanyProvider with ChangeNotifier {
             final addedCompany = Company(
               id: companyId,
               companyName: newCompany.companyName,
-              companyAdminId: id,
+              companyAdminID: id,
             );
             _companies.add(addedCompany);
 
@@ -226,7 +226,7 @@ class CompanyProvider with ChangeNotifier {
       await http.patch(url, //update data
           body: json.encode({
             'companyName': newCompany.companyName,
-            'companyAdminID': newCompany.companyAdminId,
+            'companyAdminID': newCompany.companyAdminID,
           })); //merge data that is incoming and the data that existing in the database
 
       _companies[companyIndex] = newCompany;

@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_contact_list_management_system/providers/profile_provider.dart';
 import 'dart:convert'; //convert data into json
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../models/http_exception.dart';
 import '../providers/profile.dart';
 
@@ -148,7 +150,7 @@ class PersonalContactListProvider with ChangeNotifier {
     }
   }
 
-  Future<String> addContactPerson(String phoneNumber) async {
+  Future<String> addContactPerson(String phoneNumber,Profile profile) async {
     bool isFound = false;
     String errMessage = '';
     //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
@@ -165,9 +167,14 @@ class PersonalContactListProvider with ChangeNotifier {
       errMessage =
           'This phone number is already added into the personal contact list';
       return errMessage;
-    } else {
+    } else if(profile.phoneNumber==phoneNumber){
+ errMessage =
+          'You cannot add yourself into the contact list';
+      return errMessage;
+    }else{
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
+          
       final url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
       try {
