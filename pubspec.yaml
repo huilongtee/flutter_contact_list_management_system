@@ -45,6 +45,8 @@ dependencies:
   share_plus: ^6.3.0 #share qr code with text
   firebase_database: ^10.0.6
   firebase_auth: ^4.1.5
+  grouped_list: ^5.1.2
+  azlistview: ^2.0.0
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -243,7 +243,7 @@ class PersonalContactListProvider with ChangeNotifier {
     if (response.statusCode >= 400) {
       _personalContactList.insert(
           existingContactPersonIndex, existingContactPerson);
-      notifyListeners();
+      // notifyListeners();
 
       throw HttpException('Could not delete this contact person.');
     }

@@ -2,20 +2,30 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:azlistview/azlistview.dart';
 // import '../screens/viewContactPerson_screen.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
 import '../models/http_exception.dart';
-import '../widgets/app_drawer.dart';
+import '../providers/azitem.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
+
 import '../providers/profile.dart';
 import '../widgets/personal_contact_item.dart';
 import '../widgets/searchField.dart';
 import '../widgets/dialog.dart';
+import '../widgets/app_drawer.dart';
+
+// class _KIndexBar extends ISuspensionBean {
+//   final String tag;
+//   _KIndexBar({this.tag});
+
+//   @override
+//   String getSuspensionTag() => tag;
+// }
 
 class PersonalContactListScreen extends StatefulWidget {
   static const routeName = '/personalContactList_page';
@@ -27,16 +37,45 @@ class PersonalContactListScreen extends StatefulWidget {
 
 class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   List<Profile> _contactPerson;
+
   String query = '';
   PersonalContactListProvider personalContactPersonProvider;
   DateTime lastPressed;
-  final _phoneNumberFocusNode = FocusNode();
+
   var _isLoading = false;
   final _form = GlobalKey<FormState>();
   var _filledData = '';
   var _isInit = true;
-
+  List<AZItem> items = [];
+  List<AZItem> _backupList = [];
+  // List<_KIndexBar> kIndexBar = [];
   @override
+  // void didChangeDependencies() {
+  //   if (_isInit) {
+  //     setState(() {
+  //       _isLoading = true;
+  //     });
+
+  //     Provider.of<PersonalContactListProvider>(context)
+  //         .fetchAndSetPersonalContactList()
+  //         .then((_) {
+  //       _contactPerson =
+  //           Provider.of<PersonalContactListProvider>(context, listen: false)
+  //               .personalContactList;
+
+  //       convertToISuspensionList(_contactPerson);
+  //       // generateKIndexBar(kIndexBarData);
+  //     });
+
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //     _isInit = false;
+
+  //     super.didChangeDependencies();
+  //   }
+  // }
+
   void didChangeDependencies() {
     if (_isInit) {
       setState(() {
@@ -44,9 +83,16 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
       });
 
       Provider.of<PersonalContactListProvider>(context)
-          .fetchAndSetPersonalContactList();
-      _contactPerson =
-          Provider.of<PersonalContactListProvider>(context).personalContactList;
+          .fetchAndSetPersonalContactList()
+          .then((_) {
+        _contactPerson =
+            Provider.of<PersonalContactListProvider>(context, listen: false)
+                .personalContactList;
+
+        convertToISuspensionList(_contactPerson);
+        // generateKIndexBar(kIndexBarData);
+      });
+
       setState(() {
         _isLoading = false;
       });
@@ -56,106 +102,67 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _phoneNumberFocusNode.dispose();
-    super.dispose();
+  void convertToISuspensionList(List<Profile> items) {
+    print('entered');
+    this.items = items
+        .map((item) => AZItem(
+              title: item.fullName,
+              tag: item.fullName[0].toUpperCase(),
+              id: item.id,
+              fullName: item.fullName,
+              imageUrl: item.imageUrl,
+              phoneNumber: item.phoneNumber,
+              emailAddress: item.emailAddress,
+              homeAddress: item.homeAddress,
+            ))
+        .toList();
+
+    SuspensionUtil.sortListBySuspensionTag(this.items);
+    SuspensionUtil.setShowSuspensionStatus(this.items);
+    setState(() {});
   }
 
-  // static Future<void> _showErrorDialog(String message) {
-  //   print('entered show dialog function');
-  //   print(message);
-  //   return showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text('An Error Occurred'),
-  //       content: Text(message),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.of(context).pop();
-  //           },
-  //           child: Text('Okay'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
+  // void generateKIndexBar(List<String> kIndexBarItems) {
+  //   this.kIndexBar = kIndexBarItems
+  //       .map((item) => _KIndexBar(
+  //             tag: item,
+  //           ))
+  //       .toList();
+  //   SuspensionUtil.sortListBySuspensionTag(this.kIndexBar);
+  //   SuspensionUtil.setShowSuspensionStatus(this.kIndexBar);
+  //   setState(() {});
   // }
 
-  // Future _openDialog() => showDialog(
-  //       context: context,
-  //       builder: (context) => AlertDialog(
-  //         title: Text('Phone Number'),
-  //         content: Column(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Form(
-  //               key: _form,
-  //               child: IntlPhoneField(
-  //                 decoration: InputDecoration(
-  //                   labelText: 'Phone Number',
-  //                 ),
-  //                 autofocus: true,
-  //                 textInputAction: TextInputAction.done,
-  //                 onSubmitted: (_) {
-  //                   _saveForm();
-  //                 },
-  //                 initialValue:
-  //                     _filledData.isEmpty ? null : _filledData.substring(2),
-  //                 initialCountryCode: 'MY',
-  //                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-  //                 disableLengthCheck: true,
-  //                 validator: (value) {
-  //                   if (value.completeNumber.substring(1).isEmpty ||
-  //                       value.completeNumber.substring(1).length < 10 ||
-  //                       value.completeNumber.substring(1).length > 12) {
-  //                     return 'Phone number must greater than 10 digits and lesser than 12';
-  //                   }
-  //                 },
-  //                 onSaved: (value) {
-  //                   _filledData = value.completeNumber.substring(1);
-  //                 },
-  //               ),
-  //             ),
-  //             ElevatedButton(
-  //               onPressed: _saveForm,
-  //               child: Text('Add New Contact Person'),
-  //               style: ElevatedButton.styleFrom(
-  //                 primary: Theme.of(context).primaryColor,
-  //                 textStyle: TextStyle(fontSize: 20),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     );
-
-  Future<void> _saveForm() async {
-    final isValid = _form.currentState.validate(); //trigger all validator
-    if (!isValid) {
-      return; //stop function
-    }
-    _form.currentState.save();
+  Future<String> _saveForm() async {
     setState(() {
       _isLoading = true;
     });
+    final isValid = _form.currentState.validate(); //trigger all validator
+    if (!isValid) {
+      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = false;
+      });
+      return 'Could not add the person'; //stop function
+    }
+    _form.currentState.save();
+
     try {
       final errMessage =
           await Provider.of<PersonalContactListProvider>(context, listen: false)
               .addContactPerson(_filledData);
-      if (errMessage.toString().isNotEmpty) {
-        Navigator.of(context).pop();
-        Dialogs.showMyDialog(context, errMessage.toString());
-      } else {}
+
+      Navigator.of(context).pop();
+
+      setState(() {
+        _isLoading = false;
+      });
+      return errMessage;
     } on HttpException catch (error) {
-      Dialogs.showMyDialog(context, error.toString());
+      return error.toString();
     } catch (error) {
-      Dialogs.showMyDialog(context, error.toString());
+      return error.toString();
     }
-    Navigator.of(context).pop();
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void _showBottomSheet() {
@@ -177,8 +184,12 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                       ),
                       autofocus: true,
                       textInputAction: TextInputAction.done,
-                      onSubmitted: (_) {
-                        _saveForm();
+                      onSubmitted: (_) async {
+                        String response = await _saveForm();
+
+                        if (response.isNotEmpty) {
+                          Dialogs.showMyDialog(context, response);
+                        }
                       },
                       initialValue:
                           _filledData.isEmpty ? null : _filledData.substring(2),
@@ -198,7 +209,12 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: _saveForm,
+                    onPressed: () async {
+                      String response = await _saveForm();
+                      if (response.isNotEmpty) {
+                        Dialogs.showMyDialog(context, response);
+                      }
+                    },
                     child: Text('Add New Contact Person'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
@@ -212,6 +228,23 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         });
   }
 
+  Widget buildHeader(String tag) => Container(
+        height: 40,
+        margin: EdgeInsets.only(
+          right: 16,
+        ),
+        padding: EdgeInsets.only(
+          left: 16,
+        ),
+        color: Colors.grey.shade300,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          '$tag',
+          softWrap: false,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,12 +257,12 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
               // profileProvider.addContactPerson();
               // _openDialog();
               _showBottomSheet();
+              // _showErrorDialog('error');
             },
             icon: Icon(Icons.add),
           ),
         ],
       ),
-
       drawer: AppDrawer(),
       body: _isLoading == true
           ? Center(
@@ -261,36 +294,110 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                 child: Column(children: [
                   buildSearch(),
                   Expanded(
-                    child: Consumer<PersonalContactListProvider>(
-                      builder: (context, _contactPerson, _) => ListView.builder(
-                        itemCount: _contactPerson.personalContactList.length,
-                        itemBuilder: (_, index) => Column(
-                          children: [
-                            PersonalContactItem(
-                              _contactPerson.personalContactList[index].id,
-                              _contactPerson
-                                  .personalContactList[index].fullName,
-                              _contactPerson
-                                  .personalContactList[index].imageUrl,
-                              _contactPerson
-                                  .personalContactList[index].phoneNumber,
-                              _contactPerson
-                                  .personalContactList[index].emailAddress,
-                              _contactPerson
-                                  .personalContactList[index].homeAddress,
+                    // child: Consumer<PersonalContactListProvider>(
+                    //   builder: (context, _contactPerson, _) => ListView.builder(
+                    //     itemCount: _contactPerson.personalContactList.length,
+                    //     itemBuilder: (_, index) => Column(
+                    //       children: [
+                    //         PersonalContactItem(
+                    //           _contactPerson.personalContactList[index].id,
+                    //           _contactPerson
+                    //               .personalContactList[index].fullName,
+                    //           _contactPerson
+                    //               .personalContactList[index].imageUrl,
+                    //           _contactPerson
+                    //               .personalContactList[index].phoneNumber,
+                    //           _contactPerson
+                    //               .personalContactList[index].emailAddress,
+                    //           _contactPerson
+                    //               .personalContactList[index].homeAddress,
+                    //         ),
+                    //         Divider(
+                    //           thickness: 1,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
+
+                    child: LayoutBuilder(
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        return AzListView(
+                          data: items,
+                          itemCount: items.length,
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            final tag = item.getSuspensionTag();
+                            final offstage = !item.isShowSuspension;
+
+                            return Column(
+                              children: [
+                                Offstage(
+                                  offstage: offstage,
+                                  child: buildHeader(tag),
+                                ),
+
+                                Container(
+                                  margin: EdgeInsets.only(
+                                    right: 15,
+                                  ),
+                                  child: PersonalContactItem(
+                                    item.id,
+                                    item.fullName,
+                                    item.imageUrl,
+                                    item.phoneNumber,
+                                    item.emailAddress,
+                                    item.homeAddress,
+                                  ),
+                                ),
+                                // Divider(
+                                //   thickness: 1,
+                                // ),
+                              ],
+                            );
+                          },
+                          indexBarData:
+                              constraints.maxHeight > 400 ? kIndexBarData : [],
+                          indexHintBuilder: (context, hint) => Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              hint,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                              ),
                             ),
-                            Divider(
-                              thickness: 1,
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                          // indexBarMargin: EdgeInsets.only(
+                          //   right: 5,
+                          // ),
+                          indexBarOptions: IndexBarOptions(
+                            needRebuild: true,
+                            indexHintAlignment: Alignment.centerRight,
+                            indexHintOffset: Offset(-20, 0),
+                            selectTextStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            selectItemDecoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ]),
               ),
             ),
-      //
     );
   }
 
@@ -300,9 +407,22 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         onChanged: searchContactPerson,
       );
 
-  void searchContactPerson(String query) {
-    print(query);
-    Provider.of<PersonalContactListProvider>(context, listen: false)
-        .findByFullName(query.toLowerCase());
+  // void searchContactPerson(String query) {
+  //   print(query);
+  //   Provider.of<PersonalContactListProvider>(context, listen: false)
+  //       .findByFullName(query.toLowerCase());
+  // }
+
+  void searchContactPerson(String name) {
+    print(name);
+    if (name.isEmpty) {
+      items = _backupList;
+    } else {
+      items = items
+          .where((data) =>
+              data.fullName.toLowerCase().contains(name.toLowerCase()))
+          .toList();
+    }
+    // notifyListeners();
   }
 }

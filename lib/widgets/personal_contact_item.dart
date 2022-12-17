@@ -31,7 +31,6 @@ class PersonalContactItem extends StatefulWidget {
 }
 
 class _PersonalContactItemState extends State<PersonalContactItem> {
-  
   void onLongerPress() {
     FlutterPhoneDirectCaller.callNumber(widget.phoneNumber);
   }
@@ -47,13 +46,13 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
   void openMapApp() {
     MapsLauncher.launchQuery(widget.homeAddress);
   }
-  
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold.of(context);
     return Dismissible(
-      key: ValueKey(widget.id),
+      // key: ValueKey(widget.id),
+      key: UniqueKey(),
+
       background: Container(
         color: Theme.of(context).errorColor,
         child: Icon(
@@ -98,8 +97,9 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
                 .id); //listen:false to set it as dont want it set permenant listener
       },
       child: ListTile(
-        onTap: () => Navigator.pushNamed(context, ContactPersonDetailScreen.routeName,
-                  arguments: widget.id),
+        onTap: () => Navigator.pushNamed(
+            context, ContactPersonDetailScreen.routeName,
+            arguments: widget.id),
         title: Text(widget.userName),
         leading: widget.imageUrl.isEmpty
             ? CircleAvatar(

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class Profile with ChangeNotifier{
+class Profile with ChangeNotifier {
   final String id;
   final String fullName;
   final String emailAddress;

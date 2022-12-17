@@ -6,7 +6,7 @@ class Dialogs {
     print(message);
     return showDialog(
       context: parentContext,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text('An Error Occurred'),
         content: Text(message),
         actions: [

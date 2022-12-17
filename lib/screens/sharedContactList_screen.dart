@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grouped_list/grouped_list.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ import '../widgets/dialog.dart';
 import '../widgets/searchField.dart';
 import '../widgets/personal_contact_item.dart';
 import '../widgets/shared_contact_item.dart';
+import 'package:grouped_list/sliver_grouped_list.dart'; //group listview
 
 class SharedContactListScreen extends StatefulWidget {
   static const routeName = '/sharedContactList_page';
@@ -34,6 +36,7 @@ class SharedContactListScreen extends StatefulWidget {
 
 class _SharedContactListScreenState extends State<SharedContactListScreen> {
   List<Profile> _contactPerson;
+  List<Department> _departments;
   String query = '';
   DateTime lastPressed;
   var _isInit = true;
@@ -42,7 +45,7 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   final _form = GlobalKey<FormState>();
   var _filledData = '';
   var _editedProfile = '';
-
+  List _mergedList;
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -50,16 +53,59 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
         _isLoading = true;
       });
 
+      Provider.of<DepartmentProvider>(context, listen: false)
+          .fetchAndSetDepartmentList();
+      _departments = Provider.of<DepartmentProvider>(context, listen: false)
+          .departmentList;
+      Provider.of<RoleProvider>(context, listen: false).fetchAndSetRoleList();
       Provider.of<SharedContactListProvider>(context, listen: false)
-          .fetchAndSetSharedContactList();
+          .fetchAndSetSharedContactList(context);
 
       _contactPerson =
           Provider.of<SharedContactListProvider>(context, listen: false)
               .sharedContactList;
 
-      Provider.of<RoleProvider>(context, listen: false).fetchAndSetRoleList();
-      Provider.of<DepartmentProvider>(context, listen: false)
-          .fetchAndSetDepartmentList();
+      _mergedList =
+          Provider.of<SharedContactListProvider>(context, listen: false)
+              .mergedList;
+      print(_mergedList.length);
+      // _contactPerson.forEach((element) {
+      //   _departments.forEach((e) {
+      //     if (e.id == element.departmentId && element.departmentId.toString().isNotEmpty) {
+      //       MergedList.add(
+      //         getList(
+      //           element.id,
+      //           element.companyId,
+      //           element.departmentId,
+      //           e.departmentName,
+      //           element.emailAddress,
+      //           element.fullName,
+      //           element.homeAddress,
+      //           element.imageUrl,
+      //           element.phoneNumber,
+      //           element.roleId,
+      //         ),
+      //       );
+      //     } else if(e.id != element.departmentId &&element.departmentId.toString().isEmpty){
+      //       //department id is null,automatic go to 'Other' department category
+      //       MergedList.add(
+      //         getList(
+      //           element.id,
+      //           element.companyId,
+      //           '',
+      //           'Other',
+      //           element.emailAddress,
+      //           element.fullName,
+      //           element.homeAddress,
+      //           element.imageUrl,
+      //           element.phoneNumber,
+      //           element.roleId,
+      //         ),
+      //       );
+      //     }
+      //   });
+      // });
+
       setState(() {
         _isLoading = false;
       });
@@ -68,6 +114,37 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       super.didChangeDependencies();
     }
   }
+
+  String displayDepartmentName(String id) {
+    final name =
+        Provider.of<DepartmentProvider>(context, listen: false).findById(id);
+    return name.departmentName.toString();
+  }
+
+  // Map<String, dynamic> getList(
+  //     String id,
+  //     String companyId,
+  //     String departmentId,
+  //     String departmentName,
+  //     String emailAddress,
+  //     String fullName,
+  //     String homeAddress,
+  //     String imageUrl,
+  //     String phoneNumber,
+  //     String roleId) {
+  //   final Map<String, dynamic> data = new Map<String, dynamic>();
+  //   data["id"] = id;
+  //   data["companyId"] = companyId;
+  //   data["departmentId"] = departmentId;
+  //   data["departmentName"] = departmentName;
+  //   data["emailAddress"] = emailAddress;
+  //   data["fullName"] = fullName;
+  //   data["homeAddress"] = homeAddress;
+  //   data["imageUrl"] = imageUrl;
+  //   data["phoneNumber"] = phoneNumber;
+  //   data["roleId"] = roleId;
+  //   return data;
+  // }
 
   @override
   void dispose() {
@@ -90,82 +167,36 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
     }
   }
 
-  Future _openDialog() => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Phone Number'),
-          content: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Form(
-                key: _form,
-                child: IntlPhoneField(
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                  ),
-                  autofocus: true,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) {
-                    _saveForm();
-                  },
-                  initialValue:
-                      _filledData.isEmpty ? null : _filledData.substring(2),
-                  initialCountryCode: 'MY',
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  disableLengthCheck: true,
-                  validator: (value) {
-                    if (value.completeNumber.substring(1).isEmpty ||
-                        value.completeNumber.substring(1).length < 10 ||
-                        value.completeNumber.substring(1).length > 12) {
-                      return 'Phone number must greater than 10 digits and lesser than 12';
-                    }
-                  },
-                  onSaved: (value) {
-                    _filledData = value.completeNumber.substring(1);
-                  },
-                ),
-              ),
-              ElevatedButton(
-                onPressed: _saveForm,
-                child: Text('Add New Contact Person'),
-                style: ElevatedButton.styleFrom(
-                  primary: Theme.of(context).primaryColor,
-                  textStyle: TextStyle(fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-
-  Future<void> _saveForm() async {
-    final isValid = _form.currentState.validate(); //trigger all validator
-    if (!isValid) {
-      return; //stop function
-    }
-    _form.currentState.save();
+  Future<String> _saveForm() async {
     setState(() {
       _isLoading = true;
     });
-    print(_filledData);
+    final isValid = _form.currentState.validate(); //trigger all validator
+    if (!isValid) {
+      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = false;
+      });
+      return 'Could not add the person'; //stop function
+    }
+    _form.currentState.save();
+
     try {
       final errMessage =
           await Provider.of<SharedContactListProvider>(context, listen: false)
               .addContactPerson(_filledData);
-      if (errMessage.toString().isNotEmpty) {
-        Navigator.of(context).pop();
-        Dialogs.showMyDialog(context, errMessage.toString());
-      } else {}
-    } on HttpException catch (error) {
-      Dialogs.showMyDialog(context, error.toString());
-    } catch (error) {
-      Dialogs.showMyDialog(context, error.toString());
-    }
 
-    Navigator.of(context).pop();
-    setState(() {
-      _isLoading = false;
-    });
+      Navigator.of(context).pop();
+
+      setState(() {
+        _isLoading = false;
+      });
+      return errMessage;
+    } on HttpException catch (error) {
+      return error.toString();
+    } catch (error) {
+      return error.toString();
+    }
   }
 
 //show bottom sheet start
@@ -209,7 +240,11 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: _saveForm,
+                    onPressed: () async {
+                      String response = await _saveForm();
+
+                      Dialogs.showMyDialog(context, response);
+                    },
                     child: Text('Add New Contact Person'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
@@ -282,25 +317,79 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                 padding: const EdgeInsets.all(5.0),
                 child: Column(children: [
                   buildSearch(),
+                  // Expanded(
+                  //   child: Consumer<SharedContactListProvider>(
+                  //     builder: (context, _contactPerson, _) => ListView.builder(
+                  //       itemCount: _contactPerson.sharedContactList.length,
+                  //       itemBuilder: (_, index) => Column(
+                  //         children: [
+                  //           SharedContactItem(
+                  //             _contactPerson.sharedContactList[index].id,
+                  //             _contactPerson.sharedContactList[index].fullName,
+                  //             _contactPerson.sharedContactList[index].imageUrl,
+                  //             _contactPerson.sharedContactList[index].roleId,
+                  //             _contactPerson
+                  //                 .sharedContactList[index].departmentId,
+                  //           ),
+                  //           Divider(
+                  //             thickness: 1,
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+
+                  //grouped list, current bug is failed to assign department and role
+
+                  //there is still having a bug, only refresh again then can generate grouped list
                   Expanded(
-                    child: Consumer<SharedContactListProvider>(
-                      builder: (context, _contactPerson, _) => ListView.builder(
-                        itemCount: _contactPerson.sharedContactList.length,
-                        itemBuilder: (_, index) => Column(
-                          children: [
-                            SharedContactItem(
-                              _contactPerson.sharedContactList[index].id,
-                              _contactPerson.sharedContactList[index].fullName,
-                              _contactPerson.sharedContactList[index].imageUrl,
-                              _contactPerson.sharedContactList[index].roleId,
-                              _contactPerson
-                                  .sharedContactList[index].departmentId,
-                            ),
-                            Divider(
-                              thickness: 1,
-                            ),
-                          ],
+                    child: GroupedListView<dynamic, String>(
+                      groupComparator: (element1, element2) => element1.compareTo(element2),
+                      useStickyGroupSeparators: true,
+                      // elements: _contactPerson,
+                      elements: _mergedList,
+
+                      // groupBy: (Profile element) => element.departmentId == null
+                      //     ? 'Other'
+                      //     : displayDepartmentName(element.departmentId).toString(),
+                       groupBy: ( item)=>item['departmentName'],
+                      groupSeparatorBuilder: (value) => Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(15),
+                        color: Colors.black,
+                        child: Text(
+                          value.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
                         ),
+                      ),
+                      itemBuilder: (context, element) => Column(
+                        children: [
+                          SharedContactItem(
+                            element['id'],
+                            element['fullName'],
+                            element['imageUrl'],
+                            element['roleID'],
+                            element['departmentID'],
+
+                            // element.id,
+                            // element.fullName,
+                            // element.imageUrl,
+                            // element.roleId,
+                            // element.departmentId,
+
+                            // _contactPerson[element].id,
+                            // _contactPerson[element].fullName,
+                            // _contactPerson[element].imageUrl,
+                            // _contactPerson[element].roleId,
+                            // _contactPerson[element].departmentId,
+                          ),
+                          Divider(
+                            thickness: 1,
+                          ),
+                        ],
                       ),
                     ),
                   ),
