@@ -128,12 +128,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final companyNameResult =
                     Provider.of<CompanyProvider>(context, listen: false)
                         .getCompanyName;
-                companyName = companyNameResult;
-                loadedCompanyResult = Company(
-                    id: loadedProfile.companyId,
-                    companyName: companyNameResult,
-                    companyAdminID: null);
 
+                if (companyNameResult == '') {
+                  loadedCompanyResult == null;
+                } else {
+                  companyName = companyNameResult;
+                  loadedCompanyResult = Company(
+                      id: loadedProfile.companyId,
+                      companyName: companyNameResult,
+                      companyAdminID: null);
+                }
                 setState(() {
                   _isLoading = false;
                 });
@@ -279,47 +283,162 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget buildContent() {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 18,
-          right: 18,
-          top: 18,
-        ),
+        padding: const EdgeInsets.all(18),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            //fullname
             Container(
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(companyName),
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(
+                    20,
+                  ),
+                ),
+                color: Theme.of(context).primaryColor,
               ),
-            ),
-            Container(
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(loadedProfileResult.fullName),
-              ),
-            ),
-            Container(
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(loadedProfileResult.emailAddress),
-              ),
-            ),
-            loadedDepartmentResult == null?Container():Container(
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(loadedDepartmentResult.departmentName),
-              ),
-            ),
-           loadedRoleResult == null?Container():
-           
-            Container(
+              alignment: Alignment.center,
+              width: double.infinity,
               child: Padding(
                 padding: EdgeInsets.all(10),
                 child: Text(
-                     loadedRoleResult.roleName),
+                  loadedProfileResult.fullName,
+                  style: TextStyle(
+                    fontSize: 22,
+                  ),
+                ),
               ),
             ),
+
+            //email
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(
+                    20,
+                  ),
+                ),
+                color: Theme.of(context).primaryColor,
+              ),
+              alignment: Alignment.center,
+              width: double.infinity,
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(
+                  loadedProfileResult.emailAddress,
+                  style: TextStyle(
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+            ),
+
+            //company name
+            loadedCompanyResult == null
+                ? Container()
+                : Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(
+                          20,
+                        ),
+                      ),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text(
+                        companyName,
+                        style: TextStyle(
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+
+            //department
+            loadedDepartmentResult == null
+                ? Container()
+                : Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(
+                          20,
+                        ),
+                      ),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text(
+                        loadedDepartmentResult.departmentName,
+                        style: TextStyle(
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+            //role
+            loadedRoleResult == null
+                ? Container()
+                : Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(
+                          20,
+                        ),
+                      ),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text(
+                        loadedRoleResult.roleName,
+                        style: TextStyle(
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+            // Container(
+            //   child: Padding(
+            //     padding: EdgeInsets.all(10),
+            //     child: Text(loadedProfileResult.fullName),
+            //   ),
+            // ),
+            // Container(
+            //   child: Padding(
+            //     padding: EdgeInsets.all(10),
+            //     child: Text(loadedProfileResult.emailAddress),
+            //   ),
+            // ),
+            // loadedDepartmentResult == null
+            //     ? Container()
+            //     : Container(
+            //         child: Padding(
+            //           padding: EdgeInsets.all(10),
+            //           child: Text(loadedDepartmentResult.departmentName),
+            //         ),
+            //       ),
+            // loadedRoleResult == null
+            //     ? Container()
+            //     : Container(
+            //         child: Padding(
+            //           padding: EdgeInsets.all(10),
+            //           child: Text(loadedRoleResult.roleName),
+            //         ),
+            //       ),
             loadedProfileResult.qrUrl == null
                 ? RepaintBoundary(
                     key: _renderObjectKey,
@@ -347,7 +466,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             loadedProfileResult.qrUrl == null
                 ? FloatingActionButton(
                     child: Icon(Icons.share),
-                    onPressed: _getWidgetImage,
+                    // onPressed: _getWidgetImage,
+                    onPressed: () => showDialog<Null>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text("Confirmation for sharing QR code"),
+                        content: Column(
+                          children: [
+                            Text(
+                                'The QR code link may keeps sharing by the receiver of this QR code link'),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text('Would you link to continue?'),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          TextButton(
+                            child: Text("Continue"),
+                            onPressed: () {
+                              _getWidgetImage;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   )
                 : FloatingActionButton(
                     child: Icon(Icons.share),

@@ -22,12 +22,51 @@ class RoleProvider with ChangeNotifier {
   final String authToken;
   final String userId;
   var companyID = '';
-
+  bool _isAdmin = false;
   RoleProvider(this.authToken, this.userId, this._roles);
 
   List<Role> get roleList {
     return [..._roles];
   }
+
+  bool get isAdmin {
+    return _isAdmin;
+  }
+  /*==================================== check admin start ============================================*/
+
+  Future<void> checkAdmin() async {
+    final searchTerm = 'orderBy="userID"&equalTo="$userId"';
+    var getRoleIDUrl = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+    try {
+      final getRoleIDResponse = await http.get(getRoleIDUrl);
+
+      final getRoleIDExtractedData = json.decode(getRoleIDResponse.body) as Map<
+          String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
+      String roleID = '';
+
+      //get current user companyID
+      getRoleIDExtractedData.forEach((id, contactPersonData) {
+        roleID = contactPersonData['roleID'];
+      });
+      Role data =
+          _roles.firstWhere((role) => role.id == roleID, orElse: () => null);
+
+      if (data != null) {
+        if (data.roleName == 'Admin') {
+          _isAdmin = true;
+        } else {
+          _isAdmin = false;
+        }
+      }
+    } catch (err) {
+      print(err);
+
+      throw (err);
+    }
+  }
+  /*==================================== check admin end ============================================*/
 
   /*==================================== fetch all roles that created by this company start ============================================*/
   Future<void> fetchAndSetRoleList() async {

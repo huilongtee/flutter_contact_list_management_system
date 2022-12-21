@@ -96,69 +96,78 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
             .deleteContactPerson(widget
                 .id); //listen:false to set it as dont want it set permenant listener
       },
-      child: ListTile(
-        onTap: () => Navigator.pushNamed(
-          context,
-          ContactPersonDetailScreen.routeName,
-          arguments: ContactPersonDetailScreen(
-            id: widget.id,
-            listType: 'personal',
+      child: Card(
+       
+        margin: EdgeInsets.symmetric(vertical: 5),
+        elevation: 2,
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(vertical:10,horizontal: 15),
+          onTap: () => Navigator.pushNamed(
+            context,
+            ContactPersonDetailScreen.routeName,
+            arguments: ContactPersonDetailScreen(
+              id: widget.id,
+              listType: 'personal',
+            ),
           ),
-        ),
-        title: Text(widget.userName),
-        leading: widget.imageUrl.isEmpty
-            ? CircleAvatar(
-                backgroundColor: Theme.of(context).primaryColor,
-                child: Text(
-                  widget.userName[0].toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28,
-                    color: Colors.white,
+          title: Text(widget.userName),
+          leading: widget.imageUrl.isEmpty
+              ? CircleAvatar(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  child: Text(
+                    widget.userName[0].toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : CircleAvatar(
+                  backgroundImage: NetworkImage(
+                    widget.imageUrl,
                   ),
                 ),
-              )
-            : CircleAvatar(
-                backgroundImage: NetworkImage(
-                  widget.imageUrl,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () => onShorterPress(),
+                onLongPress: () => onLongerPress(),
+                child: Icon(
+                  Icons.phone,
+                  color: Theme.of(context).secondaryHeaderColor,
+                  size: 26,
                 ),
               ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              onTap: () => onShorterPress(),
-              onLongPress: () => onLongerPress(),
-              child: Icon(
-                Icons.phone,
-                color: Theme.of(context).secondaryHeaderColor,
+              SizedBox(
+                width: 20,
               ),
-            ),
-            SizedBox(
-              width: 20,
-            ),
-            GestureDetector(
-              onTap: () => openEmailApp(),
-              child: Icon(
-                Icons.email,
-                // color: Theme.of(context).primaryColor,
-                color: Theme.of(context).secondaryHeaderColor,
-                // shadows: [
-                //   BoxShadow(color: Colors.grey, spreadRadius: 5, blurRadius: 2)
-                // ],
+              GestureDetector(
+                onTap: () => openEmailApp(),
+                child: Icon(
+                  Icons.email,
+                  // color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).secondaryHeaderColor,
+                  // shadows: [
+                  //   BoxShadow(color: Colors.grey, spreadRadius: 5, blurRadius: 2)
+                  // ],
+                  size: 26,
+                ),
               ),
-            ),
-            SizedBox(
-              width: 20,
-            ),
-            GestureDetector(
-              onTap: () => openMapApp(),
-              child: Icon(
-                Icons.maps_home_work,
-                color: Theme.of(context).secondaryHeaderColor,
+              SizedBox(
+                width: 20,
               ),
-            ),
-          ],
+              GestureDetector(
+                onTap: () => openMapApp(),
+                child: Icon(
+                  Icons.maps_home_work,
+                  color: Theme.of(context).secondaryHeaderColor,
+                  size: 26,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -45,14 +45,17 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   final _phoneNumberFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
   var _filledData = '';
+  bool _isAdmin = false;
   // var _editedProfile = '';
   // List _mergedList;
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
       setState(() {
         _isLoading = true;
       });
+      //check whether current user is admin
 
       Provider.of<DepartmentProvider>(context, listen: false)
           .fetchAndSetDepartmentList()
@@ -63,16 +66,23 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
             .fetchAndSetRoleList()
             .then((_) {
           _roles = Provider.of<RoleProvider>(context, listen: false).roleList;
-
-          Provider.of<SharedContactListProvider>(context, listen: false)
-              .fetchAndSetSharedContactList()
+          Provider.of<RoleProvider>(context, listen: false)
+              .checkAdmin()
               .then((_) {
-            _contactPerson =
-                Provider.of<SharedContactListProvider>(context, listen: false)
-                    .sharedContactList;
+            _isAdmin =
+                Provider.of<RoleProvider>(context, listen: false).isAdmin;
+            Provider.of<RoleProvider>(context, listen: false).roleList;
 
-            setState(() {
-              _isLoading = false;
+            Provider.of<SharedContactListProvider>(context, listen: false)
+                .fetchAndSetSharedContactList()
+                .then((_) {
+              _contactPerson =
+                  Provider.of<SharedContactListProvider>(context, listen: false)
+                      .sharedContactList;
+
+              setState(() {
+                _isLoading = false;
+              });
             });
           });
         });
@@ -273,28 +283,29 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My-List'),
-        backgroundColor: Theme.of(context).primaryColor,
-        actions: [
-          PopupMenuButton<int>(
-            onSelected: (item) => onSelected(context, item),
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                child: Text('Add Contact Person'),
-                value: 0,
-              ),
-              PopupMenuItem<int>(
-                child: Text('Roles'),
-                value: 1,
-              ),
-              PopupMenuItem<int>(
-                child: Text('Departments'),
-                value: 2,
-              ),
-            ],
-          ),
-        ],
-      ),
+          title: Text('Shared Contact List'),
+          backgroundColor: Theme.of(context).primaryColor,
+          actions: _isAdmin == true
+              ? [
+                  PopupMenuButton<int>(
+                    onSelected: (item) => onSelected(context, item),
+                    itemBuilder: (context) => [
+                      PopupMenuItem<int>(
+                        child: Text('Add Contact Person'),
+                        value: 0,
+                      ),
+                      PopupMenuItem<int>(
+                        child: Text('Roles'),
+                        value: 1,
+                      ),
+                      PopupMenuItem<int>(
+                        child: Text('Departments'),
+                        value: 2,
+                      ),
+                    ],
+                  ),
+                ]
+              : null),
 
       drawer: AppDrawer(),
       body: _isLoading == true
@@ -322,17 +333,18 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                   return true;
                 }
               },
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.indigo[50],
+                ),
                 child: Column(children: [
                   buildSearch(),
                   Expanded(
-                    child: _contactPerson == []
-                        ? Center(
-                            child: Text(
-                                'There is no contact person added into the list yet'),
-                          )
-                        : Consumer<SharedContactListProvider>(
+                    child:  Container(
+                       padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            child: 
+                        Consumer<SharedContactListProvider>(
                             builder: (context, _contactPerson, _) =>
                                 ListView.builder(
                               itemCount:
@@ -349,14 +361,14 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                                         .sharedContactList[index].roleId,
                                     _contactPerson
                                         .sharedContactList[index].departmentId,
+                                        _isAdmin,
                                   ),
-                                  Divider(
-                                    thickness: 1,
-                                  ),
+                                  
                                 ],
                               ),
                             ),
                           ),
+                  ),
                   ),
 
                   //grouped list, current bug is failed to assign department and role

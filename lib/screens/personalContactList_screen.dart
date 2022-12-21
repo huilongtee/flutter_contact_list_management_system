@@ -92,14 +92,14 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
             qrUrl: loadedProfile.qrUrl,
           );
         });
-
+setState(() {
+        _isLoading = false;
+      });
         // convertToISuspensionList(_contactPerson);
         // generateKIndexBar(kIndexBarData);
       });
 
-      setState(() {
-        _isLoading = false;
-      });
+      
       _isInit = false;
 
       super.didChangeDependencies();
@@ -280,7 +280,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'My List',
+          'Personal Contact List',
           style: TextStyle(
             // color: Theme.of(context).textTheme.bodyText1.color,
             color: Colors.white,
@@ -328,33 +328,40 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                   return true;
                 }
               },
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.indigo[50],
+                ),
                 child: Column(children: [
                   buildSearch(),
                   Expanded(
-                    child: Consumer<PersonalContactListProvider>(
-                      builder: (context, _contactPerson, _) => ListView.builder(
-                        itemCount: _contactPerson.personalContactList.length,
-                        itemBuilder: (_, index) => Column(
-                          children: [
-                            PersonalContactItem(
-                              _contactPerson.personalContactList[index].id,
-                              _contactPerson
-                                  .personalContactList[index].fullName,
-                              _contactPerson
-                                  .personalContactList[index].imageUrl,
-                              _contactPerson
-                                  .personalContactList[index].phoneNumber,
-                              _contactPerson
-                                  .personalContactList[index].emailAddress,
-                              _contactPerson
-                                  .personalContactList[index].homeAddress,
-                            ),
-                            Divider(
-                              thickness: 1,
-                            ),
-                          ],
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: Consumer<PersonalContactListProvider>(
+                        builder: (context, _contactPerson, _) =>
+                            ListView.builder(
+                          itemCount: _contactPerson.personalContactList.length,
+                          itemBuilder: (_, index) => Column(
+                            children: [
+                              PersonalContactItem(
+                                _contactPerson.personalContactList[index].id,
+                                _contactPerson
+                                    .personalContactList[index].fullName,
+                                _contactPerson
+                                    .personalContactList[index].imageUrl,
+                                _contactPerson
+                                    .personalContactList[index].phoneNumber,
+                                _contactPerson
+                                    .personalContactList[index].emailAddress,
+                                _contactPerson
+                                    .personalContactList[index].homeAddress,
+                              ),
+                              // Divider(
+                              //   thickness: 1,
+                              // ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

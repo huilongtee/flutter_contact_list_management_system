@@ -22,16 +22,16 @@ class LoginScreen extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 154, 77, 22),
-                  Color.fromARGB(255, 154, 77, 22),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0, 1],
-              ),
-            ),
+                // gradient: LinearGradient(
+                //   colors: [
+                //     Color.fromARGB(255, 154, 77, 22),
+                //     Color.fromARGB(255, 154, 77, 22),
+                //   ],
+                //   begin: Alignment.topLeft,
+                //   end: Alignment.bottomRight,
+                //   stops: [0, 1],
+                // ),
+                color: Color.fromRGBO(204, 204, 255, 1)),
           ),
           SingleChildScrollView(
             child: Container(
@@ -48,9 +48,9 @@ class LoginScreen extends StatelessWidget {
                         'My-List',
                         style: TextStyle(
                           color:
-                              Theme.of(context).accentTextTheme.headline1.color,
-                          // Theme.of(context).primaryTextTheme.headline1.color,
-
+                              // Theme.of(context).accentTextTheme.headline1.color,
+                              // Theme.of(context).primaryTextTheme.headline1.color,
+                              Colors.white,
                           fontSize: 50,
                           fontFamily: 'Anton',
                           fontWeight: FontWeight.normal,
@@ -216,16 +216,21 @@ class _AuthCardState extends State<AuthCard> {
                   child: Text(
                     'LOGIN',
                     style: TextStyle(
-                      color: Colors.white,
+                      // color: Colors.white,
+                       // color:Theme.of(context).accentTextTheme.headline1.color,
+                             color: Theme.of(context).primaryTextTheme.headline1.color,
                     ),
                   ),
                   onPressed: _submit,
-                  style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),padding:
-                      EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
-                  foregroundColor: Theme.of(context).primaryColor,),
-                 
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      
+                    ), 
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
+                    backgroundColor: Theme.of(context).primaryColor,
+                  ),
                 ),
                 TextButton(
                   child: Text(
@@ -237,8 +242,7 @@ class _AuthCardState extends State<AuthCard> {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding:
                         EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
-                    foregroundColor: Theme.of(context).primaryColor,
-
+                    foregroundColor: Theme.of(context).primaryTextTheme.headline1.color,
                   ),
                 ),
               ],

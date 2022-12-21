@@ -8,19 +8,18 @@ import '../screens/sharedContactList_screen.dart';
 import '../providers/auth_provider.dart';
 
 class AppDrawer extends StatelessWidget {
- 
-
-
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: [
           AppBar(
-            title: Text('My List',style: TextStyle(color: Colors.white),),
+            title: Text(
+              'My-List',
+              style: TextStyle(color: Colors.white),
+            ),
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context).primaryColor,
-            
           ),
           // Divider(),
           // ListTile(
@@ -30,45 +29,71 @@ class AppDrawer extends StatelessWidget {
           //     Navigator.of(context).pushReplacementNamed('/');
           //   },
           // ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.account_circle_outlined),
-            title: Text('Personal Contact List'),
-            onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(PersonalContactListScreen.routeName);
-            },
-          ),
-
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.account_circle_outlined),
-            title: Text('Company Contact List'),
-            onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(SharedContactListScreen.routeName);
-            },
-          ),
-
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.account_circle_outlined),
-            title: Text('Profile'),
-            onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(ProfileScreen.routeName);
-            },
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.exit_to_app),
-            title: Text('Logout'),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushReplacementNamed('/');
-              Provider.of<AuthProvider>(context, listen: false).logout();
-            },
-          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    Icons.person_outline_rounded,
+                    color: Theme.of(context).secondaryHeaderColor,
+                    size: 26,
+                  ),
+                  title: Text('Personal Contact List'),
+                  onTap: () {
+                    Navigator.of(context).pushReplacementNamed(
+                        PersonalContactListScreen.routeName);
+                  },
+                ),
+                Divider(
+                  thickness: 2,
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.groups_outlined,
+                    color: Theme.of(context).secondaryHeaderColor,
+                    size: 26,
+                  ),
+                  title: Text('Company Contact List'),
+                  onTap: () {
+                    Navigator.of(context).pushReplacementNamed(
+                        SharedContactListScreen.routeName);
+                  },
+                ),
+                Divider(
+                  thickness: 2,
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.contact_mail_outlined,
+                    color: Theme.of(context).secondaryHeaderColor,
+                    size: 26,
+                  ),
+                  title: Text('Profile'),
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushReplacementNamed(ProfileScreen.routeName);
+                  },
+                ),
+                Divider(
+                  thickness: 2,
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.exit_to_app,
+                    color: Colors.red,
+                    size: 26,
+                  ),
+                  title: Text('Logout'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushReplacementNamed('/');
+                    Provider.of<AuthProvider>(context, listen: false).logout();
+                  },
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );

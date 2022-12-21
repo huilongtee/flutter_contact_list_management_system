@@ -83,7 +83,7 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('My-List'),
+        title: Text('Details'),
         elevation: 0,
         backgroundColor: Theme.of(context).primaryColor,
       ),

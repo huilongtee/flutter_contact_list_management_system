@@ -116,9 +116,11 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
               child: CircularProgressIndicator(),
             )
           : Padding(
+            
               padding: const EdgeInsets.all(15.0),
               child: Column(children: [
                 Expanded(
+                  
                   child: Form(
                     key: _form,
                     child: ListView(

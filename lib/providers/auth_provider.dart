@@ -22,7 +22,7 @@ class AuthProvider with ChangeNotifier {
   Timer _authTimer;
   bool _isAdministrator = false;
   var administratorResponseData = null;
-  
+
   bool get isAuth {
     return token != null;
   }
@@ -212,7 +212,6 @@ class AuthProvider with ChangeNotifier {
 
       _autoLogout();
       notifyListeners(); //to trigger consumer widget in main
-      print(_isAdministrator);
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode(
         {

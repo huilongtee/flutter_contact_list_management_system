@@ -18,9 +18,10 @@ class SharedContactItem extends StatefulWidget {
   final String imageUrl;
   final String roleID;
   final String departmentID;
+  final bool isAdmin;
 
-  SharedContactItem(
-      this.id, this.userName, this.imageUrl, this.roleID, this.departmentID);
+  SharedContactItem(this.id, this.userName, this.imageUrl, this.roleID,
+      this.departmentID, this.isAdmin);
 
   @override
   State<SharedContactItem> createState() => _SharedContactItemState();
@@ -33,96 +34,156 @@ class _SharedContactItemState extends State<SharedContactItem> {
         .findById(widget.roleID);
     final department = Provider.of<DepartmentProvider>(context, listen: false)
         .findById(widget.departmentID);
-    return Dismissible(
-      key: ValueKey(widget.id),
-      background: Container(
-        color: Theme.of(context).errorColor,
-        child: Icon(
-          Icons.delete,
-          color: Colors.white,
-          size: 40,
-        ),
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(
-          right: 20,
-        ),
-        margin: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-      ),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) {
-        return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('Are your sure?'),
-            content: Text(
-                'Do you want to remove this contact person from the contact list'),
-            actions: [
-              TextButton(
-                child: Text('No'),
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
+    return widget.isAdmin == true
+        ? Dismissible(
+            key: ValueKey(widget.id),
+            background: Container(
+              color: Theme.of(context).errorColor,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 40,
               ),
-              TextButton(
-                child: Text('Yes'),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(
+                right: 20,
               ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (direction) {
-        Provider.of<SharedContactListProvider>(context, listen: false)
-            .deleteContactPerson(widget
-                .id); //listen:false to set it as dont want it set permenant listener
-      },
-      child: ListTile(
-       onTap: () => Navigator.pushNamed(context, ContactPersonDetailScreen.routeName,
-                  arguments: ContactPersonDetailScreen(id:  widget.id,listType: 'shared',),),
-        title: Text(widget.userName),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              role == null ? 'Role:-' : 'Role:' + role.roleName,
+              margin: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
             ),
-            Text(
-              department == null
-                  ? 'Department:-'
-                  : 'Department:'+ department.departmentName,
-            ),
-          ],
-        ),
-        leading: widget.imageUrl.isEmpty
-            ? CircleAvatar(
-                backgroundColor: Theme.of(context).primaryColor,
-                child: Text(
-                  widget.userName[0].toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28,
-                    color: Colors.white,
-
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (direction) {
+              return showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text('Are your sure?'),
+                  content: Text(
+                      'Do you want to remove this contact person from the contact list'),
+                  actions: [
+                    TextButton(
+                      child: Text('No'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: Text('Yes'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+            onDismissed: (direction) {
+              Provider.of<SharedContactListProvider>(context, listen: false)
+                  .deleteContactPerson(widget
+                      .id); //listen:false to set it as dont want it set permenant listener
+            },
+            child: Card(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              elevation: 2,
+              child: ListTile(
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  ContactPersonDetailScreen.routeName,
+                  arguments: ContactPersonDetailScreen(
+                    id: widget.id,
+                    listType: 'shared',
                   ),
                 ),
-              )
-            : CircleAvatar(
-                backgroundImage: NetworkImage(
-                  widget.imageUrl,
+                title: Text(widget.userName),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      role == null ? 'Role:-' : 'Role:' + role.roleName,
+                    ),
+                    Text(
+                      department == null
+                          ? 'Department:-'
+                          : 'Department:' + department.departmentName,
+                    ),
+                  ],
+                ),
+                leading: widget.imageUrl.isEmpty
+                    ? CircleAvatar(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: Text(
+                          widget.userName[0].toUpperCase(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 28,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          widget.imageUrl,
+                        ),
+                      ),
+                trailing: GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                      context, EditContactPersonScreen.routeName,
+                      arguments: widget.id),
+                  child: Icon(
+                    Icons.settings,
+                     color: Theme.of(context).secondaryHeaderColor,
+                  size: 26,
+                  ),
                 ),
               ),
-        trailing: GestureDetector(
-          onTap: () =>
-              Navigator.pushNamed(context, EditContactPersonScreen.routeName,
-              arguments: widget.id ),
-          child: Icon(
-            Icons.settings,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-      ),
-    );
+            ),
+          )
+        : Card(
+            margin: EdgeInsets.symmetric(vertical: 5),
+            elevation: 2,
+            child: ListTile(
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              onTap: () => Navigator.pushNamed(
+                context,
+                ContactPersonDetailScreen.routeName,
+                arguments: ContactPersonDetailScreen(
+                  id: widget.id,
+                  listType: 'shared',
+                ),
+              ),
+              title: Text(widget.userName),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    role == null ? 'Role:-' : 'Role:' + role.roleName,
+                  ),
+                  Text(
+                    department == null
+                        ? 'Department:-'
+                        : 'Department:' + department.departmentName,
+                  ),
+                ],
+              ),
+              leading: widget.imageUrl.isEmpty
+                  ? CircleAvatar(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: Text(
+                        widget.userName[0].toUpperCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
+                  : CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        widget.imageUrl,
+                      ),
+                    ),
+            ),
+          );
   }
 }
