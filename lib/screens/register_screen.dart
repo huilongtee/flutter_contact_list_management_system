@@ -254,6 +254,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _authData['phoneNo'],
         _authData['homeAddress'],
       );
+      SharedPreferences _sharedPreferences =
+        await SharedPreferences.getInstance();
+    if (!_sharedPreferences.getString('userData').isEmpty) {
+      Navigator.pop(context);
+    }
     } on HttpException catch (error) {
       //only handle special case which error from Httpexception only
       var errorMessage = 'Authentication failed';
@@ -276,11 +281,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _showErrorDialog(errorMessage);
     }
     
-    SharedPreferences _sharedPreferences =
-        await SharedPreferences.getInstance();
-    if (!_sharedPreferences.getString('userData').isEmpty) {
-      Navigator.pop(context);
-    }
+    
     setState(() {
       _isLoading = false;
     });

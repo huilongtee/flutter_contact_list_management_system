@@ -27,6 +27,7 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
+    print('entered again once refresh');
     final searchTerm =
         filterByCompanyID ? '' : 'orderBy="companyID"&equalTo=""';
 
@@ -129,11 +130,9 @@ class ProfileProvider with ChangeNotifier {
   //   );
   //   notifyListeners();
   // }
- //======================================= Update image URL Start =========================================//
+  //======================================= Update image URL Start =========================================//
 
   Future<void> uploadImage(String imageUrl, Profile newProfile) async {
-   
-
     final profileIndex =
         _profile.indexWhere((prof) => prof.id == newProfile.id);
 
@@ -152,13 +151,11 @@ class ProfileProvider with ChangeNotifier {
       print('...');
     }
   }
- //======================================= Update image URL End =========================================//
+  //======================================= Update image URL End =========================================//
 
- //======================================= Update QR image URL Start =========================================//
+  //======================================= Update QR image URL Start =========================================//
 
   Future<void> uploadQRImage(String qrUrl, Profile newProfile) async {
-
-
     final profileIndex =
         _profile.indexWhere((prof) => prof.id == newProfile.id);
 
@@ -177,7 +174,7 @@ class ProfileProvider with ChangeNotifier {
       print('...');
     }
   }
- //======================================= Update image URL End =========================================//
+  //======================================= Update image URL End =========================================//
 
   Profile findById(String id) {
     return _profile.firstWhere((profile) => profile.id == id,

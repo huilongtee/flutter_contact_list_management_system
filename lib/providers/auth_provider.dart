@@ -8,7 +8,7 @@ import '../models/http_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '';
+
 
 enum Mode {
   signupNewUser,
@@ -204,11 +204,23 @@ class AuthProvider with ChangeNotifier {
             _isAdministrator = true;
           } else {
             _isAdministrator = false;
-          }
+          }try {
+  final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: email,
+    password: password
+  );
+} on FirebaseAuthException catch (e) {
+  if (e.code == 'user-not-found') {
+    print('No user found for that email.');
+  } else if (e.code == 'wrong-password') {
+    print('Wrong password provided for that user.');
+  }
+}
         }
       } catch (error) {
         throw (error);
       }
+
 
       _autoLogout();
       notifyListeners(); //to trigger consumer widget in main
@@ -262,6 +274,9 @@ class AuthProvider with ChangeNotifier {
     _userId = extractedUserData['userID'];
     _isAdministrator = extractedUserData['isAdministrator'];
     _expiryDate = expiryDate;
+
+
+
     notifyListeners();
     _autoLogout();
     return true;

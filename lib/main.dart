@@ -25,6 +25,8 @@ import '../screens/role_screen.dart';
 import '../screens/department_screen.dart';
 import '../screens/addRole_screen.dart';
 import '../screens/addDepartment_screen.dart';
+import '../screens/editCompany_screen.dart';
+import '../screens/changePassword_screen.dart';
 
 // void main() => runApp(MyApp());
 
@@ -149,10 +151,12 @@ class MyApp extends StatelessWidget {
             EditProfileScreen.routeName: (context) => EditProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
             AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
+            EditCompanyScreen.routeName: (context) => EditCompanyScreen(),
             AddRoleScreen.routeName: (context) => AddRoleScreen(),
             RoleScreen.routeName: (context) => RoleScreen(),
             DepartmentScreen.routeName: (context) => DepartmentScreen(),
             AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
+            ChangePasswordScreen.routeName: (context) => ChangePasswordScreen(),
             EditContactPersonScreen.routeName: (context) =>
                 EditContactPersonScreen(),
             ContactPersonDetailScreen.routeName: (context) =>

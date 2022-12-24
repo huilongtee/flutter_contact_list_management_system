@@ -38,6 +38,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
       });
 
       _loadedData = _fetchAllData().then((_) {
+        print('entered did changed');
         setState(() {
           _isLoading = false;
           _isInit = false;

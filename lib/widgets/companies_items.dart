@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/addCompany_screen.dart';
+import '../screens/editCompany_screen.dart';
 
 class CompaniesItem extends StatelessWidget {
   final String id;
@@ -16,7 +16,7 @@ class CompaniesItem extends StatelessWidget {
       subtitle: Text('admin name: ' + companyAdminFullName),
       trailing: IconButton(
         onPressed: () {
-          Navigator.pushNamed(context, AddCompanyScreen.routeName,
+          Navigator.pushNamed(context, EditCompanyScreen.routeName,
               arguments: id);
         },
         icon: Icon(Icons.manage_accounts),

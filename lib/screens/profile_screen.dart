@@ -12,6 +12,7 @@ import '../providers/role_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/department_provider.dart';
 import '../screens/editProfile_screen.dart';
+import '../screens/changePassword_screen.dart';
 import '../widgets/profile_items.dart';
 import '../widgets/app_drawer.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -236,6 +237,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
 //================================== Shared QR code image End ==============================================//
+//================================== choose index action Start ==============================================//
+
+  void onSelected(BuildContext context, int item) {
+    switch (item) {
+      case 0:
+        // _openDialog();
+
+        Navigator.pushNamed(context, EditProfileScreen.routeName,
+            arguments: loadedProfileResult.id);
+
+        break;
+      case 1:
+        Navigator.pushNamed(context, ChangePasswordScreen.routeName);
+        break;
+    }
+  }
+//================================== choose index action End ==============================================//
 
   @override
   Widget build(BuildContext context) {
@@ -244,15 +262,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, EditProfileScreen.routeName,
-                  arguments: loadedProfileResult.id);
-            },
-            icon: Icon(Icons.edit),
-            // color: Theme.of(context).textTheme.bodyText1.color,
-            color: Colors.white,
+          PopupMenuButton<int>(
+            onSelected: (item) => onSelected(context, item),
+            itemBuilder: (context) => [
+              PopupMenuItem<int>(
+                child: Text('Edit Profile'),
+                value: 0,
+              ),
+              PopupMenuItem<int>(
+                child: Text('Change Password'),
+                value: 1,
+              ),
+            ],
           ),
+
+          // IconButton(
+          //   onPressed: () {
+          //     Navigator.pushNamed(context, EditProfileScreen.routeName,
+          //         arguments: loadedProfileResult.id);
+          //   },
+          //   icon: Icon(Icons.edit),
+          //   // color: Theme.of(context).textTheme.bodyText1.color,
+          //   color: Colors.white,
+          // ),
         ],
       ),
       drawer: AppDrawer(),
@@ -515,7 +547,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 'The QR code link may keeps sharing by the receiver of this QR code link.'),
                             SizedBox(
                               height: 10,
-                            ),Text(
+                            ),
+                            Text(
                                 '* By sharing this QR code, you will share your information to the third party. We aware the PDPA protection, the purpose of this info only limited for the official business purpose.'),
                             SizedBox(
                               height: 10,
