@@ -17,4 +17,21 @@ class LocationHelper {
     final response = await http.get(url);
     return json.decode(response.body)['results'][0]['formatted_address'];
   }
+
+  static Future<List<dynamic>> getPlaceLatLong(String address) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=$GOOGLE_API_KEY');
+    final response = await http.get(url);
+    final lat =
+        json.decode(response.body)['results'][0]['geometry']['location']['lat'];
+    final lng =
+        json.decode(response.body)['results'][0]['geometry']['location']['lng'];
+    // final result = {'lat': lat, 'lng': lng};
+    // print(result);
+    print(lat);
+    print(lng);
+    List<dynamic> result=[lat, lng];
+
+    return result;
+  }
 }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contact_list_management_system/providers/sharedContactList_provider.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../helper/location_helper.dart';
 import '../providers/department_provider.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile.dart';
@@ -73,6 +78,62 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
         _isInit = false;
       });
       super.didChangeDependencies();
+    }
+  }
+
+  void onLongerPress() {
+    FlutterPhoneDirectCaller.callNumber(loadedProfileResult.phoneNumber);
+  }
+
+  void onShorterPress() {
+    launchUrl(Uri(scheme: 'tel', path: loadedProfileResult.phoneNumber));
+  }
+
+  void openEmailApp() {
+    launchUrl(Uri(
+      scheme: 'mailTo',
+      path: loadedProfileResult.emailAddress,
+    ));
+  }
+
+  openMapsSheet(context) async {
+    try {
+      final result =
+          await LocationHelper.getPlaceLatLong(loadedProfileResult.homeAddress);
+
+      final coords = Coords(result[0], result[1]);
+      final availableMaps = await MapLauncher.installedMaps;
+      print(availableMaps);
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Container(
+                child: Wrap(
+                  children: <Widget>[
+                    for (var map in availableMaps)
+                      ListTile(
+                        onTap: () => map.showMarker(
+                          coords: coords,
+                          title: loadedProfileResult.homeAddress,
+                        ),
+                        title: Text(map.mapName),
+                        leading: SvgPicture.asset(
+                          map.icon,
+                          height: 30.0,
+                          width: 30.0,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -149,92 +210,103 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                ProfileWidget(
-                                  size: 25,
-                                  width: 50,
-                                  height: 50,
-                                  bgColor: Theme.of(context).primaryColor,
-                                  index: 0,
-                                  borderColor: Colors.grey,
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        loadedProfileResult.phoneNumber,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ],
+                            GestureDetector(
+                              onTap: () => onShorterPress(),
+                              onLongPress: () => onLongerPress(),
+                              child: Row(
+                                children: [
+                                  ProfileWidget(
+                                    size: 25,
+                                    width: 50,
+                                    height: 50,
+                                    bgColor: Theme.of(context).primaryColor,
+                                    index: 0,
+                                    borderColor: Colors.grey,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          loadedProfileResult.phoneNumber,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             SizedBox(
                               height: 20,
                             ),
-                            Row(
-                              children: [
-                                ProfileWidget(
-                                  size: 25,
-                                  width: 50,
-                                  height: 50,
-                                  bgColor: Theme.of(context).primaryColor,
-                                  index: 1,
-                                  borderColor: Colors.grey,
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        loadedProfileResult.emailAddress,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ],
+                            GestureDetector(
+                              onTap: () => openEmailApp(),
+                              child: Row(
+                                children: [
+                                  ProfileWidget(
+                                    size: 25,
+                                    width: 50,
+                                    height: 50,
+                                    bgColor: Theme.of(context).primaryColor,
+                                    index: 1,
+                                    borderColor: Colors.grey,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          loadedProfileResult.emailAddress,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             SizedBox(
                               height: 20,
                             ),
-                            Row(
-                              children: [
-                                ProfileWidget(
-                                  size: 25,
-                                  width: 50,
-                                  height: 50,
-                                  bgColor: Theme.of(context).primaryColor,
-                                  index: 2,
-                                  borderColor: Colors.grey,
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        loadedProfileResult.homeAddress,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ],
+                            GestureDetector(
+                              // onTap: () => openMapApp(),
+                              onTap: () => openMapsSheet(context),
+                              child: Row(
+                                children: [
+                                  ProfileWidget(
+                                    size: 25,
+                                    width: 50,
+                                    height: 50,
+                                    bgColor: Theme.of(context).primaryColor,
+                                    index: 2,
+                                    borderColor: Colors.grey,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          loadedProfileResult.homeAddress,
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             SizedBox(
                               height: 20,

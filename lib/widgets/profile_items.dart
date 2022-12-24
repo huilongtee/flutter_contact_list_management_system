@@ -23,17 +23,17 @@ class ProfileWidget extends StatelessWidget {
     ];
 
     return Container(
-      width: this.width,
-      height: this.height,
-      child: Icon(
-        _icons[index],
-        size: this.size,
-        color: Colors.white,
-      ),
-      decoration: BoxDecoration(
-        color: this.bgColor,
-        shape: BoxShape.circle,
-      ),
-    );
+        width: this.width,
+        height: this.height,
+        child: Icon(
+          _icons[index],
+          size: this.size,
+          color: Colors.white,
+        ),
+        decoration: BoxDecoration(
+          color: this.bgColor,
+          shape: BoxShape.circle,
+        ),
+        );
   }
 }

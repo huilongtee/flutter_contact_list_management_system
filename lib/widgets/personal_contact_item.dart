@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_contact_list_management_system/helper/location_helper.dart';
 import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +15,8 @@ import 'package:url_launcher/url_launcher.dart';
 //launch phone call directly
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 //launch map app
-import 'package:maps_launcher/maps_launcher.dart';
+// import 'package:maps_launcher/maps_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class PersonalContactItem extends StatefulWidget {
   final String id;
@@ -43,8 +46,46 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
     launchUrl(Uri(scheme: 'mailTo', path: widget.emailAddress));
   }
 
-  void openMapApp() {
-    MapsLauncher.launchQuery(widget.homeAddress);
+ 
+
+  openMapsSheet(context) async {
+    try {
+      final result = await LocationHelper.getPlaceLatLong(widget.homeAddress);
+
+      final coords = Coords(result[0], result[1]);
+      final availableMaps = await MapLauncher.installedMaps;
+      print(availableMaps);
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Container(
+                child: Wrap(
+                  children: <Widget>[
+                    for (var map in availableMaps)
+                      ListTile(
+                        onTap: () => map.showMarker(
+                          coords: coords,
+                          title: widget.homeAddress,
+                        ),
+                        title: Text(map.mapName),
+                        leading: SvgPicture.asset(
+                           map.icon,
+                          height: 30.0,
+                          width: 30.0,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -97,11 +138,10 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
                 .id); //listen:false to set it as dont want it set permenant listener
       },
       child: Card(
-       
         margin: EdgeInsets.symmetric(vertical: 5),
         elevation: 2,
         child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical:10,horizontal: 15),
+          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           onTap: () => Navigator.pushNamed(
             context,
             ContactPersonDetailScreen.routeName,
@@ -159,7 +199,8 @@ class _PersonalContactItemState extends State<PersonalContactItem> {
                 width: 20,
               ),
               GestureDetector(
-                onTap: () => openMapApp(),
+                // onTap: () => openMapApp(),
+                onTap: () => openMapsSheet(context),
                 child: Icon(
                   Icons.maps_home_work,
                   color: Theme.of(context).secondaryHeaderColor,

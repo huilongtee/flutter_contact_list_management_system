@@ -37,7 +37,8 @@ dependencies:
   firebase_storage: ^11.0.3
   url_launcher: ^6.1.6 #call indirectly
   flutter_phone_direct_caller: ^2.1.1 #call directly
-  maps_launcher: ^2.0.1 #launch map
+  # maps_launcher: ^2.0.1 #launch map
+  map_launcher: ^2.4.0
   firebase_core: ^2.3.0
   liquid_progress_indicator: ^0.4.0
   qr_flutter: ^4.0.0 #generate qr code

@@ -478,7 +478,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             SizedBox(
                               height: 10,
                             ),
-                            Text('Would you link to continue?'),
+                            Text(
+                                '* By sharing this QR code, you will share your information to the third party. We aware the PDPA protection, the purpose of this info only limited for the official business purpose'),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text('Would you like to continue?'),
                           ],
                         ),
                         actions: [
@@ -507,7 +512,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         content: Column(
                           children: [
                             Text(
-                                'The QR code link may keeps sharing by the receiver of this QR code link'),
+                                'The QR code link may keeps sharing by the receiver of this QR code link.'),
+                            SizedBox(
+                              height: 10,
+                            ),Text(
+                                '* By sharing this QR code, you will share your information to the third party. We aware the PDPA protection, the purpose of this info only limited for the official business purpose.'),
                             SizedBox(
                               height: 10,
                             ),
