@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 class Dialogs {
   static Future<void> showMyDialog(parentContext, message) {
-    print('entered show my dialog function');
-    print(message);
+   
     return showDialog(
       context: parentContext,
       builder: (BuildContext context) => AlertDialog(

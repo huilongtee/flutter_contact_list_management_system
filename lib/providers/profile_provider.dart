@@ -26,6 +26,9 @@ class ProfileProvider with ChangeNotifier {
     return _profile.where((data) => data.fullName.contains(fullName));
   }
 
+Future<bool> checkExistedPhoneNumber(String phoneNumber)async{
+  
+}
   Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
     print('entered again once refresh');
     final searchTerm =

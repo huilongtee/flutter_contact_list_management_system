@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
@@ -27,6 +31,8 @@ import '../screens/addRole_screen.dart';
 import '../screens/addDepartment_screen.dart';
 import '../screens/editCompany_screen.dart';
 import '../screens/changePassword_screen.dart';
+import '../screens/sendOTP_screen.dart';
+import '../screens/verifyOTP_screen.dart';
 
 // void main() => runApp(MyApp());
 
@@ -34,6 +40,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
+}
+
+Future<bool> checkIsAdmin() async {
+  final prefs = await SharedPreferences.getInstance();
+  if (!prefs.containsKey('userData')) {
+    //if there is no data is being stored in the userData key
+
+    return false;
+  }
+  final extractedUserData = json.decode(prefs.getString('userData')) as Map<
+      String, Object>; //string key and object value(dataTime, token,userId)
+  
+
+  return extractedUserData['isAdministrator'];
 }
 
 class MyApp extends StatelessWidget {
@@ -130,18 +150,33 @@ class MyApp extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
+            //
           ),
-          home: !auth.isAuth
-              ? FutureBuilder(
-                  future: auth.tryAutoLogin(),
-                  builder: (context, authResultSnpshot) =>
-                      (authResultSnpshot.connectionState ==
-                              ConnectionState.waiting)
-                          ? SplashScreen()
-                          : LoginScreen())
-              : auth.isAdministrator
-                  ? AdministratorScreen()
-                  : PersonalContactListScreen(),
+          home: StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
+              if (snapshot.hasData) {
+                Future<bool> isAdmin = checkIsAdmin();
+                if (isAdmin == true) {
+                  return AdministratorScreen();
+                } else {
+                  return PersonalContactListScreen();
+                }
+              }
+              return LoginScreen();
+            },
+          ),
+          // !auth.isAuth
+          // ? FutureBuilder(
+          //     future: auth.tryAutoLogin(),
+          //     builder: (context, authResultSnpshot) =>
+          //         (authResultSnpshot.connectionState ==
+          //                 ConnectionState.waiting)
+          //             ? SplashScreen()
+          //             : LoginScreen())
+          // : auth.isAdministrator
+          //     ? AdministratorScreen()
+          //     : PersonalContactListScreen(),
           routes: {
             SharedContactListScreen.routeName: (context) =>
                 SharedContactListScreen(),
@@ -157,6 +192,9 @@ class MyApp extends StatelessWidget {
             DepartmentScreen.routeName: (context) => DepartmentScreen(),
             AddDepartmentScreen.routeName: (context) => AddDepartmentScreen(),
             ChangePasswordScreen.routeName: (context) => ChangePasswordScreen(),
+            SendOTPScreen.routeName: (context) => SendOTPScreen(),
+            VerifyOTPScreen.routeName: (context) => VerifyOTPScreen(),
+            AdministratorScreen.routeName: (context) => AdministratorScreen(),
             EditContactPersonScreen.routeName: (context) =>
                 EditContactPersonScreen(),
             ContactPersonDetailScreen.routeName: (context) =>

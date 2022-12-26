@@ -19,6 +19,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final newPasswordController = TextEditingController();
   User currentUser = null;
   final FirebaseAuth auth = FirebaseAuth.instance;
+
   @override
   void initState() {
     getUserData();
@@ -60,8 +61,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Change Password'),
@@ -71,7 +70,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       body: Form(
         key: _form,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+          padding: const EdgeInsets.symmetric(
+            vertical: 20,
+            horizontal: 25,
+          ),
           child: ListView(
             children: [
               // SizedBox(
@@ -79,7 +81,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               // ),
               Padding(
                 padding: const EdgeInsets.all(10),
-                child: SvgPicture.asset('assets/images/change password.svg'),
+                // child: SvgPicture.asset('assets/images/change password.svg'),
+                // child: SvgPicture.asset('assets/images/user-tie-solid.svg'),
+                child: Image.asset('assets/images/change password.png'),
+          
               ),
               Container(
                 margin: EdgeInsets.symmetric(vertical: 10),

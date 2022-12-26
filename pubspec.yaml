@@ -48,6 +48,8 @@ dependencies:
   firebase_auth: ^4.1.5
   grouped_list: ^5.1.2
   azlistview: ^2.0.0
+  pinput: ^2.2.20 #enter OTP code
+  sms_autofill: ^2.2.0 #auto key in imcoming sms
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -73,6 +75,8 @@ flutter:
   assets:
     - assets/images/user-tie-solid.svg
     - assets/images/change password.svg
+    - assets/images/change password.png
+    - assets/images/authenticate.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

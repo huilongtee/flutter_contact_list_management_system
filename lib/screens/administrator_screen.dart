@@ -8,6 +8,9 @@ import '../widgets/administrator_app_drawer.dart';
 import '../widgets/companies_items.dart';
 
 class AdministratorScreen extends StatefulWidget {
+
+    static const routeName = '/administrator_page';
+
   @override
   State<AdministratorScreen> createState() => _AdministratorScreenState();
 }

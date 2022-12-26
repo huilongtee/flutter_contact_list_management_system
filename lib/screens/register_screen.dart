@@ -25,17 +25,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Map<String, dynamic> _authData = {
     'fullName': '',
     'homeAddress': '',
-    'phoneNo': '',
     'email': '',
-    'password': '',
+   
   };
   var _isLoading = false;
   var _isLocationLoading = false;
-  final fullNameController = TextEditingController();
-  final emailAddressController = TextEditingController();
+  String phoneNumber;
   final homeAddressController = TextEditingController();
-  final phoneNumberController = TextEditingController();
   final passwordController = TextEditingController();
+  @override
+  void didChangeDependencies() {
+    final phoneNumber = ModalRoute.of(context).settings.arguments;
+
+    this.phoneNumber = phoneNumber;
+    print(this.phoneNumber);
+    super.didChangeDependencies();
+  }
 
   Future<void> _getCurrentUserLocation() async {
     setState(() {
@@ -113,24 +118,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
 
-              IntlPhoneField(
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                ),
-                initialCountryCode: 'MY',
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                disableLengthCheck: true,
-                validator: (value) {
-                  if (value.completeNumber.substring(1).isEmpty ||
-                      value.completeNumber.substring(1).length < 10 ||
-                      value.completeNumber.substring(1).length > 12) {
-                    return 'Phone number must greater than 10 digits and lesser than 12';
-                  }
-                },
-                onSaved: (value) {
-                  _authData['phoneNo'] = value.completeNumber.substring(1);
-                },
-              ),
+              // IntlPhoneField(
+              //   decoration: InputDecoration(
+              //     labelText: 'Phone Number',
+              //   ),
+              //   initialCountryCode: 'MY',
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   disableLengthCheck: true,
+              //   validator: (value) {
+              //     if (value.completeNumber.substring(1).isEmpty ||
+              //         value.completeNumber.substring(1).length < 10 ||
+              //         value.completeNumber.substring(1).length > 12) {
+              //       return 'Phone number must greater than 10 digits and lesser than 12';
+              //     }
+              //   },
+              //   onSaved: (value) {
+              //     _authData['phoneNo'] = value.completeNumber.substring(1);
+              //   },
+              // ),
 
               //     TextFormField(
 
@@ -150,41 +155,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ]),
           ),
         ),
+        // Step(
+        //   state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        //   isActive: currentStep >= 1,
+        //   title: Text('Password'),
+        //   content: Container(
+        //     child: Column(
+        //       children: [
+        //         TextFormField(
+        //           decoration: InputDecoration(labelText: 'Password'),
+        //           obscureText: true,
+        //           controller: passwordController,
+        //           validator: (value) {
+        //             if (value.isEmpty || value.length < 5) {
+        //               return 'Password is too short!';
+        //             }
+        //           },
+        //           onSaved: (value) {
+        //             _authData['password'] = value;
+        //           },
+        //         ),
+        //         TextFormField(
+        //           decoration: InputDecoration(labelText: 'Confirm Password'),
+        //           obscureText: true,
+        //           validator: (value) {
+        //             if (value != passwordController.text) {
+        //               return 'Passwords do not match!';
+        //             }
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
         Step(
-          state: currentStep > 1 ? StepState.complete : StepState.indexed,
           isActive: currentStep >= 1,
-          title: Text('Password'),
-          content: Container(
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  controller: passwordController,
-                  validator: (value) {
-                    if (value.isEmpty || value.length < 5) {
-                      return 'Password is too short!';
-                    }
-                  },
-                  onSaved: (value) {
-                    _authData['password'] = value;
-                  },
-                ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Confirm Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value != passwordController.text) {
-                      return 'Passwords do not match!';
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Step(
-          isActive: currentStep >= 2,
           title: Text('Address'),
           content: Container(
             child: Row(
@@ -243,22 +248,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-       
-
     try {
       // Log user in
       await Provider.of<AuthProvider>(context, listen: false).signup(
         _authData['email'],
-        _authData['password'],
+       
         _authData['fullName'],
-        _authData['phoneNo'],
+        phoneNumber,
         _authData['homeAddress'],
       );
       SharedPreferences _sharedPreferences =
-        await SharedPreferences.getInstance();
-    if (!_sharedPreferences.getString('userData').isEmpty) {
-      Navigator.pop(context);
-    }
+          await SharedPreferences.getInstance();
+      if (!_sharedPreferences.getString('userData').isEmpty) {
+        Navigator.pop(context);
+      }
     } on HttpException catch (error) {
       //only handle special case which error from Httpexception only
       var errorMessage = 'Authentication failed';
@@ -280,12 +283,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       const errorMessage = 'Could not authenticate you. Please try again.';
       _showErrorDialog(errorMessage);
     }
-    
-    
+
     setState(() {
       _isLoading = false;
     });
-    
+  }
+
+  @override
+  void dispose() {
+    homeAddressController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override

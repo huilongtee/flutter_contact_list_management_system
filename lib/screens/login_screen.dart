@@ -1,37 +1,43 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_contact_list_management_system/screens/verifyOTP_screen.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import '../providers/auth_provider.dart';
 import '../models/http_exception.dart';
 import '../screens/register_screen.dart';
+import '../screens/sendOTP_screen.dart';
+import '../widgets/dialog.dart';
 
 enum AuthMode { Signup, Login }
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
+  static String verify = '';
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  String phoneNumber = '';
+
+  void getAppSignatureID() async {
+    await SmsAutoFill().getAppSignature;
+  }
 
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
-    // final transformConfig = Matrix4.rotationZ(-8 * pi / 180);
-    // transformConfig.translate(-10.0);
+
     return Scaffold(
-      // resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-                // gradient: LinearGradient(
-                //   colors: [
-                //     Color.fromARGB(255, 154, 77, 22),
-                //     Color.fromARGB(255, 154, 77, 22),
-                //   ],
-                //   begin: Alignment.topLeft,
-                //   end: Alignment.bottomRight,
-                //   stops: [0, 1],
-                // ),
-                color: Color.fromRGBO(204, 204, 255, 1)),
+            decoration: BoxDecoration(color: Color.fromRGBO(204, 204, 255, 1)),
           ),
           SingleChildScrollView(
             child: Container(
@@ -60,195 +66,122 @@ class LoginScreen extends StatelessWidget {
                   ),
                   Flexible(
                     flex: deviceSize.width > 600 ? 2 : 1,
-                    child: AuthCard(),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      elevation: 8.0,
+                      child: Container(
+                        height: 290,
+                        constraints: BoxConstraints(minHeight: 290),
+                        width: deviceSize.width * 0.75,
+                        padding: EdgeInsets.all(16.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: <Widget>[
+                              IntlPhoneField(
+                                decoration: InputDecoration(
+                                  labelText: 'Phone Number',
+                                ),
+                                initialCountryCode: 'MY',
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                disableLengthCheck: true,
+                                validator: (value) {
+                                  if (value.completeNumber
+                                          .substring(1)
+                                          .isEmpty ||
+                                      value.completeNumber.substring(1).length <
+                                          10 ||
+                                      value.completeNumber.substring(1).length >
+                                          12) {
+                                    return 'Phone number must greater than 10 digits and lesser than 12';
+                                  }
+                                },
+                                onChanged: (value) {
+                                  phoneNumber = value.completeNumber;
+                                },
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              ElevatedButton(
+                                child: Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    // color: Colors.white,
+                                    // color:Theme.of(context).accentTextTheme.headline1.color,
+                                    color: Theme.of(context)
+                                        .primaryTextTheme
+                                        .headline1
+                                        .color,
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  getAppSignatureID();
+
+                                  await FirebaseAuth.instance.verifyPhoneNumber(
+                                    phoneNumber: phoneNumber,
+                                    verificationCompleted:
+                                        (PhoneAuthCredential credential) {},
+                                    verificationFailed:
+                                        (FirebaseAuthException e) {
+                                      Dialogs.showMyDialog(context, e.code);
+                                    },
+                                    codeSent: (String verificationId,
+                                        int resendToken) {
+                                      SendOTPScreen.verify = verificationId;
+                                      Navigator.pushNamed(
+                                          context, VerifyOTPScreen.routeName,
+                                          arguments: phoneNumber);
+                                    },
+                                    codeAutoRetrievalTimeout:
+                                        (String verificationId) {},
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 30.0, vertical: 8.0),
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 40,
+                              ),
+                              TextButton(
+                                child: Text('Register for an account'),
+                                onPressed: () {
+                                  // Navigator.pushNamed(context, RegisterScreen.routeName);
+                                  Navigator.pushNamed(
+                                      context, SendOTPScreen.routeName);
+                                },
+                                style: TextButton.styleFrom(
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 30.0, vertical: 4),
+                                  foregroundColor: Theme.of(context)
+                                      .primaryTextTheme
+                                      .headline1
+                                      .color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AuthCard extends StatefulWidget {
-  const AuthCard({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  _AuthCardState createState() => _AuthCardState();
-}
-
-class _AuthCardState extends State<AuthCard> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
-  AuthMode _authMode = AuthMode.Login;
-  Map<String, dynamic> _authData = {
-    'email': '',
-    'password': '',
-  };
-  var _isLoading = false;
-  final _passwordController = TextEditingController();
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('An Error Occurred'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Okay'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState.validate()) {
-      // Invalid!
-      return;
-    }
-    _formKey.currentState.save();
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      // Log user in
-      await Provider.of<AuthProvider>(context, listen: false).login(
-        _authData['email'],
-        _authData['password'],
-        null,
-        null,
-      );
-    } on HttpException catch (error) {
-      //only handle special case which error from Httpexception only
-      var errorMessage = 'Authentication failed';
-      if (error.toString().contains('EMAIL_EXISTS')) {
-        errorMessage = 'This email address is already in use.';
-      } else if (error.toString().contains('INVALID_EMAIL')) {
-        errorMessage = 'This is not a valid email address';
-      } else if (error.toString().contains('WEAK_PASSWORD')) {
-        errorMessage = 'This password is too weak.';
-      } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
-        errorMessage = 'Could not find a user with that email.';
-      } else if (error.toString().contains('INVALID_PASSWORD')) {
-        errorMessage = 'Invalid password.';
-      }
-      _showErrorDialog(errorMessage);
-    } catch (error) {
-      const errorMessage = 'Could not authenticate you. Please try again.';
-      _showErrorDialog(errorMessage);
-    }
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      elevation: 8.0,
-      child: Container(
-        height: 290,
-        constraints: BoxConstraints(minHeight: 290),
-        width: deviceSize.width * 0.75,
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'E-Mail'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value.isEmpty || !value.contains('@')) {
-                      return 'Invalid email!';
-                    }
-                  },
-                  onSaved: (value) {
-                    _authData['email'] = value;
-                  },
-                ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  controller: _passwordController,
-                  validator: (value) {
-                    if (value.isEmpty || value.length < 5) {
-                      return 'Password is too short!';
-                    }
-                  },
-                  onSaved: (value) {
-                    _authData['password'] = value;
-                  },
-                ),
-                if (_authMode == AuthMode.Signup)
-                  TextFormField(
-                    enabled: _authMode == AuthMode.Signup,
-                    decoration: InputDecoration(labelText: 'Confirm Password'),
-                    obscureText: true,
-                    validator: _authMode == AuthMode.Signup
-                        ? (value) {
-                            if (value != _passwordController.text) {
-                              return 'Passwords do not match!';
-                            }
-                          }
-                        : null,
-                  ),
-                if (_isLoading)
-                  CircularProgressIndicator()
-                else
-                  SizedBox(
-                    height: 20,
-                  ),
-                ElevatedButton(
-                  child: Text(
-                    'LOGIN',
-                    style: TextStyle(
-                      // color: Colors.white,
-                       // color:Theme.of(context).accentTextTheme.headline1.color,
-                             color: Theme.of(context).primaryTextTheme.headline1.color,
-                    ),
-                  ),
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      
-                    ), 
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 8.0),
-                    backgroundColor: Theme.of(context).primaryColor,
-                  ),
-                ),
-                TextButton(
-                  child: Text(
-                      '${_authMode == AuthMode.Login ? 'SIGNUP' : 'LOGIN'} INSTEAD'),
-                  onPressed: () {
-                    Navigator.pushNamed(context, RegisterScreen.routeName);
-                  },
-                  style: TextButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
-                    foregroundColor: Theme.of(context).primaryTextTheme.headline1.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
