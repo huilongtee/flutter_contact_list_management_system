@@ -44,8 +44,8 @@ class AuthProvider with ChangeNotifier {
     return null;
   }
 
-  Future<void> _authenticate(String email, String fullName,
-      String phoneNumber, String homeAddress, String urlSegment) async {
+  Future<void> _authenticate(String email, String fullName, String phoneNumber,
+      String homeAddress, String urlSegment) async {
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       final User result = auth.currentUser;
@@ -160,13 +160,15 @@ class AuthProvider with ChangeNotifier {
       extractedData.forEach((id, data) {
         userID = data['userID'];
       });
+      print(userID);
+      print(_userId);
       //is system admin
       if (userID == _userId) {
         isAdmin = true;
       } else {
         isAdmin = false;
       }
-
+      notifyListeners();
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode(
         {
@@ -179,8 +181,8 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signup(String email, String fullName,
-      String phoneNumber, String homeAddress) async {
+  Future<void> signup(String email, String fullName, String phoneNumber,
+      String homeAddress) async {
     return _authenticate(
         email, fullName, phoneNumber, homeAddress, 'signupNewUser');
   }

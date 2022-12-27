@@ -106,9 +106,8 @@ class _SendOTPScreenState extends State<SendOTPScreen> {
                   await FirebaseAuth.instance.verifyPhoneNumber(
                     phoneNumber: phoneNumber,
                     verificationCompleted:
-                        (PhoneAuthCredential credential) async {
-                      await auth.signInWithCredential(credential);
-                      Navigator.pop(context);
+                        (PhoneAuthCredential credential)  {
+                      
                     },
                     verificationFailed: (FirebaseAuthException e) {
                       Dialogs.showMyDialog(context, e.code);

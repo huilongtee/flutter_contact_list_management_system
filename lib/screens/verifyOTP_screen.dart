@@ -37,11 +37,8 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
     }
     final extractedUserData = json.decode(prefs.getString('userData')) as Map<
         String, Object>; //string key and object value(dataTime, token,userId)
-    final expiryDate = DateTime.parse(extractedUserData['expiryDate']);
-    if (expiryDate.isBefore(DateTime.now())) {
-      return false;
-    }
 
+    print(extractedUserData['isAdministrator']);
     return extractedUserData['isAdministrator'];
   }
 
@@ -187,11 +184,22 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                               .fetchAndReturnContactPersonProfile(
                         phoneNumber.toString().substring(1),
                       );
+
+                      final FirebaseAuth auth = FirebaseAuth.instance;
+                      final User result = auth.currentUser;
+
+                      String _userId = result.uid;
+                      print(_userId);
+                      print(userProfile);
+
                       //register
                       if (userProfile == null) {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, RegisterScreen.routeName,
-                            arguments: phoneNumber);
+                        Navigator.pushNamed(
+                          context,
+                          RegisterScreen.routeName,
+                          arguments: phoneNumber.toString().substring(1),
+                        );
                       } else {
                         //sign in
                         //check whether the user is system admin
@@ -200,10 +208,13 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
 
                         Future<bool> isAdmin = checkIsAdmin();
                         if (isAdmin == true) {
+                          print('isAdmin');
                           Navigator.pop(context);
                           Navigator.pushNamed(
                               context, AdministratorScreen.routeName);
                         } else {
+                          print('notAdmin');
+
                           Navigator.pop(context);
                           Navigator.pushNamed(
                               context, PersonalContactListScreen.routeName);

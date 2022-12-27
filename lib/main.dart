@@ -51,7 +51,6 @@ Future<bool> checkIsAdmin() async {
   }
   final extractedUserData = json.decode(prefs.getString('userData')) as Map<
       String, Object>; //string key and object value(dataTime, token,userId)
-  
 
   return extractedUserData['isAdministrator'];
 }
@@ -158,12 +157,16 @@ class MyApp extends StatelessWidget {
               if (snapshot.hasData) {
                 Future<bool> isAdmin = checkIsAdmin();
                 if (isAdmin == true) {
+                  print('isAdmin');
                   return AdministratorScreen();
                 } else {
+                  print('notAdmin');
                   return PersonalContactListScreen();
                 }
-              }
+              }else{
               return LoginScreen();
+
+              }
             },
           ),
           // !auth.isAuth
