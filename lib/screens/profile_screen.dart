@@ -262,29 +262,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          PopupMenuButton<int>(
-            onSelected: (item) => onSelected(context, item),
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                child: Text('Edit Profile'),
-                value: 0,
-              ),
-              PopupMenuItem<int>(
-                child: Text('Change Password'),
-                value: 1,
-              ),
-            ],
-          ),
-
-          // IconButton(
-          //   onPressed: () {
-          //     Navigator.pushNamed(context, EditProfileScreen.routeName,
-          //         arguments: loadedProfileResult.id);
-          //   },
-          //   icon: Icon(Icons.edit),
-          //   // color: Theme.of(context).textTheme.bodyText1.color,
-          //   color: Colors.white,
+          // PopupMenuButton<int>(
+          //   onSelected: (item) => onSelected(context, item),
+          //   itemBuilder: (context) => [
+          //     PopupMenuItem<int>(
+          //       child: Text('Edit Profile'),
+          //       value: 0,
+          //     ),
+          //     PopupMenuItem<int>(
+          //       child: Text('Change Password'),
+          //       value: 1,
+          //     ),
+          //   ],
           // ),
+
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, EditProfileScreen.routeName,
+                  arguments: loadedProfileResult.id);
+            },
+            icon: Icon(Icons.edit),
+            // color: Theme.of(context).textTheme.bodyText1.color,
+            color: Colors.white,
+          ),
         ],
       ),
       drawer: AppDrawer(),

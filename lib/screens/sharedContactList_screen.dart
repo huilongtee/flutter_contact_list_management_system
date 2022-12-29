@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:grouped_list/grouped_list.dart';
@@ -55,79 +56,83 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       setState(() {
         _isLoading = true;
       });
-      //check whether current user is admin
-
-      Provider.of<DepartmentProvider>(context, listen: false)
-          .fetchAndSetDepartmentList()
-          .then((_) {
-        _departments = Provider.of<DepartmentProvider>(context, listen: false)
-            .departmentList;
-        Provider.of<RoleProvider>(context, listen: false)
-            .fetchAndSetRoleList()
-            .then((_) {
-          _roles = Provider.of<RoleProvider>(context, listen: false).roleList;
-          Provider.of<RoleProvider>(context, listen: false)
-              .checkAdmin()
+      //get the profile and check the company id is existed
+      Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      ).fetchAndSetProfile().then((_) {
+        //get list
+        final result = Provider.of<ProfileProvider>(
+          context,
+          listen: false,
+        ).profile;
+        //company id not existed
+        if (result.first.companyId == null) {
+          final FirebaseAuth auth = FirebaseAuth.instance;
+          final User user = auth.currentUser;
+          //check this user whether is the company admin of any company that haven't enabled
+          Provider.of<SharedContactListProvider>(context, listen: false)
+              .checkIsCompanyAdmin(
+                  user.phoneNumber.toString().substring(1), result.first.id)
               .then((_) {
-            _isAdmin =
-                Provider.of<RoleProvider>(context, listen: false).isAdmin;
-            Provider.of<RoleProvider>(context, listen: false).roleList;
-
-            Provider.of<SharedContactListProvider>(context, listen: false)
-                .fetchAndSetSharedContactList()
-                .then((_) {
-              _contactPerson =
-                  Provider.of<SharedContactListProvider>(context, listen: false)
-                      .sharedContactList;
-
-              setState(() {
-                _isLoading = false;
+                Provider.of<DepartmentProvider>(context, listen: false)
+                  .fetchAndSetDepartmentList()
+                  .then((_) {
+                _departments =
+                    Provider.of<DepartmentProvider>(context, listen: false)
+                        .departmentList;
+                Provider.of<RoleProvider>(context, listen: false)
+                    .fetchAndSetRoleList()
+                    .then((_) {
+                  _roles = Provider.of<RoleProvider>(context, listen: false)
+                      .roleList;
+                  Provider.of<RoleProvider>(context, listen: false)
+                      .checkAdmin()
+                      .then((_) {
+                    _isAdmin = Provider.of<RoleProvider>(context, listen: false)
+                        .isAdmin;
+                    Provider.of<RoleProvider>(context, listen: false).roleList;
+                  });
+                });
               });
-            });
+              });
+        } else {
+          Provider.of<SharedContactListProvider>(context, listen: false)
+              .fetchAndSetSharedContactList()
+              .then((_) {
+            _contactPerson =
+                Provider.of<SharedContactListProvider>(context, listen: false)
+                    .sharedContactList;
+
+            if (_contactPerson != null) {
+              Provider.of<DepartmentProvider>(context, listen: false)
+                  .fetchAndSetDepartmentList()
+                  .then((_) {
+                _departments =
+                    Provider.of<DepartmentProvider>(context, listen: false)
+                        .departmentList;
+                Provider.of<RoleProvider>(context, listen: false)
+                    .fetchAndSetRoleList()
+                    .then((_) {
+                  _roles = Provider.of<RoleProvider>(context, listen: false)
+                      .roleList;
+                  Provider.of<RoleProvider>(context, listen: false)
+                      .checkAdmin()
+                      .then((_) {
+                    _isAdmin = Provider.of<RoleProvider>(context, listen: false)
+                        .isAdmin;
+                    Provider.of<RoleProvider>(context, listen: false).roleList;
+                  });
+                });
+              });
+            }
           });
-        });
+        }
       });
 
-      // _mergedList =
-      //     Provider.of<SharedContactListProvider>(context, listen: false)
-      //         .mergedList;
-      // print(_mergedList.length);
-      // _contactPerson.forEach((element) {
-      //   _departments.forEach((e) {
-      //     if (e.id == element.departmentId && element.departmentId.toString().isNotEmpty) {
-      //       MergedList.add(
-      //         getList(
-      //           element.id,
-      //           element.companyId,
-      //           element.departmentId,
-      //           e.departmentName,
-      //           element.emailAddress,
-      //           element.fullName,
-      //           element.homeAddress,
-      //           element.imageUrl,
-      //           element.phoneNumber,
-      //           element.roleId,
-      //         ),
-      //       );
-      //     } else if(e.id != element.departmentId &&element.departmentId.toString().isEmpty){
-      //       //department id is null,automatic go to 'Other' department category
-      //       MergedList.add(
-      //         getList(
-      //           element.id,
-      //           element.companyId,
-      //           '',
-      //           'Other',
-      //           element.emailAddress,
-      //           element.fullName,
-      //           element.homeAddress,
-      //           element.imageUrl,
-      //           element.phoneNumber,
-      //           element.roleId,
-      //         ),
-      //       );
-      //     }
-      //   });
-      // });
+      setState(() {
+        _isLoading = false;
+      });
 
       _isInit = false;
 
@@ -340,35 +345,31 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                 child: Column(children: [
                   buildSearch(),
                   Expanded(
-                    child:  Container(
-                       padding:
+                    child: Container(
+                      padding:
                           EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            child: 
-                        Consumer<SharedContactListProvider>(
-                            builder: (context, _contactPerson, _) =>
-                                ListView.builder(
-                              itemCount:
-                                  _contactPerson.sharedContactList.length,
-                              itemBuilder: (_, index) => Column(
-                                children: [
-                                  SharedContactItem(
-                                    _contactPerson.sharedContactList[index].id,
-                                    _contactPerson
-                                        .sharedContactList[index].fullName,
-                                    _contactPerson
-                                        .sharedContactList[index].imageUrl,
-                                    _contactPerson
-                                        .sharedContactList[index].roleId,
-                                    _contactPerson
-                                        .sharedContactList[index].departmentId,
-                                        _isAdmin,
-                                  ),
-                                  
-                                ],
+                      child: Consumer<SharedContactListProvider>(
+                        builder: (context, _contactPerson, _) =>
+                            ListView.builder(
+                          itemCount: _contactPerson.sharedContactList.length,
+                          itemBuilder: (_, index) => Column(
+                            children: [
+                              SharedContactItem(
+                                _contactPerson.sharedContactList[index].id,
+                                _contactPerson
+                                    .sharedContactList[index].fullName,
+                                _contactPerson
+                                    .sharedContactList[index].imageUrl,
+                                _contactPerson.sharedContactList[index].roleId,
+                                _contactPerson
+                                    .sharedContactList[index].departmentId,
+                                _isAdmin,
                               ),
-                            ),
+                            ],
                           ),
-                  ),
+                        ),
+                      ),
+                    ),
                   ),
 
                   //grouped list, current bug is failed to assign department and role

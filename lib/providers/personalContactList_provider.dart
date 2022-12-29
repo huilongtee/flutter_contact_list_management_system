@@ -150,7 +150,7 @@ class PersonalContactListProvider with ChangeNotifier {
     }
   }
 
-  Future<String> addContactPerson(String phoneNumber,Profile profile) async {
+  Future<String> addContactPerson(String phoneNumber, Profile profile) async {
     bool isFound = false;
     String errMessage = '';
     //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
@@ -167,14 +167,13 @@ class PersonalContactListProvider with ChangeNotifier {
       errMessage =
           'This phone number is already added into the personal contact list';
       return errMessage;
-    } else if(profile.phoneNumber==phoneNumber){
- errMessage =
-          'You cannot add yourself into the contact list';
+    } else if (profile.phoneNumber == phoneNumber) {
+      errMessage = 'You cannot add yourself into the contact list';
       return errMessage;
-    }else{
+    } else {
       Profile contactPerson =
           await fetchAndReturnContactPersonProfile(phoneNumber);
-          
+      print(authToken);
       final url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
       try {

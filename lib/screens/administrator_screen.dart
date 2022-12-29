@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import '../providers/personalContactList_provider.dart';
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
 import '../screens/addCompany_screen.dart';
@@ -6,10 +11,10 @@ import 'package:provider/provider.dart';
 import '../providers/company_provider.dart';
 import '../widgets/administrator_app_drawer.dart';
 import '../widgets/companies_items.dart';
+import '../widgets/dialog.dart';
 
 class AdministratorScreen extends StatefulWidget {
-
-    static const routeName = '/administrator_page';
+  static const routeName = '/administrator_page';
 
   @override
   State<AdministratorScreen> createState() => _AdministratorScreenState();
@@ -19,7 +24,11 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
   var _isInit = true;
   var _isLoading = false;
   Future _loadedData;
-
+  final GlobalKey<FormState> _formKey = GlobalKey();
+  Map<String, dynamic> _authData = {
+    'phoneNo': '',
+    'companyName': '',
+  };
   Future _fetchAllData() async {
     await Provider.of<CompanyProvider>(
       context,
@@ -56,6 +65,126 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
     _fetchAllData();
   }
 
+  Future<String> _submit() async {
+    if (!_formKey.currentState.validate()) {
+      // Invalid!
+      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = false;
+      });
+      return null;
+    }
+    _formKey.currentState.save();
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      Profile profile =
+          await Provider.of<PersonalContactListProvider>(context, listen: false)
+              .fetchAndReturnContactPersonProfile(_authData['phoneNo']);
+      if (profile == null) {
+        // Log user in
+        final errMessage =
+            await Provider.of<CompanyProvider>(context, listen: false)
+                .addCompany(
+          _authData['phoneNo'],
+          _authData['companyName'],
+        );
+        Navigator.of(context).pop();
+        setState(() {
+          _isLoading = false;
+        });
+        
+      } else {
+        return 'This user cannot be chosen.';
+      }
+    } catch (error) {
+      const errorMessage = 'Could not create the company. Please try again.';
+      return errorMessage.toString();
+    }
+  }
+
+  void _showBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Form(
+                      //able to group them, send and validate all the TextFormField together
+                      key: _formKey, //for establishing the connection
+
+                      child: ListView(
+                        children: [
+                          TextFormField(
+                            decoration:
+                                InputDecoration(labelText: 'Company Name'),
+                            keyboardType: TextInputType.text,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please fill in company name';
+                              }
+                            },
+                            onSaved: (value) {
+                              _authData['companyName'] = value;
+                            },
+                          ),
+                          IntlPhoneField(
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                            ),
+                            initialCountryCode: 'MY',
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
+                            disableLengthCheck: true,
+                            validator: (value) {
+                              if (value.completeNumber.substring(1).isEmpty ||
+                                  value.completeNumber.substring(1).length <
+                                      10 ||
+                                  value.completeNumber.substring(1).length >
+                                      12) {
+                                return 'Phone number must greater than 10 digits and lesser than 12';
+                              }
+                            },
+                            onSaved: (value) {
+                              _authData['phoneNo'] =
+                                  value.completeNumber.substring(1);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        String response = await _submit();
+                        if (response.isNotEmpty) {
+                          Dialogs.showMyDialog(context, response);
+                        }
+                      },
+                      child: Text('Add'),
+                      style: ElevatedButton.styleFrom(
+                        primary: Theme.of(context).primaryColor,
+                        textStyle: TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     print(_loadedData);
@@ -66,7 +195,8 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, AddCompanyScreen.routeName);
+              // Navigator.pushNamed(context, AddCompanyScreen.routeName);
+              _showBottomSheet();
             },
             icon: Icon(Icons.add),
           ),
@@ -89,38 +219,43 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
                               style: TextStyle(color: Colors.black),
                             ),
                           )
-                        : Padding(
-                            padding: const EdgeInsets.all(5.0),
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[50],
+                            ),
                             child: Column(
                               children: [
                                 Expanded(
-                                  child: Consumer<CompanyProvider>(
-                                    builder: (context, _loadedData, _) =>
-                                        ListView.builder(
-                                      itemCount: _loadedData.companies.length,
-                                      itemBuilder: (_, index) {
-                                        var profileResult =
-                                            Provider.of<ProfileProvider>(
-                                          context,
-                                          listen: false,
-                                        ).findByNonAdminId(_loadedData
-                                                .companies[index]
-                                                .companyAdminID);
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    child: Consumer<CompanyProvider>(
+                                      builder: (context, _loadedData, _) =>
+                                          ListView.builder(
+                                        itemCount: _loadedData.companies.length,
+                                        itemBuilder: (_, index) {
+                                          Profile profileResult =
+                                              Provider.of<ProfileProvider>(
+                                            context,
+                                            listen: false,
+                                          ).findByNonAdminId(_loadedData
+                                                  .companies[index]
+                                                  .companyAdminID);
 
-                                        return Column(
-                                          children: [
-                                            CompaniesItem(
-                                              _loadedData.companies[index].id,
-                                              _loadedData
-                                                  .companies[index].companyName,
-                                              profileResult.fullName,
-                                            ),
-                                            Divider(
-                                              thickness: 1,
-                                            ),
-                                          ],
-                                        );
-                                      },
+                                          return Column(
+                                            children: [
+                                              CompaniesItem(
+                                                _loadedData.companies[index].id,
+                                                _loadedData.companies[index]
+                                                    .companyName,
+                                                profileResult == null
+                                                    ? ''
+                                                    : profileResult.fullName,
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),

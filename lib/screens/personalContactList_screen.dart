@@ -92,14 +92,13 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
             qrUrl: loadedProfile.qrUrl,
           );
         });
-setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
         // convertToISuspensionList(_contactPerson);
         // generateKIndexBar(kIndexBarData);
       });
 
-      
       _isInit = false;
 
       super.didChangeDependencies();
@@ -234,6 +233,7 @@ setState(() {
                         }
                       },
                       onSaved: (value) {
+                        print(value);
                         _filledData = value.completeNumber.substring(1);
                       },
                     ),

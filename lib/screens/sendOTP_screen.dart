@@ -105,16 +105,15 @@ class _SendOTPScreenState extends State<SendOTPScreen> {
 
                   await FirebaseAuth.instance.verifyPhoneNumber(
                     phoneNumber: phoneNumber,
-                    verificationCompleted:
-                        (PhoneAuthCredential credential)  {
-                      
-                    },
+                    verificationCompleted: (PhoneAuthCredential credential) {},
                     verificationFailed: (FirebaseAuthException e) {
                       Dialogs.showMyDialog(context, e.code);
                     },
                     codeSent: (String verificationId, int resendToken) {
                       SendOTPScreen.verify = verificationId;
-                      Navigator.pushNamed(context, VerifyOTPScreen.routeName,
+
+                      Navigator.pushReplacementNamed(
+                          context, VerifyOTPScreen.routeName,
                           arguments: phoneNumber);
                     },
                     codeAutoRetrievalTimeout: (String verificationId) {},

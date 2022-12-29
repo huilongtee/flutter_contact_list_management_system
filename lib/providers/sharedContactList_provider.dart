@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_contact_list_management_system/providers/company_provider.dart';
 import 'dart:convert'; //convert data into json
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -50,98 +51,124 @@ class SharedContactListProvider with ChangeNotifier {
         orElse: () => null);
   }
 
-  // /*==================================== retrieve a list of collegues id and return their profile============================================*/
-  // Future<void> fetchAndSetContactPersonProfile(
-  //     List loadedData, BuildContext context) async {
-  //   var url = Uri.parse(
-  //       'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
-  //   try {
-  //     final response = await http.get(url);
+  /*==================================== check is company admin Start ============================================*/
 
-  //     final extractedData = json.decode(response.body) as Map<String,
-  //         dynamic>; //String key with dynamic value since flutter do not know the nested data
+  Future<void> checkIsCompanyAdmin(String phoneNumber, String userID) async {
+    final searchTerm = 'orderBy="companyAdminID"&equalTo="$phoneNumber"';
 
-  //     final List<Profile> loadedProfile = [];
-  //     if (extractedData == null) {
-  //       return null;
-  //     }
+    //check whether this user is the company admin  of this company
+    var url = Uri.parse(
+        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken&$searchTerm');
+    try {
+      final response = await http.get(url);
 
-  //     List<Department> _departments =
-  //         await Provider.of<DepartmentProvider>(context, listen: false)
-  //             .departmentList;
+      final extractedData = json.decode(response.body) as Map<String,
+          dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-  //     extractedData.forEach((profileId, profileData) {
-  //       _departments.forEach((element) {
-  //         if (loadedData.contains(profileId) &&
-  //             profileData['departmentID'] == element.id) {
-  //           final Map<String, dynamic> data = new Map<String, dynamic>();
-  //           data["id"] = profileId;
-  //           data["companyID"] = profileData['companyID'];
-  //           data["departmentID"] = profileData['departmentID'];
-  //           data["departmentName"] = element.departmentName;
-  //           data["emailAddress"] = profileData['emailAddress'];
-  //           data["fullName"] = profileData['fullName'];
-  //           data["homeAddress"] = profileData['homeAddress'];
-  //           data["imageUrl"] = profileData['imageUrl'];
-  //           data["phoneNumber"] = profileData['phoneNumber'];
-  //           data["roleID"] = profileData['roleID'];
-  //           _mergedList.add(data);
-  //           loadedProfile.add(
-  //             Profile(
-  //               id: profileId,
-  //               fullName: profileData['fullName'],
-  //               emailAddress: profileData['emailAddress'],
-  //               homeAddress: profileData['homeAddress'],
-  //               phoneNumber: profileData['phoneNumber'],
-  //               roleId: profileData['roleID'],
-  //               departmentId: profileData['departmentID'],
-  //               companyId: profileData['companyID'],
-  //               imageUrl: profileData['imageUrl'],
-  //               qrUrl: profileData['qrUrl'],
-  //             ),
-  //           );
-  //         }else if (loadedData.contains(profileId) &&
-  //             profileData['departmentID'] != element.id) {
-  //           final Map<String, dynamic> data = new Map<String, dynamic>();
-  //           data["id"] = profileId;
-  //           data["companyID"] = profileData['companyID'];
-  //           data["departmentID"] = '';
-  //           data["departmentName"] = 'Other';
-  //           data["emailAddress"] = profileData['emailAddress'];
-  //           data["fullName"] = profileData['fullName'];
-  //           data["homeAddress"] = profileData['homeAddress'];
-  //           data["imageUrl"] = profileData['imageUrl'];
-  //           data["phoneNumber"] = profileData['phoneNumber'];
-  //           data["roleID"] = profileData['roleID'];
-  //           _mergedList.add(data);
-  //           loadedProfile.add(
-  //             Profile(
-  //               id: profileId,
-  //               fullName: profileData['fullName'],
-  //               emailAddress: profileData['emailAddress'],
-  //               homeAddress: profileData['homeAddress'],
-  //               phoneNumber: profileData['phoneNumber'],
-  //               roleId: profileData['roleID'],
-  //               departmentId: profileData['departmentID'],
-  //               companyId: profileData['companyID'],
-  //               imageUrl: profileData['imageUrl'],
-  //               qrUrl: profileData['qrUrl'],
-  //             ),
-  //           );
-  //         }
-  //       });
-  //     });
+      //this user is not the company admin of any company
+      if (extractedData == null) {
+        return null;
+      }
 
-  //     _sharedContactList = loadedProfile;
-  //     _backupList = loadedProfile;
-  //   } catch (error) {
-  //     print(error);
+      //this user is the company admin, now it's time to enable this company account
+      else {
+        try {
+          final searchTerm = 'orderBy="userID"&equalTo="$userID"';
+          var checkUserIDUrl = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
 
-  //     throw (error);
-  //   }
-  // }
+          final checkUserIDResponse = await http.get(checkUserIDUrl);
 
-  /*==================================== retrieve a list of collegues id and return their profile============================================*/
+          final checkUserIDExtractedData = json
+              .decode(
+                  checkUserIDResponse.body) as Map<String,
+              dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+          String uid = '';
+          //get current user companyID
+          checkUserIDExtractedData.forEach((id, contactPersonData) {
+            uid = id;
+          });
+          //update comapny admin id based on their own id
+          final url = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$uid.json?auth=$authToken');
+          await http.patch(url, //update data
+              body: json.encode({
+                'companyAdminID': userID,
+              }));
+          String companyID = '';
+          extractedData.forEach((id, companyData) {
+            companyID = id;
+          });
+
+          //create a role
+          //create role called company admin for this company
+          final createRoleUrl = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
+          try {
+            final createRoleResponse = await http.post(createRoleUrl, //add data
+                body: json.encode({
+                  'companyID': companyID,
+                  'roleName': 'Admin',
+                })); //merge data that is incoming and the data that existing in the database
+
+            final createRoleResponseData =
+                json.decode(createRoleResponse.body) as Map<String, dynamic>;
+            if (createRoleResponseData['error'] != null) {
+              throw HttpException(createRoleResponseData['error']['message']);
+            }
+            var roleId = createRoleResponseData['name'];
+          
+            //assign this role for this admin,  indicate this user role is admin
+         
+            var updateUserComapnyIDUrl = Uri.parse(
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$uid.json?auth=$authToken');
+            await http.patch(updateUserComapnyIDUrl, //update data
+                body: json.encode({
+                  'companyID': companyID,
+                  'roleID': roleId,
+                }));
+
+            //add into shared contact list
+            final addIntoSharedContactListUrl = Uri.parse(
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+            try {
+              final addIntoSharedContactListResponse = await http.post(
+                  addIntoSharedContactListUrl, //add data
+                  body: json.encode({
+                    'companyID': companyID,
+                    'operatorID': uid,
+                  })); //merge data that is incoming and the data that existing in the database
+
+              final addIntoSharedContactListResponseData =
+                  json.decode(addIntoSharedContactListResponse.body)
+                      as Map<String, dynamic>;
+              if (addIntoSharedContactListResponseData['error'] != null) {
+                throw HttpException(
+                    addIntoSharedContactListResponseData['error']['message']);
+              }
+
+              notifyListeners();
+            } catch (error) {
+              throw HttpException(error);
+            }
+          } catch (error) {
+            throw HttpException(error);
+          }
+        } catch (err) {
+          print(err);
+
+          throw (err);
+        }
+      }
+    } catch (err) {
+      print(err);
+
+      throw (err);
+    }
+  }
+
+  /*==================================== check is company admin End ============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
     var url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
@@ -238,7 +265,7 @@ class SharedContactListProvider with ChangeNotifier {
           }
         });
 
-//pass the contact person userID list to fetch their whole profile details
+        //pass the contact person userID list to fetch their whole profile details
         await fetchAndSetContactPersonProfile(loadedContactPersonID);
 
         notifyListeners();
@@ -270,7 +297,7 @@ class SharedContactListProvider with ChangeNotifier {
       }
     });
 
-//if it is found, which means this contact person already added as contact person before
+    //if it is found, which means this contact person already added as contact person before
     //else add it now
     if (isFound == true) {
       //return alert message to tell user that the contact person has been added into the personal contact list before
@@ -300,7 +327,7 @@ class SharedContactListProvider with ChangeNotifier {
 
           _sharedContactList.add(contactPerson);
 
-//add company id for that contact person
+          //add company id for that contact person
           final userUrl = Uri.parse(
               'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
           await http.patch(userUrl, //update data

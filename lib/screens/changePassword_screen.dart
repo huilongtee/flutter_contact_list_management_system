@@ -46,7 +46,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       FirebaseAuth.instance.signOut();
       Navigator.of(context).pop();
       Navigator.of(context).pushReplacementNamed('/');
-      Provider.of<AuthProvider>(context, listen: false).logout();
+      Provider.of<AuthProvider>(context, listen: false).signOut();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_contact_list_management_system/screens/verifyOTP_screen.dart';
+import '../screens/verifyOTP_screen.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 import 'package:sms_autofill/sms_autofill.dart';
@@ -17,7 +17,7 @@ enum AuthMode { Signup, Login }
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
-  static String verify = '';
+  
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -77,8 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: deviceSize.width * 0.75,
                         padding: EdgeInsets.all(16.0),
                         child: SingleChildScrollView(
+                        
                           child: Column(
-                            children: <Widget>[
+                           
+                            children: [
+                         SizedBox(height: 20,),
                               IntlPhoneField(
                                 decoration: InputDecoration(
                                   labelText: 'Phone Number',

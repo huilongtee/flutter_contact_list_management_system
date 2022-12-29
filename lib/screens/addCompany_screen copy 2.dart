@@ -1,4 +1,5 @@
 // //admin create company and user together manually
+// //before create company with phone number register later manually
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_storage/firebase_storage.dart';
 // import 'package:flutter/material.dart';

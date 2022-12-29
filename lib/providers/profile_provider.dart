@@ -26,9 +26,6 @@ class ProfileProvider with ChangeNotifier {
     return _profile.where((data) => data.fullName.contains(fullName));
   }
 
-Future<bool> checkExistedPhoneNumber(String phoneNumber)async{
-  
-}
   Future<void> fetchAndSetNonAdmin([bool filterByCompanyID = false]) async {
     print('entered again once refresh');
     final searchTerm =
@@ -138,7 +135,7 @@ Future<bool> checkExistedPhoneNumber(String phoneNumber)async{
   Future<void> uploadImage(String imageUrl, Profile newProfile) async {
     final profileIndex =
         _profile.indexWhere((prof) => prof.id == newProfile.id);
-
+    print(authToken);
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');

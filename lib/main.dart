@@ -46,12 +46,10 @@ Future<bool> checkIsAdmin() async {
   final prefs = await SharedPreferences.getInstance();
   if (!prefs.containsKey('userData')) {
     //if there is no data is being stored in the userData key
-
     return false;
   }
   final extractedUserData = json.decode(prefs.getString('userData')) as Map<
       String, Object>; //string key and object value(dataTime, token,userId)
-
   return extractedUserData['isAdministrator'];
 }
 
@@ -63,9 +61,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => AuthProvider(),
         ),
-        // ChangeNotifierProvider(
-        //   create: (context) => ProfileProvider(),
-        // ),
+     
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
           update: (context, auth, previousProfile) => ProfileProvider(
               auth.token,
@@ -75,9 +71,7 @@ class MyApp extends StatelessWidget {
                   : previousProfile
                       .profile), //update=provider version>=4.0.0, else=builder/create
         ),
-        // ChangeNotifierProvider(
-        //   create: (context) => PersonalContactListProvider(),
-        // ),
+     
 
         ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
           update: (context, auth, personalContactList) =>
@@ -128,9 +122,7 @@ class MyApp extends StatelessWidget {
                   : previousCompany
                       .companies), //update=provider version>=4.0.0, else=builder/create
         ),
-        // ChangeNotifierProvider(
-        //   create: (context) => AdministratorProvider(),
-        // ),
+    
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) => MaterialApp(
@@ -142,6 +134,7 @@ class MyApp extends StatelessWidget {
             // primaryColor: Color.fromARGB(255, 154, 77, 22),
             primaryColor: Color.fromRGBO(204, 204, 255, 1),
             secondaryHeaderColor: Color.fromRGBO(179, 136, 255, 1),
+            focusColor: Color.fromARGB(255, 255, 235, 137),
             fontFamily: 'Lato',
             textTheme: ThemeData.light().textTheme.copyWith(
                   bodyText1: TextStyle(
@@ -151,35 +144,41 @@ class MyApp extends StatelessWidget {
                 ),
             //
           ),
-          home: StreamBuilder(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
-              if (snapshot.hasData) {
-                Future<bool> isAdmin = checkIsAdmin();
-                if (isAdmin == true) {
-                  print('isAdmin');
-                  return AdministratorScreen();
-                } else {
-                  print('notAdmin');
-                  return PersonalContactListScreen();
-                }
-              }else{
-              return LoginScreen();
+          home: !auth.isAuth
+              ? FutureBuilder(
+                  future: auth.tryAutoLogin(),
+                  builder: (context, authResultSnpshot) =>
+                      (authResultSnpshot.connectionState ==
+                              ConnectionState.waiting)
+                          ? SplashScreen()
+                          : LoginScreen())
+              : auth.isAdministrator
+                  ? AdministratorScreen()
+                  : PersonalContactListScreen(),
 
-              }
-            },
-          ),
-          // !auth.isAuth
-          // ? FutureBuilder(
-          //     future: auth.tryAutoLogin(),
-          //     builder: (context, authResultSnpshot) =>
-          //         (authResultSnpshot.connectionState ==
-          //                 ConnectionState.waiting)
-          //             ? SplashScreen()
-          //             : LoginScreen())
-          // : auth.isAdministrator
-          //     ? AdministratorScreen()
-          //     : PersonalContactListScreen(),
+          // StreamBuilder(
+          //   stream: FirebaseAuth.instance.authStateChanges(),
+
+          //   builder: (BuildContext context, AsyncSnapshot<User> snapshot)  {
+          //     if (snapshot.hasData) {
+
+          //       Future<bool> isAdmin =  checkIsAdmin();
+
+          //       print(isAdmin);
+          //       print('entered main');
+          //       if (isAdmin == true) {
+          //         print('isAdmin');
+          //         return AdministratorScreen();
+          //       } else {
+          //         print('notAdmin');
+          //         return PersonalContactListScreen();
+          //       }
+          //     } else {
+          //       return LoginScreen();
+          //     }
+          //   },
+          // ),
+
           routes: {
             SharedContactListScreen.routeName: (context) =>
                 SharedContactListScreen(),
@@ -188,7 +187,7 @@ class MyApp extends StatelessWidget {
             ProfileScreen.routeName: (context) => ProfileScreen(),
             EditProfileScreen.routeName: (context) => EditProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
-            AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
+            // AddCompanyScreen.routeName: (context) => AddCompanyScreen(),
             EditCompanyScreen.routeName: (context) => EditCompanyScreen(),
             AddRoleScreen.routeName: (context) => AddRoleScreen(),
             RoleScreen.routeName: (context) => RoleScreen(),

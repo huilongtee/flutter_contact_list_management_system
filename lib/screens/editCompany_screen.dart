@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contact_list_management_system/providers/company_provider.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 // import '../providers/administrator_provider.dart';
 import '../providers/profile_provider.dart';
@@ -25,7 +27,7 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
   var _isInit = true;
   var _initValue = {
     'companyName': '',
-    'companyAdminID': '',
+    'phoneNumber': '',
   };
   List<Profile> loadedNonAdmin = [];
 
@@ -45,11 +47,11 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
           .findById(companyId);
       selectedValue = Provider.of<ProfileProvider>(context, listen: false)
           .findByNonAdminId(_editedCompany.companyAdminID);
-
+      
       // print(selectedValue.id);
       _initValue = {
         'companyName': _editedCompany.companyName,
-        'companyAdminID': _editedCompany.companyAdminID,
+        'phoneNumber': _editedCompany.companyAdminID,
       };
       setState(() {
         _isLoading = false;
@@ -139,23 +141,47 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
                             );
                           },
                         ),
-                        DropdownButtonFormField(
-                          hint: Text('Select Company Admin'),
-                          isExpanded: true,
-                          items: loadedNonAdmin.map((Profile items) {
-                            return DropdownMenuItem<Profile>(
-                              child: Text(
-                                  items.fullName + " - " + items.emailAddress),
-                              value: items,
-                            );
-                          }).toList(),
-                          value: selectedValue,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedValue = value;
-                            });
-                          },
-                        ),
+                        // DropdownButtonFormField(
+                        //   hint: Text('Select Company Admin'),
+                        //   isExpanded: true,
+                        //   items: loadedNonAdmin.map((Profile items) {
+                        //     return DropdownMenuItem<Profile>(
+                        //       child: Text(
+                        //           items.fullName + " - " + items.emailAddress),
+                        //       value: items,
+                        //     );
+                        //   }).toList(),
+                        //   value: selectedValue,
+                        //   onChanged: (value) {
+                        //     setState(() {
+                        //       selectedValue = value;
+                        //     });
+                        //   },
+                        // ),
+
+                        IntlPhoneField(
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                      ),
+                      autofocus: true,
+                      textInputAction: TextInputAction.done,
+                      
+                      initialValue:
+                          _initValue.isEmpty ? null : _initValue['phoneNumber'].substring(2),
+                      initialCountryCode: 'MY',
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      disableLengthCheck: true,
+                      validator: (value) {
+                        if (value.completeNumber.substring(1).isEmpty ||
+                            value.completeNumber.substring(1).length < 10 ||
+                            value.completeNumber.substring(1).length > 12) {
+                          return 'Phone number must greater than 10 digits and lesser than 12';
+                        }
+                      },
+                      onSaved: (value) {
+                         _initValue['phoneNumber'] = value.completeNumber.substring(1);
+                      },
+                    ),
                       ],
                     ),
                   ),

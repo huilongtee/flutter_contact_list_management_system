@@ -11,7 +11,11 @@ class CompaniesItem extends StatelessWidget {
   CompaniesItem(this.id, this.companyName, this.companyAdminFullName);
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return Card(
+        margin: EdgeInsets.symmetric(vertical: 5),
+        elevation: 2,
+        child:ListTile(
+      tileColor: Theme.of(context).focusColor,
       title: Text(companyName),
       subtitle: Text('admin name: ' + companyAdminFullName),
       trailing: IconButton(
@@ -21,7 +25,7 @@ class CompaniesItem extends StatelessWidget {
         },
         icon: Icon(Icons.manage_accounts),
         color: Theme.of(context).primaryColor,
-      ),
+      ),),
     );
   }
 }
