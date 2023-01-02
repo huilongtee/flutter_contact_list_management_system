@@ -9,13 +9,9 @@ import 'package:pinput/pinput.dart';
 import '../widgets/dialog.dart';
 
 import '../providers/auth_provider.dart';
-import '../providers/personalContactList_provider.dart';
-import '../providers/profile.dart';
 
 import '../screens/register_screen.dart';
 import '../screens/sendOTP_screen.dart';
-import '../screens/personalContactList_screen.dart';
-import '../screens/administrator_screen.dart';
 
 class VerifyOTPScreen extends StatefulWidget {
   static const routeName = '/verifyOTP_page';
@@ -27,20 +23,6 @@ class VerifyOTPScreen extends StatefulWidget {
 class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
   FirebaseAuth auth = FirebaseAuth.instance;
   var codeValue = '';
-
-  Future<bool> checkIsAdmin() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey('userData')) {
-      //if there is no data is being stored in the userData key
-
-      return false;
-    }
-    final extractedUserData = json.decode(prefs.getString('userData')) as Map<
-        String, Object>; //string key and object value(dataTime, token,userId)
-
-    print(extractedUserData['isAdministrator']);
-    return extractedUserData['isAdministrator'];
-  }
 
   @override
   void codeUpdated() {
@@ -254,14 +236,14 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                         print('entered');
                         //register as normal user
                         if (isSystemAdminExisted == true) {
-                        print('entered');
-
-                          Navigator.pop(context);
+                          print('entered');
+                          Navigator.of(context).pop();
                           Navigator.pushNamed(
                             context,
                             RegisterScreen.routeName,
                             arguments: phoneNumber.toString().substring(1),
                           );
+                        
                         }
                         //register this user as system admin
                         else {
@@ -269,10 +251,13 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                                   listen: false)
                               .registerSystemAdmin();
 
-                          Navigator.pop(context);
+                        Navigator.of(context).pop();
                           // Navigator.pushNamed(
                           //     context, AdministratorScreen.routeName);
                         }
+                      } else {
+                        print('login');
+                        Navigator.of(context).pop();
                       }
                       //existing account, normal login
 
@@ -297,7 +282,7 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                       //   // Navigator.pushNamed(
                       //   //     context, PersonalContactListScreen.routeName);
                       // }
-                      Navigator.pop(context);
+
                     } catch (err) {
                       Dialogs.showMyDialog(context, err);
                     }

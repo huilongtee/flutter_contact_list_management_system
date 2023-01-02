@@ -26,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'fullName': '',
     'homeAddress': '',
     'email': '',
-   
   };
   var _isLoading = false;
   var _isLocationLoading = false;
@@ -250,9 +249,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       // Log user in
-      await Provider.of<AuthProvider>(context, listen: false).signup(
+      await Provider.of<AuthProvider>(context, listen: false).registerOperator(
         _authData['email'],
-       
         _authData['fullName'],
         phoneNumber,
         _authData['homeAddress'],

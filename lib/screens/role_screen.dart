@@ -1,9 +1,10 @@
+// import '../widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/app_drawer.dart';
 import '../providers/role_provider.dart';
 import '../widgets/role_item.dart';
 import '../screens/addRole_screen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class RoleScreen extends StatefulWidget {
   static const routeName = '/roles_page';
@@ -59,7 +60,11 @@ class _RoleScreenState extends State<RoleScreen> {
       ),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
               padding: const EdgeInsets.all(5.0),

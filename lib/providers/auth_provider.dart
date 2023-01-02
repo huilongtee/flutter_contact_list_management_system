@@ -15,10 +15,8 @@ enum Mode {
 
 class AuthProvider with ChangeNotifier {
   String _token;
-  DateTime _expiryDate;
   String _userId; //userID in Authentication table
   bool _isAdministrator = false;
-  var administratorResponseData = null;
 
   bool get isAuth {
     return _token != null;
@@ -28,13 +26,15 @@ class AuthProvider with ChangeNotifier {
     return _userId;
   }
 
-  var tempUserId = '';
   bool get isAdministrator {
     return _isAdministrator;
   }
 
   String get token {
-    return _token;
+    if (_token != null) {
+      return _token;
+    }
+    return null;
   }
 
   // Future<void> login() async {
@@ -55,8 +55,8 @@ class AuthProvider with ChangeNotifier {
   // }
 
 //register normal user
-  Future<void> _registerOperator(String email, String fullName,
-      String phoneNumber, String homeAddress, String urlSegment) async {
+  Future<void> registerOperator(String email, String fullName,
+      String phoneNumber, String homeAddress) async {
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       final User result = auth.currentUser;
@@ -192,9 +192,10 @@ class AuthProvider with ChangeNotifier {
     final User result = auth.currentUser;
 
     _userId = result.uid;
-    final searchTerm = 'orderBy="userID"&equalTo="$_userId"';
+
     IdTokenResult tokenResult = await result.getIdTokenResult();
     _token = tokenResult.token;
+    final searchTerm = 'orderBy="userID"&equalTo="$_userId"';
     final administratorUrl = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token&$searchTerm');
     try {
@@ -206,6 +207,7 @@ class AuthProvider with ChangeNotifier {
         userID = data['userID'];
       });
       print(_token);
+      print(_userId);
       //is system admin
       if (userID == _userId) {
         _isAdministrator = true;
@@ -223,12 +225,6 @@ class AuthProvider with ChangeNotifier {
     } catch (error) {
       throw (error);
     }
-  }
-
-  Future<void> signup(String email, String fullName, String phoneNumber,
-      String homeAddress) async {
-    return _registerOperator(
-        email, fullName, phoneNumber, homeAddress, 'signupNewUser');
   }
 
   // Future<void> login(String email, String password, String fullName,
@@ -266,18 +262,18 @@ class AuthProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('userData')) {
       //if there is no data is being stored in the userData key
-
       return false;
     }
     final extractedUserData = json.decode(prefs.getString('userData')) as Map<
         String, Object>; //string key and object value(dataTime, token,userId)
     _isAdministrator = extractedUserData['isAdministrator'];
 
-    final FirebaseAuth auth =  FirebaseAuth.instance;
-    final User result =  auth.currentUser;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User result = auth.currentUser;
     IdTokenResult tokenResult = await result.getIdTokenResult();
-      _token = tokenResult.token;
-    print(result);
+    _token = tokenResult.token;
+    _userId = result.uid;
+    print(_userId);
     if (_token == null) {
       // signOut();
       return false;

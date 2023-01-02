@@ -5,6 +5,7 @@ import '../providers/profile_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import '../helper/location_helper.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = '/editProfile_page';
@@ -248,7 +249,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
               padding: const EdgeInsets.all(15.0),

@@ -4,9 +4,12 @@ import 'package:flutter_contact_list_management_system/providers/company_provide
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 // import '../providers/administrator_provider.dart';
+import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
 import '../widgets/administrator_app_drawer.dart';
+import '../widgets/dialog.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class EditCompanyScreen extends StatefulWidget {
   static const routeName = '/editCompany_page';
@@ -47,7 +50,7 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
           .findById(companyId);
       selectedValue = Provider.of<ProfileProvider>(context, listen: false)
           .findByNonAdminId(_editedCompany.companyAdminID);
-      
+
       // print(selectedValue.id);
       _initValue = {
         'companyName': _editedCompany.companyName,
@@ -68,24 +71,45 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
     super.dispose();
   }
 
-  Future<void> _saveForm() async {
+  Future<String> _saveForm() async {
     final isValid = _form.currentState.validate(); //trigger all validator
     if (!isValid) {
-      return; //stop function
+      return 'cannot edit the company'; //stop function
     }
     _form.currentState.save();
     setState(() {
       _isLoading = true;
     });
+    _editedCompany = Company(
+      id: _editedCompany.id,
+      companyName: _initValue['companyName'],
+      companyAdminID: _initValue['phoneNumber'],
+    );
+    try {
+      Profile _profile =
+          await Provider.of<PersonalContactListProvider>(context, listen: false)
+              .fetchAndReturnContactPersonProfile(_initValue['phoneNumber']);
+      String errMessage = '';
+      print(_profile.runtimeType);
+      if (_profile != null) {
+        if (_profile.companyId != null) {
+          errMessage = 'The user already belong to one of the company';
+        }
+      } else {
+        errMessage = '';
 
-    await Provider.of<CompanyProvider>(context, listen: false)
-        .updateCompany(_editedCompany.id, _editedCompany);
+        await Provider.of<CompanyProvider>(context, listen: false)
+            .updateCompany(_editedCompany.id, _editedCompany);
+      }
+      Navigator.of(context).pop();
 
-    Navigator.of(context).pop();
-
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
+      return errMessage;
+    } catch (err) {
+      return err.toString();
+    }
   }
 
   @override
@@ -103,7 +127,11 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
       drawer: AdministratorAppDrawer(),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
               padding: const EdgeInsets.all(15.0),
@@ -134,11 +162,12 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
                             return null;
                           },
                           onSaved: (value) {
-                            _editedCompany = Company(
-                              companyName: value,
-                              companyAdminID: _editedCompany.companyAdminID,
-                              id: _editedCompany.id,
-                            );
+                            _initValue['companyName'] = value;
+                            // _editedCompany = Company(
+                            //   companyName: value,
+                            //   companyAdminID: _editedCompany.companyAdminID,
+                            //   id: _editedCompany.id,
+                            // );
                           },
                         ),
                         // DropdownButtonFormField(
@@ -160,35 +189,43 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
                         // ),
 
                         IntlPhoneField(
-                      decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                      ),
-                      autofocus: true,
-                      textInputAction: TextInputAction.done,
-                      
-                      initialValue:
-                          _initValue.isEmpty ? null : _initValue['phoneNumber'].substring(2),
-                      initialCountryCode: 'MY',
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      disableLengthCheck: true,
-                      validator: (value) {
-                        if (value.completeNumber.substring(1).isEmpty ||
-                            value.completeNumber.substring(1).length < 10 ||
-                            value.completeNumber.substring(1).length > 12) {
-                          return 'Phone number must greater than 10 digits and lesser than 12';
-                        }
-                      },
-                      onSaved: (value) {
-                         _initValue['phoneNumber'] = value.completeNumber.substring(1);
-                      },
-                    ),
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                          ),
+                          autofocus: true,
+                          textInputAction: TextInputAction.done,
+                          initialValue: _initValue.isEmpty
+                              ? null
+                              : _initValue['phoneNumber'].substring(2),
+                          initialCountryCode: 'MY',
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          disableLengthCheck: true,
+                          validator: (value) {
+                            if (value.completeNumber.substring(1).isEmpty ||
+                                value.completeNumber.substring(1).length < 10 ||
+                                value.completeNumber.substring(1).length > 12) {
+                              return 'Phone number must greater than 10 digits and lesser than 12';
+                            }
+                          },
+                          onSaved: (value) {
+                            _initValue['phoneNumber'] =
+                                value.completeNumber.substring(1);
+                          },
+                        ),
                       ],
                     ),
                   ),
                 ),
                 Container(
                   child: ElevatedButton(
-                    onPressed: _saveForm,
+                    onPressed: () async {
+                      String errMessage = await _saveForm();
+                      if (errMessage.isNotEmpty) {
+                        Dialogs.showMyDialog(context, errMessage);
+                      }
+                    },
                     child: Text('Update'),
                     style: ElevatedButton.styleFrom(
                       primary: Theme.of(context).primaryColor,

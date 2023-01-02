@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,7 +22,6 @@ import '../screens/sharedContactList_screen.dart';
 import '../screens/personalContactList_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/editProfile_screen.dart';
-import '../screens/addCompany_screen.dart';
 import '../screens/editContactPerson_screen.dart';
 import '../screens/role_screen.dart';
 import '../screens/department_screen.dart';
@@ -33,12 +31,17 @@ import '../screens/editCompany_screen.dart';
 import '../screens/changePassword_screen.dart';
 import '../screens/sendOTP_screen.dart';
 import '../screens/verifyOTP_screen.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
+/// Global flag if NFC is avalible
+bool isNfcAvalible = false;
 // void main() => runApp(MyApp());
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized(); // Required for the line below
+  isNfcAvalible = await NfcManager.instance.isAvailable();
   runApp(MyApp());
 }
 

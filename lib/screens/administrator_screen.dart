@@ -1,3 +1,4 @@
+// import '../screens/addCompany_screen.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,12 +7,13 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import '../providers/personalContactList_provider.dart';
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
-import '../screens/addCompany_screen.dart';
+
 import 'package:provider/provider.dart';
 import '../providers/company_provider.dart';
 import '../widgets/administrator_app_drawer.dart';
 import '../widgets/companies_items.dart';
 import '../widgets/dialog.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class AdministratorScreen extends StatefulWidget {
   static const routeName = '/administrator_page';
@@ -29,7 +31,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
     'phoneNo': '',
     'companyName': '',
   };
-  Future _fetchAllData() async {
+  Future<void> _fetchAllData() async {
     await Provider.of<CompanyProvider>(
       context,
       listen: false,
@@ -72,33 +74,39 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
       setState(() {
         _isLoading = false;
       });
-      return null;
+      return 'Could not add this company';
     }
     _formKey.currentState.save();
     setState(() {
       _isLoading = true;
     });
 
+    if (_authData['phoneNo'].toString().substring(2).isEmpty) {
+      return 'The phone number should not be empty';
+    }
+
     try {
+      String errMessage = '';
       Profile profile =
           await Provider.of<PersonalContactListProvider>(context, listen: false)
               .fetchAndReturnContactPersonProfile(_authData['phoneNo']);
       if (profile == null) {
         // Log user in
-        final errMessage =
-            await Provider.of<CompanyProvider>(context, listen: false)
-                .addCompany(
+
+        await Provider.of<CompanyProvider>(context, listen: false).addCompany(
           _authData['phoneNo'],
           _authData['companyName'],
         );
-        Navigator.of(context).pop();
-        setState(() {
-          _isLoading = false;
-        });
-        
       } else {
-        return 'This user cannot be chosen.';
+        errMessage = 'This user cannot be chosen.';
       }
+      Navigator.of(context).pop();
+      setState(() {
+        _isLoading = false;
+      });
+      return errMessage;
+    } on HttpException catch (error) {
+      return error.toString();
     } catch (error) {
       const errorMessage = 'Could not create the company. Please try again.';
       return errorMessage.toString();
@@ -151,7 +159,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
                                       10 ||
                                   value.completeNumber.substring(1).length >
                                       12) {
-                                return 'Phone number must greater than 10 digits and lesser than 12';
+                                return 'Phone number must greater than 10 digits and lesser than 12 digits';
                               }
                             },
                             onSaved: (value) {
@@ -214,11 +222,12 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
                     onRefresh: () => _refreshCompanyList(context),
                     child: _loadedData == null
                         ? Center(
-                            child: Text(
-                              'There is no company has been created yet',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          )
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
+            )
                         : Container(
                             decoration: BoxDecoration(
                               color: Colors.indigo[50],

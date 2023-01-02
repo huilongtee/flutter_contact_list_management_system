@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_contact_list_management_system/providers/company_provider.dart';
-import 'package:provider/provider.dart';
+
+// import '../providers/company_provider.dart';
 // import '../providers/administrator_provider.dart';
-import '../providers/profile_provider.dart';
-import '../providers/profile.dart';
+// import '../providers/profile_provider.dart';
+// import '../providers/profile.dart';
+// import '../widgets/administrator_app_drawer.dart';
+import 'package:flutter/material.dart';
 import '../providers/role_provider.dart';
-import '../widgets/administrator_app_drawer.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class AddRoleScreen extends StatefulWidget {
   static const routeName = '/addRole_page';
@@ -122,7 +124,11 @@ class _AddRoleScreenState extends State<AddRoleScreen> {
       ),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
               padding: const EdgeInsets.all(15.0),

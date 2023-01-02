@@ -1,31 +1,34 @@
-import 'dart:convert';
-import 'dart:io';
+// import 'dart:convert';
+// import '../providers/personalContactList_provider.dart';
+// import 'package:grouped_list/grouped_list.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import '../screens/viewContactPerson_screen.dart';
+// import '../widgets/personal_contact_item.dart';
+// import 'package:grouped_list/sliver_grouped_list.dart'; //group listview
 
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:grouped_list/grouped_list.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../providers/department_provider.dart';
-import '../providers/personalContactList_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile.dart';
 import '../providers/role_provider.dart';
 import '../providers/sharedContactList_provider.dart';
 
-// import '../screens/viewContactPerson_screen.dart';
+
 import '../screens/department_screen.dart';
 import '../screens/role_screen.dart';
 
 import '../widgets/app_drawer.dart';
 import '../widgets/dialog.dart';
 import '../widgets/searchField.dart';
-import '../widgets/personal_contact_item.dart';
 import '../widgets/shared_contact_item.dart';
-import 'package:grouped_list/sliver_grouped_list.dart'; //group listview
+
 
 class SharedContactListScreen extends StatefulWidget {
   static const routeName = '/sharedContactList_page';
@@ -55,6 +58,8 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
     if (_isInit) {
       setState(() {
         _isLoading = true;
+        print('_isLoading');
+        print(_isLoading);
       });
       //get the profile and check the company id is existed
       Provider.of<ProfileProvider>(
@@ -66,36 +71,46 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
           context,
           listen: false,
         ).profile;
+
+        Profile loadedProfile = Provider.of<ProfileProvider>(
+          context,
+          listen: false,
+        ).findById(result.first.id);
+        if (loadedProfile.companyId == null) {
+          print('null');
+        }
         //company id not existed
-        if (result.first.companyId == null) {
+        print('the company id is' + loadedProfile.companyId);
+        if (loadedProfile.companyId.isEmpty) {
+          print('enter company id = null');
           final FirebaseAuth auth = FirebaseAuth.instance;
           final User user = auth.currentUser;
           //check this user whether is the company admin of any company that haven't enabled
           Provider.of<SharedContactListProvider>(context, listen: false)
               .checkIsCompanyAdmin(
-                  user.phoneNumber.toString().substring(1), result.first.id)
+                  user.phoneNumber.toString().substring(1), loadedProfile.id)
               .then((_) {
-                Provider.of<DepartmentProvider>(context, listen: false)
-                  .fetchAndSetDepartmentList()
+            Provider.of<DepartmentProvider>(context, listen: false)
+                .fetchAndSetDepartmentList()
+                .then((_) {
+              _departments =
+                  Provider.of<DepartmentProvider>(context, listen: false)
+                      .departmentList;
+              Provider.of<RoleProvider>(context, listen: false)
+                  .fetchAndSetRoleList()
                   .then((_) {
-                _departments =
-                    Provider.of<DepartmentProvider>(context, listen: false)
-                        .departmentList;
-                Provider.of<RoleProvider>(context, listen: false)
-                    .fetchAndSetRoleList()
-                    .then((_) {
-                  _roles = Provider.of<RoleProvider>(context, listen: false)
-                      .roleList;
-                  Provider.of<RoleProvider>(context, listen: false)
-                      .checkAdmin()
-                      .then((_) {
-                    _isAdmin = Provider.of<RoleProvider>(context, listen: false)
-                        .isAdmin;
+                _roles =
                     Provider.of<RoleProvider>(context, listen: false).roleList;
-                  });
+                Provider.of<RoleProvider>(context, listen: false)
+                    .checkAdmin()
+                    .then((_) {
+                  _isAdmin =
+                      Provider.of<RoleProvider>(context, listen: false).isAdmin;
+                  Provider.of<RoleProvider>(context, listen: false).roleList;
                 });
               });
-              });
+            });
+          });
         } else {
           Provider.of<SharedContactListProvider>(context, listen: false)
               .fetchAndSetSharedContactList()
@@ -104,40 +119,40 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                 Provider.of<SharedContactListProvider>(context, listen: false)
                     .sharedContactList;
 
-            if (_contactPerson != null) {
-              Provider.of<DepartmentProvider>(context, listen: false)
-                  .fetchAndSetDepartmentList()
+            Provider.of<DepartmentProvider>(context, listen: false)
+                .fetchAndSetDepartmentList()
+                .then((_) {
+              _departments =
+                  Provider.of<DepartmentProvider>(context, listen: false)
+                      .departmentList;
+              Provider.of<RoleProvider>(context, listen: false)
+                  .fetchAndSetRoleList()
                   .then((_) {
-                _departments =
-                    Provider.of<DepartmentProvider>(context, listen: false)
-                        .departmentList;
-                Provider.of<RoleProvider>(context, listen: false)
-                    .fetchAndSetRoleList()
-                    .then((_) {
-                  _roles = Provider.of<RoleProvider>(context, listen: false)
-                      .roleList;
-                  Provider.of<RoleProvider>(context, listen: false)
-                      .checkAdmin()
-                      .then((_) {
-                    _isAdmin = Provider.of<RoleProvider>(context, listen: false)
-                        .isAdmin;
+                _roles =
                     Provider.of<RoleProvider>(context, listen: false).roleList;
-                  });
+                Provider.of<RoleProvider>(context, listen: false)
+                    .checkAdmin()
+                    .then((_) {
+                  _isAdmin =
+                      Provider.of<RoleProvider>(context, listen: false).isAdmin; print('_isAdmin');
+              print(_isAdmin);
                 });
               });
-            }
+
+             
+            });
           });
         }
       });
 
       setState(() {
         _isLoading = false;
+        print('_isLoading');
+        print(_isLoading);
       });
-
-      _isInit = false;
-
-      super.didChangeDependencies();
     }
+    _isInit = false;
+    super.didChangeDependencies();
   }
 
   String displayDepartmentName(String id) {
@@ -315,7 +330,11 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
       drawer: AppDrawer(),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : WillPopScope(
               onWillPop: () async {

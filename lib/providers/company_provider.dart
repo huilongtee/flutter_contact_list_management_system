@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_contact_list_management_system/providers/personalContactList_provider.dart';
 import 'dart:convert'; //convert data into json
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../models/http_exception.dart';
 import '../providers/profile.dart';
 
@@ -365,9 +367,6 @@ class CompanyProvider with ChangeNotifier {
 //   }
 
   Future<void> addCompany(String phoneNumber, String companyName) async {
-
-    
-
     //add company
     final url = Uri.parse(
         'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
@@ -407,6 +406,8 @@ class CompanyProvider with ChangeNotifier {
   }
 
   Future<void> updateCompany(String id, Company newCompany) async {
+   
+
     final companyIndex = _companies.indexWhere((company) => company.id == id);
 
     if (companyIndex >= 0) {

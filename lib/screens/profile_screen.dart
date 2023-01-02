@@ -1,27 +1,26 @@
-import 'dart:convert';
+
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
 import '../providers/role_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/department_provider.dart';
+
 import '../screens/editProfile_screen.dart';
 import '../screens/changePassword_screen.dart';
-import '../widgets/profile_items.dart';
+
 import '../widgets/app_drawer.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
-import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
@@ -290,7 +289,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       drawer: AppDrawer(),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : ListView(
               padding: EdgeInsets.zero,

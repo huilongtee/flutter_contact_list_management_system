@@ -70,6 +70,8 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProfile() async {
+    print('id: '+userId);
+    print('token: '+authToken);
     // final url = Uri.parse(
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';

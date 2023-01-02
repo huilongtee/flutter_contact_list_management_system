@@ -12,6 +12,7 @@ import '../providers/profile.dart';
 import '../providers/company_provider.dart';
 import '../providers/role_provider.dart';
 import '../widgets/profile_items.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class ContactPersonDetailScreen extends StatefulWidget {
   static const routeName = '/contactPersonDetailScreen';
@@ -150,7 +151,11 @@ class _ContactPersonDetailScreenState extends State<ContactPersonDetailScreen> {
       ),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Container(
               child: Column(

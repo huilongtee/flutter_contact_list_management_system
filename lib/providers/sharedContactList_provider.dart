@@ -66,40 +66,45 @@ class SharedContactListProvider with ChangeNotifier {
           dynamic>; //String key with dynamic value since flutter do not know the nested data
 
       //this user is not the company admin of any company
-      if (extractedData == null) {
-        return null;
+      if (extractedData.isEmpty) {
+        
+        return;
       }
 
       //this user is the company admin, now it's time to enable this company account
       else {
+        
+        String companyID = '';
+        extractedData.forEach((id, companyData) {
+          companyID = id;
+        });
         try {
-          final searchTerm = 'orderBy="userID"&equalTo="$userID"';
-          var checkUserIDUrl = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+          // final searchTerm = 'orderBy="userID"&equalTo="$userID"';
+          // var checkUserIDUrl = Uri.parse(
+          //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
 
-          final checkUserIDResponse = await http.get(checkUserIDUrl);
+          // final checkUserIDResponse = await http.get(checkUserIDUrl);
 
-          final checkUserIDExtractedData = json
-              .decode(
-                  checkUserIDResponse.body) as Map<String,
-              dynamic>; //String key with dynamic value since flutter do not know the nested data
+          // final checkUserIDExtractedData = json
+          //     .decode(
+          //         checkUserIDResponse.body) as Map<String,
+          //     dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-          String uid = '';
-          //get current user companyID
-          checkUserIDExtractedData.forEach((id, contactPersonData) {
-            uid = id;
-          });
+          // String uid = '';
+
+          // //get current user companyID
+          // checkUserIDExtractedData.forEach((id, contactPersonData) {
+          //   uid = id;
+          // });
+          // print('uid: ' + uid);
+          // print('userID: ' + userID);
           //update comapny admin id based on their own id
           final url = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$uid.json?auth=$authToken');
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
           await http.patch(url, //update data
               body: json.encode({
                 'companyAdminID': userID,
               }));
-          String companyID = '';
-          extractedData.forEach((id, companyData) {
-            companyID = id;
-          });
 
           //create a role
           //create role called company admin for this company
@@ -118,11 +123,11 @@ class SharedContactListProvider with ChangeNotifier {
               throw HttpException(createRoleResponseData['error']['message']);
             }
             var roleId = createRoleResponseData['name'];
-          
+
             //assign this role for this admin,  indicate this user role is admin
-         
+
             var updateUserComapnyIDUrl = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$uid.json?auth=$authToken');
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userID.json?auth=$authToken');
             await http.patch(updateUserComapnyIDUrl, //update data
                 body: json.encode({
                   'companyID': companyID,
@@ -137,7 +142,7 @@ class SharedContactListProvider with ChangeNotifier {
                   addIntoSharedContactListUrl, //add data
                   body: json.encode({
                     'companyID': companyID,
-                    'operatorID': uid,
+                    'operatorID': userID,
                   })); //merge data that is incoming and the data that existing in the database
 
               final addIntoSharedContactListResponseData =

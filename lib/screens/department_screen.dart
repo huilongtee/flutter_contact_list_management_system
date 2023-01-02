@@ -1,10 +1,11 @@
+// import '../widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/department_provider.dart';
-import '../widgets/app_drawer.dart';
 import '../widgets/department_item.dart';
 import '../screens/addDepartment_screen.dart';
-import '../screens/addDepartment_screen.dart';
+
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class DepartmentScreen extends StatefulWidget {
   static const routeName = '/departments_page';
@@ -60,7 +61,11 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       ),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
               padding: const EdgeInsets.all(5.0),

@@ -52,7 +52,9 @@ class RoleProvider with ChangeNotifier {
       });
       Role data =
           _roles.firstWhere((role) => role.id == roleID, orElse: () => null);
-
+      _roles.forEach((element) {
+        print(element.roleName);
+      });
       if (data != null) {
         if (data.roleName == 'Admin') {
           _isAdmin = true;

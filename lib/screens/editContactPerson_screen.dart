@@ -5,6 +5,7 @@ import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
 import '../providers/role_provider.dart';
 import '../providers/sharedContactList_provider.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class EditContactPersonScreen extends StatefulWidget {
   static const routeName = '/editContactPerson_page';
@@ -113,7 +114,11 @@ class _EditContactPersonScreenState extends State<EditContactPersonScreen> {
       ),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+          color: Theme.of(context).primaryColor,
+          size: 100,
+        ),
             )
           : Padding(
             

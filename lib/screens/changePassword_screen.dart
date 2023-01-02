@@ -1,10 +1,10 @@
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:flutter_svg/svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/material.dart';
 import '../providers/auth_provider.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   static const routeName = '/changePassword';

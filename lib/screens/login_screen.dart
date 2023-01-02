@@ -17,7 +17,7 @@ enum AuthMode { Signup, Login }
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
-  
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -77,11 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: deviceSize.width * 0.75,
                         padding: EdgeInsets.all(16.0),
                         child: SingleChildScrollView(
-                        
                           child: Column(
-                           
                             children: [
-                         SizedBox(height: 20,),
+                              SizedBox(
+                                height: 20,
+                              ),
                               IntlPhoneField(
                                 decoration: InputDecoration(
                                   labelText: 'Phone Number',
@@ -135,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     codeSent: (String verificationId,
                                         int resendToken) {
                                       SendOTPScreen.verify = verificationId;
+                                      Navigator.pop(context);
                                       Navigator.pushNamed(
                                           context, VerifyOTPScreen.routeName,
                                           arguments: phoneNumber);

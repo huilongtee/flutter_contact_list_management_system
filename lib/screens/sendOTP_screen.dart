@@ -111,9 +111,8 @@ class _SendOTPScreenState extends State<SendOTPScreen> {
                     },
                     codeSent: (String verificationId, int resendToken) {
                       SendOTPScreen.verify = verificationId;
-
-                      Navigator.pushReplacementNamed(
-                          context, VerifyOTPScreen.routeName,
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, VerifyOTPScreen.routeName,
                           arguments: phoneNumber);
                     },
                     codeAutoRetrievalTimeout: (String verificationId) {},
