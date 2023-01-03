@@ -88,7 +88,7 @@ class _EditCompanyScreenState extends State<EditCompanyScreen> {
     try {
       Profile _profile =
           await Provider.of<PersonalContactListProvider>(context, listen: false)
-              .fetchAndReturnContactPersonProfile(_initValue['phoneNumber']);
+              .fetchAndReturnContactPersonProfile(_initValue['phoneNumber'],true);
       String errMessage = '';
       print(_profile.runtimeType);
       if (_profile != null) {

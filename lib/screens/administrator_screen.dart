@@ -89,7 +89,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
       String errMessage = '';
       Profile profile =
           await Provider.of<PersonalContactListProvider>(context, listen: false)
-              .fetchAndReturnContactPersonProfile(_authData['phoneNo']);
+              .fetchAndReturnContactPersonProfile(_authData['phoneNo'],true);
       if (profile == null) {
         // Log user in
 

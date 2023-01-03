@@ -23,7 +23,6 @@ import '../widgets/searchField.dart';
 import '../widgets/dialog.dart';
 import '../widgets/app_drawer.dart';
 
-
 // class _KIndexBar extends ISuspensionBean {
 //   final String tag;
 //   _KIndexBar({this.tag});
@@ -55,9 +54,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   // List<AZItem> _backupList = [];
   // List<_KIndexBar> kIndexBar = [];
   Profile loadedProfileResult = null;
- int _counter = 0;
   bool listenerRunning = false;
-  bool writeCounterOnNextContact = false;
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -107,6 +104,20 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
       _isInit = false;
 
       super.didChangeDependencies();
+    }
+  }
+
+  void onSelected(BuildContext context, int item) {
+    switch (item) {
+      case 0:
+        // _openDialog();
+        _showBottomSheetForPhoneNo();
+        break;
+      case 1:
+        _listenForNFCEvents();
+        _showBottomSheetForNFC();
+
+        break;
     }
   }
 
@@ -199,7 +210,23 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     }
   }
 
-  void _showBottomSheet() {
+//add by nfc
+  void _showBottomSheetForNFC() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+                padding: EdgeInsets.all(10),
+                child: Center(
+                  child: _getNfcWidgets(),
+                )),
+          );
+        });
+  }
+
+  void _showBottomSheetForPhoneNo() {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext content) {
@@ -263,51 +290,26 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         });
   }
 
-  Widget buildHeader(String tag) => Container(
-        height: 40,
-        margin: EdgeInsets.only(
-          right: 16,
-        ),
-        padding: EdgeInsets.only(
-          left: 16,
-        ),
-        color: Colors.grey.shade300,
-        alignment: Alignment.centerLeft,
-        child: Text(
-          '$tag',
-          softWrap: false,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      );
+  // Widget buildHeader(String tag) => Container(
+  //       height: 40,
+  //       margin: EdgeInsets.only(
+  //         right: 16,
+  //       ),
+  //       padding: EdgeInsets.only(
+  //         left: 16,
+  //       ),
+  //       color: Colors.grey.shade300,
+  //       alignment: Alignment.centerLeft,
+  //       child: Text(
+  //         '$tag',
+  //         softWrap: false,
+  //         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  //       ),
+  //     );
 
-        Widget _getNfcWidgets() {
+  Widget _getNfcWidgets() {
     if (isNfcAvalible) {
-      //For ios always false, for android true if running
-      final nfcRunning = Platform.isAndroid && listenerRunning;
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextButton(
-            onPressed: nfcRunning ? null : _listenForNFCEvents,
-            child: Text(Platform.isAndroid
-                ? listenerRunning
-                    ? 'NFC is running'
-                    : 'Start NFC listener'
-                : 'Read from tag'),
-          ),
-          TextButton(
-            onPressed: writeCounterOnNextContact ? null : _writeNfcTag,
-            child: Text(writeCounterOnNextContact
-                ? 'Waiting for tag to write'
-                : 'Write to tag'),
-          ),
-          TextButton(
-              onPressed: () => setState(() {
-                    _counter = 0;
-                  }),
-              child: const Text('Reset counter'))
-        ],
-      );
+      return Text('Please tag the NFC card too add new contact person');
     } else {
       if (Platform.isIOS) {
         //Ios doesnt allow the user to turn of NFC at all,  if its not avalible it means its not build in
@@ -356,27 +358,9 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
           //If the data could be converted we will get an object
           if (ndefTag != null) {
             // If we want to write the current counter vlaue we will replace the current content on the tag
-            if (writeCounterOnNextContact) {
-              //Ensure the write flag is off again
-              setState(() {
-                writeCounterOnNextContact = false;
-              });
-              //Create a 1Well known tag with en as language code and 0x02 encoding for UTF8
-              final ndefRecord = NdefRecord.createText(_counter.toString());
-              //Create a new ndef message with a single record
-              final ndefMessage = NdefMessage([ndefRecord]);
-              //Write it to the tag, tag must still be "connected" to the device
-              try {
-                //Any existing content will be overrwirten
-                await ndefTag.write(ndefMessage);
-                _alert('Counter written to tag');
-                succses = true;
-              } catch (e) {
-                _alert("Writting failed, press 'Write to tag' again");
-              }
-            }
+
             //The NDEF Message was already parsed, if any
-            else if (ndefTag.cachedMessage != null) {
+            if (ndefTag.cachedMessage != null) {
               var ndefMessage = ndefTag.cachedMessage;
               //Each NDEF message can have multiple records, we will use the first one in our example
               if (ndefMessage.records.isNotEmpty &&
@@ -397,14 +381,28 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                       utf8.decode(languageCodeAndContentBytes);
                   //Cutting of the language code
                   final payload = languageCodeAndContentText.substring(2);
-                  //Parsing the content to int
-                  final storedCounters = int.tryParse(payload);
-                  if (storedCounters != null) {
+                  //Parsing the content to string
+                  // final storedCounters = int.tryParse(payload);
+                  final storedContactPersonID = payload.toString();
+                  if (storedContactPersonID != null) {
                     succses = true;
-                    _alert('Counter restored from tag');
-                    setState(() {
-                      _counter = storedCounters;
-                    });
+
+                    try {
+      final errMessage =
+          await Provider.of<PersonalContactListProvider>(context, listen: false)
+              .addContactPersonByContactPersonID(storedContactPersonID,loadedProfileResult);
+
+      Navigator.of(context).pop();
+
+      setState(() {
+        _isLoading = false;
+      });
+      return errMessage;
+    } on HttpException catch (error) {
+      return error.toString();
+    } catch (error) {
+      return error.toString();
+    }
                   }
                 }
               }
@@ -433,22 +431,10 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   void dispose() {
     try {
       NfcManager.instance.stopSession();
-    } catch (_) {
-      //We dont care
+    } catch (err) {
+      print(err);
     }
     super.dispose();
-  }
-
-  void _writeNfcTag() {
-    setState(() {
-      writeCounterOnNextContact = true;
-    });
-
-    if (Platform.isAndroid) {
-      _alert('Approach phone with tag');
-    }
-    //Writing a requires to read the tag first, on android this call might do nothing as the listner is already running
-    _listenForNFCEvents();
   }
 
   @override
@@ -464,18 +450,31 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          IconButton(
-            onPressed: () {
-              // profileProvider.addContactPerson();
-              // _openDialog();
-              _showBottomSheet();
-              // _showErrorDialog('error');
-            },
-            icon: Icon(Icons.add),
-            // color: Theme.of(context).textTheme.bodyText1.color,
-            // color: Theme.of(context).secondaryHeaderColor,
-            color: Colors.white,
+          PopupMenuButton<int>(
+            onSelected: (item) => onSelected(context, item),
+            itemBuilder: (context) => [
+              PopupMenuItem<int>(
+                child: Text('Add By Phone Number'),
+                value: 0,
+              ),
+              PopupMenuItem<int>(
+                child: Text('Add By Tapping NFC Card'),
+                value: 1,
+              ),
+            ],
           ),
+          // IconButton(
+          //   onPressed: () {
+          //     // profileProvider.addContactPerson();
+          //     // _openDialog();
+          //     _showBottomSheet();
+          //     // _showErrorDialog('error');
+          //   },
+          //   icon: Icon(Icons.add),
+          //   // color: Theme.of(context).textTheme.bodyText1.color,
+          //   // color: Theme.of(context).secondaryHeaderColor,
+          //   color: Colors.white,
+          // ),
         ],
       ),
       drawer: AppDrawer(),
@@ -483,9 +482,9 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
           ? Center(
               // child: CircularProgressIndicator(),
               child: SpinKitDoubleBounce(
-          color: Theme.of(context).primaryColor,
-          size: 100,
-        ),
+                color: Theme.of(context).primaryColor,
+                size: 100,
+              ),
             )
           : WillPopScope(
               onWillPop: () async {
@@ -638,17 +637,4 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     Provider.of<PersonalContactListProvider>(context, listen: false)
         .findByFullName(query.toLowerCase());
   }
-
-  // void searchContactPerson(String name) {
-  //   print(name);
-  //   if (name.isEmpty) {
-  //     items = _backupList;
-  //   } else {
-  //     items = items
-  //         .where((data) =>
-  //             data.fullName.toLowerCase().contains(name.toLowerCase()))
-  //         .toList();
-  //   }
-  //   // notifyListeners();
-  // }
 }

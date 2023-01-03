@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
@@ -12,6 +13,7 @@ import '../providers/personalContactList_provider.dart';
 import '../providers/department_provider.dart';
 import '../providers/company_provider.dart';
 import '../providers/role_provider.dart';
+import '../providers/nfc_provider.dart';
 
 import '../screens/administrator_screen.dart';
 import '../screens/contactPersonDetail.dart';
@@ -31,7 +33,9 @@ import '../screens/editCompany_screen.dart';
 import '../screens/changePassword_screen.dart';
 import '../screens/sendOTP_screen.dart';
 import '../screens/verifyOTP_screen.dart';
-import 'package:nfc_manager/nfc_manager.dart';
+import '../screens/nfc_screen.dart';
+
+
 
 /// Global flag if NFC is avalible
 bool isNfcAvalible = false;
@@ -105,6 +109,16 @@ class MyApp extends StatelessWidget {
                   ? []
                   : roleList
                       .roleList), //update=provider version>=4.0.0, else=builder/create
+        ),
+
+        ChangeNotifierProxyProvider<AuthProvider, NFCProvider>(
+          update: (context, auth, nfcList) => NFCProvider(
+              auth.token,
+              auth.userId,
+              nfcList == null
+                  ? []
+                  : nfcList
+                      .nfcList), //update=provider version>=4.0.0, else=builder/create
         ),
 
         ChangeNotifierProxyProvider<AuthProvider, DepartmentProvider>(
@@ -183,10 +197,8 @@ class MyApp extends StatelessWidget {
           // ),
 
           routes: {
-            SharedContactListScreen.routeName: (context) =>
-                SharedContactListScreen(),
-            PersonalContactListScreen.routeName: (context) =>
-                PersonalContactListScreen(),
+            SharedContactListScreen.routeName: (context) =>SharedContactListScreen(),
+            PersonalContactListScreen.routeName: (context) =>  PersonalContactListScreen(),
             ProfileScreen.routeName: (context) => ProfileScreen(),
             EditProfileScreen.routeName: (context) => EditProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
@@ -200,10 +212,9 @@ class MyApp extends StatelessWidget {
             SendOTPScreen.routeName: (context) => SendOTPScreen(),
             VerifyOTPScreen.routeName: (context) => VerifyOTPScreen(),
             AdministratorScreen.routeName: (context) => AdministratorScreen(),
-            EditContactPersonScreen.routeName: (context) =>
-                EditContactPersonScreen(),
-            ContactPersonDetailScreen.routeName: (context) =>
-                ContactPersonDetailScreen(),
+            EditContactPersonScreen.routeName: (context) => EditContactPersonScreen(),
+            ContactPersonDetailScreen.routeName: (context) => ContactPersonDetailScreen(),
+            NFCScreen.routeName: (context) => NFCScreen(),
           },
         ),
       ),

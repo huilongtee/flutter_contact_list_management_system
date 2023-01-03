@@ -114,41 +114,124 @@ class PersonalContactListProvider with ChangeNotifier {
     }
   }
 
-  Future<Profile> fetchAndReturnContactPersonProfile(String phoneNumber) async {
-    final searchTerm = 'orderBy="phoneNumber"&equalTo="$phoneNumber"';
-    var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
-    try {
-      final response = await http.get(url);
+  Future<Profile> fetchAndReturnContactPersonProfile(
+      String searchType, bool addByPhone) async {
+    if (addByPhone == true) {
+      final searchTerm = 'orderBy="phoneNumber"&equalTo="$searchType"';
+      var url = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+      try {
+        final response = await http.get(url);
 
-      final extractedData = json.decode(response.body) as Map<String,
-          dynamic>; //String key with dynamic value since flutter do not know the nested data
+        final extractedData = json.decode(response.body) as Map<String,
+            dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      if (extractedData == null) {
-        return null;
+        if (extractedData == null) {
+          return null;
+        }
+        Profile loadedContactPerson = null;
+
+        extractedData.forEach((profileId, profileData) {
+          loadedContactPerson = Profile(
+            id: profileId,
+            fullName: profileData['fullName'],
+            emailAddress: profileData['emailAddress'],
+            homeAddress: profileData['homeAddress'],
+            phoneNumber: profileData['phoneNumber'],
+            roleId: profileData['roleID'],
+            departmentId: profileData['departmentID'],
+            companyId: profileData['companyID'],
+            imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
+          );
+        });
+
+        return loadedContactPerson;
+      } catch (error) {
+        throw (error);
       }
-      Profile loadedContactPerson = null;
+    } else {
+      // searchTerm = 'orderBy="userID"&equalTo="$searchType"';
+      var url = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$searchType.json?auth=$authToken');
+      try {
+        final response = await http.get(url);
 
-      extractedData.forEach((profileId, profileData) {
+        final extractedData = json.decode(response.body) as Map<String,
+            dynamic>; //String key with dynamic value since flutter do not know the nested data
+
+        if (extractedData == null) {
+          return null;
+        }
+        Profile loadedContactPerson = null;
+
+        extractedData.forEach((profileId, profileData) {
+          loadedContactPerson = Profile(
+            id: profileId,
+            fullName: profileData['fullName'],
+            emailAddress: profileData['emailAddress'],
+            homeAddress: profileData['homeAddress'],
+            phoneNumber: profileData['phoneNumber'],
+            roleId: profileData['roleID'],
+            departmentId: profileData['departmentID'],
+            companyId: profileData['companyID'],
+            imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
+          );
+        });
+        var id = '';
+        var fullName = '';
+        var emailAddress = '';
+        var homeAddress = '';
+        var phoneNumber = '';
+        var roleID = '';
+        var departmentID = '';
+        var companyID = '';
+        var imageUrl = '';
+        var qrUrl = '';
+
+        extractedData.forEach((id, companyData) {
+          if (id == 'companyID') {
+            companyID = companyData;
+          } else if (id == 'id') {
+            id = companyData;
+          } else if (id == 'fullName') {
+            fullName = companyData;
+          } else if (id == 'emailAddress') {
+            emailAddress = companyData;
+          } else if (id == 'homeAddress') {
+            homeAddress = companyData;
+          } else if (id == 'phoneNumber') {
+            phoneNumber = companyData;
+          } else if (id == 'roleID') {
+            roleID = companyData;
+          } else if (id == 'departmentID') {
+            departmentID = companyData;
+          } else if (id == 'imageUrl') {
+            imageUrl = companyData;
+          } else if (id == 'qrUrl') {
+            qrUrl = companyData;
+          }
+        });
         loadedContactPerson = Profile(
-          id: profileId,
-          fullName: profileData['fullName'],
-          emailAddress: profileData['emailAddress'],
-          homeAddress: profileData['homeAddress'],
-          phoneNumber: profileData['phoneNumber'],
-          roleId: profileData['roleID'],
-          departmentId: profileData['departmentID'],
-          companyId: profileData['companyID'],
-          imageUrl: profileData['imageUrl'],
-          qrUrl: profileData['qrUrl'],
+          id: id,
+          fullName: fullName,
+          emailAddress: emailAddress,
+          homeAddress: homeAddress,
+          phoneNumber: phoneNumber,
+          imageUrl: imageUrl,
+          qrUrl: qrUrl,
+          companyId: companyID,
+          roleId: roleID,
+          departmentId: departmentID,
         );
-      });
-
-      return loadedContactPerson;
-    } catch (error) {
-      throw (error);
+        return loadedContactPerson;
+      } catch (error) {
+        throw (error);
+      }
     }
   }
+  //================================================ Add Contact Person by phone Start ================================================//
 
   Future<String> addContactPerson(String phoneNumber, Profile profile) async {
     bool isFound = false;
@@ -172,7 +255,7 @@ class PersonalContactListProvider with ChangeNotifier {
       return errMessage;
     } else {
       Profile contactPerson =
-          await fetchAndReturnContactPersonProfile(phoneNumber);
+          await fetchAndReturnContactPersonProfile(phoneNumber, true);
       print(authToken);
       final url = Uri.parse(
           'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
@@ -204,6 +287,65 @@ class PersonalContactListProvider with ChangeNotifier {
 
     }
   }
+  //================================================ Add Contact Person by phone End ================================================//
+//================================================ Add Contact Person by contact person id Start ================================================//
+
+  Future<String> addContactPersonByContactPersonID(
+      String contactPersonID, Profile profile) async {
+    bool isFound = false;
+    String errMessage = '';
+    //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
+    _personalContactList.forEachIndexed((index, element) {
+      if (element.id.trim() == contactPersonID) {
+        isFound = true;
+      }
+    });
+
+//if it is found, which means this contact person already added as contact person before
+    //else add it now
+    if (isFound == true) {
+      //return alert message to tell user that the contact person has been added into the personal contact list before
+      errMessage =
+          'This person is already added into the personal contact list';
+      return errMessage;
+    } else if (profile.id == contactPersonID) {
+      errMessage = 'You cannot add yourself into the contact list';
+      return errMessage;
+    } else {
+      Profile contactPerson =
+          await fetchAndReturnContactPersonProfile(contactPersonID, false);
+      print(authToken);
+      final url = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
+      try {
+        if (contactPerson == null) {
+          errMessage = 'This person is not found in the system';
+          return errMessage;
+        }
+        final response = await http.post(url, //add data
+            body: json.encode({
+              'operatorID': userId,
+              'contactPersonID': contactPerson.id,
+            })); //merge data that is incoming and the data that existing in the database
+
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
+        if (responseData['error'] != null) {
+          throw HttpException(responseData['error']['message']);
+        }
+
+        _personalContactList.add(contactPerson);
+        notifyListeners();
+        errMessage = '';
+        return errMessage;
+      } catch (error) {
+        print(error);
+        throw HttpException(error);
+      }
+      // bool isFound = await fetchAndCheckAddedContactPerson(contactPersonUserID);
+
+    }
+  }
+  //================================================ Add Contact Person by contact person id End ================================================//
 
   //================================================ Delete Contact Person Start ================================================//
 

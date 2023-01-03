@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -11,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+import '../providers/nfc_provider.dart';
 import '../providers/profile.dart';
 import '../providers/profile_provider.dart';
 import '../providers/role_provider.dart';
@@ -41,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final imagePicker = ImagePicker();
   Profile loadedProfileResult = null;
   Role loadedRoleResult = null;
+  NFC loadedNFCResult = null;
   Department loadedDepartmentResult = null;
   Company loadedCompanyResult = null;
   GlobalKey _renderObjectKey = new GlobalKey();
@@ -94,61 +95,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Provider.of<CompanyProvider>(context, listen: false)
                   .fetchAndSetCompanyName(loadedProfileResult.companyId)
                   .then((_) {
-                // //get list
-                // final result =
-                //     Provider.of<RoleProvider>(context, listen: false).roleList;
-                //filter role list using first item in list
-                final role = Provider.of<RoleProvider>(context, listen: false)
-                    .findById(loadedProfileResult.roleId);
-                if (role == null) {
-                  loadedRoleResult = null;
-                } else {
-                  loadedRoleResult = Role(roleName: role.roleName, id: role.id);
-                }
+                Provider.of<NFCProvider>(context, listen: false)
+                    .fetchAndSetNFC()
+                    .then((_) {
+                  final nfc = Provider.of<NFCProvider>(context, listen: false)
+                      .findByOperatorId();
+                  if (nfc == null) {
+                    loadedNFCResult = null;
+                  } else {
+                    loadedNFCResult = NFC(
+                      id: nfc.id,
+                      status: nfc.status,
+                      operatorID: nfc.operatorID,
+                    );
+                  }
+                  //filter role list using first item in list
+                  final role = Provider.of<RoleProvider>(context, listen: false)
+                      .findById(loadedProfileResult.roleId);
+                  if (role == null) {
+                    loadedRoleResult = null;
+                  } else {
+                    loadedRoleResult =
+                        Role(roleName: role.roleName, id: role.id);
+                  }
 
-                //fetch department based on the userid
+                  //fetch department based on the userid
 
-                // //get list
-                // final result =
-                //     Provider.of<DepartmentProvider>(context, listen: false)
-                //         .departmentList;
+                  // //get list
+                  // final result =
+                  //     Provider.of<DepartmentProvider>(context, listen: false)
+                  //         .departmentList;
 
-                //filter department list using first item in list
-                final department =
-                    Provider.of<DepartmentProvider>(context, listen: false)
-                        .findById(loadedProfileResult.departmentId);
-                if (department == null) {
-                  loadedDepartmentResult = null;
-                } else {
-                  loadedDepartmentResult = Department(
-                      departmentName: department.departmentName,
-                      id: department.id);
-                }
+                  //filter department list using first item in list
+                  final department =
+                      Provider.of<DepartmentProvider>(context, listen: false)
+                          .findById(loadedProfileResult.departmentId);
+                  if (department == null) {
+                    loadedDepartmentResult = null;
+                  } else {
+                    loadedDepartmentResult = Department(
+                        departmentName: department.departmentName,
+                        id: department.id);
+                  }
 
-                final companyNameResult =
-                    Provider.of<CompanyProvider>(context, listen: false)
-                        .getCompanyName;
+                  final companyNameResult =
+                      Provider.of<CompanyProvider>(context, listen: false)
+                          .getCompanyName;
 
-                if (companyNameResult == '') {
-                  loadedCompanyResult == null;
-                } else {
-                  companyName = companyNameResult;
-                  loadedCompanyResult = Company(
-                      id: loadedProfile.companyId,
-                      companyName: companyNameResult,
-                      companyAdminID: null);
-                }
-                setState(() {
-                  _isLoading = false;
+                  if (companyNameResult == '') {
+                    loadedCompanyResult == null;
+                  } else {
+                    companyName = companyNameResult;
+                    loadedCompanyResult = Company(
+                        id: loadedProfile.companyId,
+                        companyName: companyNameResult,
+                        companyAdminID: null);
+                  }
+                  print('user id: ' + loadedProfile.id);
+                  setState(() {
+                    _isLoading = false;
+                  });
                 });
               });
             });
           });
         });
-        _isInit = false;
       });
     }
-
+    _isInit = false;
     super.didChangeDependencies();
   }
 
@@ -216,10 +230,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String downloadURL = await referenceImageToUpload.getDownloadURL();
       await Provider.of<ProfileProvider>(context, listen: false)
           .uploadQRImage(downloadURL, loadedProfileResult);
-      await Share.share('This is the QR code of' +
+      await Share.share('This is the QR code of ' +
           loadedProfileResult.fullName +
           '\n\n' +
           downloadURL);
+      print('downloadURL' + downloadURL);
+      setState(() {
+        _isLoading = false;
+      });
     } catch (exception) {}
   }
 
@@ -291,9 +309,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? Center(
               // child: CircularProgressIndicator(),
               child: SpinKitDoubleBounce(
-          color: Theme.of(context).primaryColor,
-          size: 100,
-        ),
+                color: Theme.of(context).primaryColor,
+                size: 100,
+              ),
             )
           : ListView(
               padding: EdgeInsets.zero,
@@ -322,6 +340,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            //request nfc button
+
+            loadedNFCResult == null
+                ?  TextButton(
+                          child: Text('Request for NFC Tag'),
+                          onPressed: () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
+
+                            await Provider.of<NFCProvider>(context,
+                                    listen: false)
+                                .requestNFCTag();
+
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          },
+                        )
+                :  TextButton(
+                          child: Text(loadedNFCResult.status == 'Requesting'
+                              ? 'Requesting NFC'
+                              : loadedNFCResult.status == 'Delivering'
+                                  ? 'NFC Tag is delivering'
+                                  : 'Request for NFC Tag'),
+                          onPressed: loadedNFCResult.status.isNotEmpty
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+
+                                  await Provider.of<NFCProvider>(context,
+                                          listen: false)
+                                      .requestNFCTag();
+
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                },
+                        
+                  ),
+
             //fullname
             Container(
               margin: const EdgeInsets.symmetric(vertical: 10),
@@ -480,7 +541,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: QrImage(
                       data: loadedProfileResult.id,
                       version: QrVersions.auto,
-                      size: 130.0,
+                      size: 260.0,
                       backgroundColor: Colors.white,
                       errorStateBuilder: (cxt, err) {
                         return Container(
@@ -496,7 +557,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   )
                 : Padding(
                     padding: EdgeInsets.all(5),
-                    child: Image.network(loadedProfileResult.qrUrl),
+                    child: Image.network(
+                      loadedProfileResult.qrUrl,
+                      width: 260,
+                      height: 260,
+                    ),
                   ),
             loadedProfileResult.qrUrl == null
                 ? FloatingActionButton(
@@ -531,7 +596,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           TextButton(
                             child: Text("Continue"),
                             onPressed: () {
-                              _getWidgetImage;
+                              _getWidgetImage();
                             },
                           ),
                         ],

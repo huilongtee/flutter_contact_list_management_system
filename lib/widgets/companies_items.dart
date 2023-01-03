@@ -15,7 +15,7 @@ class CompaniesItem extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 5),
         elevation: 2,
         child:ListTile(
-      tileColor: Theme.of(context).focusColor,
+      tileColor: companyAdminFullName.isEmpty? Theme.of(context).focusColor:Colors.white,
       title: Text(companyName),
       subtitle: Text('admin name: ' + companyAdminFullName),
       trailing: IconButton(
