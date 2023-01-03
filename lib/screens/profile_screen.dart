@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Department loadedDepartmentResult = null;
   Company loadedCompanyResult = null;
   GlobalKey _renderObjectKey = new GlobalKey();
-
+ DateTime lastPressed;
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -313,7 +313,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 size: 100,
               ),
             )
-          : ListView(
+          : WillPopScope(
+              onWillPop: () async {
+                final now = DateTime.now();
+                final maxDuration = Duration(seconds: 2);
+                final isWarning = lastPressed == null ||
+                    now.difference(lastPressed) > maxDuration;
+                if (isWarning) {
+                  lastPressed = DateTime.now();
+                  final snackBar = SnackBar(
+                    content: Text('Tap again to close app'),
+                    duration: maxDuration,
+                  );
+
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(snackBar);
+                  return false;
+                } else {
+                  return true;
+                }
+              },
+              child:ListView(
               padding: EdgeInsets.zero,
               children: [
                 // Container(
@@ -329,6 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 buildContent(),
               ],
+            ),
             ),
     );
   }

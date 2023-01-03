@@ -26,7 +26,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
   var _isInit = true;
   var _isLoading = false;
   Future _loadedData;
-  final GlobalKey<FormState> _formKey = GlobalKey();
+  final GlobalKey<FormState> _formKey = GlobalKey(); DateTime lastPressed;
   Map<String, dynamic> _authData = {
     'phoneNo': '',
     'companyName': '',
@@ -228,7 +228,28 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
           size: 100,
         ),
             )
-                        : Container(
+                        : WillPopScope(
+              onWillPop: () async {
+                final now = DateTime.now();
+                final maxDuration = Duration(seconds: 2);
+                final isWarning = lastPressed == null ||
+                    now.difference(lastPressed) > maxDuration;
+                if (isWarning) {
+                  lastPressed = DateTime.now();
+                  final snackBar = SnackBar(
+                    content: Text('Tap again to close app'),
+                    duration: maxDuration,
+                  );
+
+                  ScaffoldMessenger.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(snackBar);
+                  return false;
+                } else {
+                  return true;
+                }
+              },
+              child:Container(
                             decoration: BoxDecoration(
                               color: Colors.indigo[50],
                             ),
@@ -271,6 +292,7 @@ class _AdministratorScreenState extends State<AdministratorScreen> {
                               ],
                             ),
                           ),
+                  ),
                   ),
       ),
     );
