@@ -1,4 +1,3 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +13,7 @@ import '../screens/register_screen.dart';
 import '../screens/sendOTP_screen.dart';
 import '../screens/administrator_screen.dart';
 import '../screens/personalContactList_screen.dart';
+
 class VerifyOTPScreen extends StatefulWidget {
   static const routeName = '/verifyOTP_page';
 
@@ -244,7 +244,6 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                             RegisterScreen.routeName,
                             arguments: phoneNumber.toString().substring(1),
                           );
-                        
                         }
                         //register this user as system admin
                         else {
@@ -252,28 +251,28 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> with CodeAutoFill {
                                   listen: false)
                               .registerSystemAdmin();
 
-                        Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                           // Navigator.pushNamed(
                           //     context, AdministratorScreen.routeName);
                         }
                       } else {
                         print('login');
-                        final isAdmin=Provider.of<AuthProvider>(context,
-                                  listen: false).isAdministrator;
-                        if(isAdmin==true){
-                        Navigator.of(context).pop();
-Navigator.pushNamed(
+                        final isAdmin =
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .isAdministrator;
+                        if (isAdmin == true) {
+                          Navigator.of(context).pop();
+                          Navigator.pushNamed(
                             context,
                             AdministratorScreen.routeName,
                           );
-                        }else{
-Navigator.of(context).pop();
-Navigator.pushNamed(
+                        } else {
+                          Navigator.of(context).pop();
+                          Navigator.pushNamed(
                             context,
                             PersonalContactListScreen.routeName,
                           );
                         }
-                        
                       }
                       //existing account, normal login
 

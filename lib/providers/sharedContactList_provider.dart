@@ -67,13 +67,11 @@ class SharedContactListProvider with ChangeNotifier {
 
       //this user is not the company admin of any company
       if (extractedData.isEmpty) {
-        
         return;
       }
 
       //this user is the company admin, now it's time to enable this company account
       else {
-        
         String companyID = '';
         extractedData.forEach((id, companyData) {
           companyID = id;
@@ -297,7 +295,7 @@ class SharedContactListProvider with ChangeNotifier {
         isFound = true;
         //return alert message to tell user that the contact person has been added into the personal contact list before
         errMessage =
-            'This phone number is already added into the personal contact list';
+            'This phone number is already added into the shared contact list';
         return errMessage;
       }
     });
@@ -309,7 +307,7 @@ class SharedContactListProvider with ChangeNotifier {
       throw HttpException('This contact person already added by this company');
     } else {
       Profile contactPerson =
-          await fetchAndReturnContactPersonProfile(phoneNumber);
+          await fetchAndReturnContactPersonProfile(phoneNumber, true);
       if (contactPerson == null) {
         errMessage = 'This phone number is not found in the system';
         return errMessage;
@@ -356,6 +354,76 @@ class SharedContactListProvider with ChangeNotifier {
     }
   }
   //================================================ Add Contact Person End ================================================//
+
+  //================================================ Add Contact Person by contact person id Start ================================================//
+
+  Future<String> addContactPersonByContactPersonID(
+      String contactPersonID) async {
+    bool isFound = false;
+    String errMessage = '';
+    //check whether this user already add the user with this phone number as one of the contact person in personal contact list table
+
+    if (userId == contactPersonID) {
+      errMessage = 'You cannot add yourself into the contact list';
+      print('cannot add yourself');
+      return errMessage;
+    } else {
+      Profile contactPerson =
+          await fetchAndReturnContactPersonProfile(contactPersonID, false);
+      _sharedContactList.forEachIndexed((index, element) {
+        if (element.id == contactPerson.id) {
+          isFound = true;
+        }
+      });
+      //if it is found, which means this contact person already added as contact person before
+      //else add it now
+      if (isFound == true) {
+        //return alert message to tell user that the contact person has been added into the personal contact list before
+        errMessage =
+            'This person is already added into the shared contact list';
+        return errMessage;
+      } else {
+        if (contactPerson.companyId.isEmpty) {
+          final url = Uri.parse(
+              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+          try {
+            final response = await http.post(url, //add data
+                body: json.encode({
+                  'operatorID': contactPerson.id,
+                  'companyID': companyID,
+                })); //merge data that is incoming and the data that existing in the database
+
+            final responseData =
+                json.decode(response.body) as Map<String, dynamic>;
+            if (responseData['error'] != null) {
+              throw HttpException(responseData['error']['message']);
+            }
+
+            _sharedContactList.add(contactPerson);
+
+            //add company id for that contact person
+            final userUrl = Uri.parse(
+                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
+            await http.patch(userUrl, //update data
+                body: json.encode({
+                  'companyID': companyID,
+                })); //merge data that is incoming and the data that existing in the database
+
+            notifyListeners();
+            errMessage = '';
+            return errMessage;
+          } catch (error) {
+            print(error);
+            throw error;
+          }
+        } else {
+          throw HttpException(
+              'This contact person already added by another company');
+        }
+      }
+    }
+  }
+  //================================================ Add Contact Person by contact person id End ================================================//
 
   //================================================ Delete Contact Person Start ================================================//
 
@@ -425,41 +493,78 @@ class SharedContactListProvider with ChangeNotifier {
   //================================================ Delete Contact Person End ================================================//
 
   /*==================================== check whether this phone number existed ============================================*/
-  Future<Profile> fetchAndReturnContactPersonProfile(String phoneNumber) async {
-    final searchTerm = 'orderBy="phoneNumber"&equalTo="$phoneNumber"';
-    var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
-    try {
-      final response = await http.get(url);
+  Future<Profile> fetchAndReturnContactPersonProfile(
+      String searchType, bool addByPhone) async {
+    if (addByPhone == true) {
+      final searchTerm = 'orderBy="phoneNumber"&equalTo="$searchType"';
+      var url = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+      try {
+        final response = await http.get(url);
 
-      final extractedData = json.decode(response.body) as Map<String,
-          dynamic>; //String key with dynamic value since flutter do not know the nested data
+        final extractedData = json.decode(response.body) as Map<String,
+            dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      if (extractedData == null) {
-        throw HttpException('This phone number does not existed');
+        if (extractedData == null) {
+          throw HttpException('This phone number does not existed');
+        }
+        Profile loadedContactPerson = null;
+
+        extractedData.forEach((profileId, profileData) {
+          loadedContactPerson = Profile(
+            id: profileId,
+            fullName: profileData['fullName'],
+            emailAddress: profileData['emailAddress'],
+            homeAddress: profileData['homeAddress'],
+            phoneNumber: profileData['phoneNumber'],
+            roleId: profileData['roleID'],
+            departmentId: profileData['departmentID'],
+            companyId: profileData['companyID'],
+            imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
+          );
+        });
+
+        return loadedContactPerson;
+      } catch (error) {
+        print(error);
+
+        throw (error);
       }
-      Profile loadedContactPerson = null;
+    } else {
+      final searchTerm = 'orderBy="userID"&equalTo="$searchType"';
+      var url = Uri.parse(
+          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+      try {
+        final response = await http.get(url);
 
-      extractedData.forEach((profileId, profileData) {
-        loadedContactPerson = Profile(
-          id: profileId,
-          fullName: profileData['fullName'],
-          emailAddress: profileData['emailAddress'],
-          homeAddress: profileData['homeAddress'],
-          phoneNumber: profileData['phoneNumber'],
-          roleId: profileData['roleID'],
-          departmentId: profileData['departmentID'],
-          companyId: profileData['companyID'],
-          imageUrl: profileData['imageUrl'],
-          qrUrl: profileData['qrUrl'],
-        );
-      });
+        final extractedData = json.decode(response.body) as Map<String,
+            dynamic>; //String key with dynamic value since flutter do not know the nested data
 
-      return loadedContactPerson;
-    } catch (error) {
-      print(error);
+        if (extractedData == null) {
+          return null;
+        }
+        Profile loadedContactPerson = null;
 
-      throw (error);
+        extractedData.forEach((profileId, profileData) {
+          loadedContactPerson = Profile(
+            id: profileId,
+            fullName: profileData['fullName'],
+            emailAddress: profileData['emailAddress'],
+            homeAddress: profileData['homeAddress'],
+            phoneNumber: profileData['phoneNumber'],
+            roleId: profileData['roleID'],
+            departmentId: profileData['departmentID'],
+            companyId: profileData['companyID'],
+            imageUrl: profileData['imageUrl'],
+            qrUrl: profileData['qrUrl'],
+          );
+        });
+
+        return loadedContactPerson;
+      } catch (error) {
+        throw (error);
+      }
     }
   }
 

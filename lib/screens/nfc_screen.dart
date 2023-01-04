@@ -19,7 +19,7 @@ class _NFCScreenState extends State<NFCScreen> {
   List<NFC> _nfcList;
   var _isInit = true;
   var _isLoading = false;
- DateTime lastPressed;
+  DateTime lastPressed;
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -85,36 +85,35 @@ class _NFCScreenState extends State<NFCScreen> {
                   return true;
                 }
               },
-              child:Container(
-                            decoration: BoxDecoration(
-                              color: Colors.indigo[50],
-                            ),
-                            child: Column(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.indigo[50],
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Consumer<NFCProvider>(
+                          builder: (context, _nfcList, _) => ListView.builder(
+                            itemCount: _nfcList.nfcList.length,
+                            itemBuilder: (_, index) => Column(
                               children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
-                                    child:  Consumer<NFCProvider>(
-                      builder: (context, _nfcList, _) => ListView.builder(
-                        itemCount: _nfcList.nfcList.length,
-                        itemBuilder: (_, index) => Column(
-                          children: [
-                            NFCItem(
-                              _nfcList.nfcList[index].id,
-                              _nfcList.nfcList[index].status,
-                              _nfcList.nfcList[index].operatorID,
+                                NFCItem(
+                                  _nfcList.nfcList[index].id,
+                                  _nfcList.nfcList[index].status,
+                                  _nfcList.nfcList[index].operatorID,
+                                ),
+                              ],
                             ),
-                            
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             ),
     );
   }

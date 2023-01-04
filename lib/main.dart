@@ -35,8 +35,6 @@ import '../screens/sendOTP_screen.dart';
 import '../screens/verifyOTP_screen.dart';
 import '../screens/nfc_screen.dart';
 
-
-
 /// Global flag if NFC is avalible
 bool isNfcAvalible = false;
 // void main() => runApp(MyApp());
@@ -68,7 +66,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => AuthProvider(),
         ),
-     
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
           update: (context, auth, previousProfile) => ProfileProvider(
               auth.token,
@@ -78,8 +75,6 @@ class MyApp extends StatelessWidget {
                   : previousProfile
                       .profile), //update=provider version>=4.0.0, else=builder/create
         ),
-     
-
         ChangeNotifierProxyProvider<AuthProvider, PersonalContactListProvider>(
           update: (context, auth, personalContactList) =>
               PersonalContactListProvider(
@@ -90,7 +85,6 @@ class MyApp extends StatelessWidget {
                       : personalContactList
                           .personalContactList), //update=provider version>=4.0.0, else=builder/create
         ),
-
         ChangeNotifierProxyProvider<AuthProvider, SharedContactListProvider>(
           update: (context, auth, sharedContactList) => SharedContactListProvider(
               auth.token,
@@ -100,7 +94,6 @@ class MyApp extends StatelessWidget {
                   : sharedContactList
                       .sharedContactList), //update=provider version>=4.0.0, else=builder/create
         ),
-
         ChangeNotifierProxyProvider<AuthProvider, RoleProvider>(
           update: (context, auth, roleList) => RoleProvider(
               auth.token,
@@ -110,7 +103,6 @@ class MyApp extends StatelessWidget {
                   : roleList
                       .roleList), //update=provider version>=4.0.0, else=builder/create
         ),
-
         ChangeNotifierProxyProvider<AuthProvider, NFCProvider>(
           update: (context, auth, nfcList) => NFCProvider(
               auth.token,
@@ -120,7 +112,6 @@ class MyApp extends StatelessWidget {
                   : nfcList
                       .nfcList), //update=provider version>=4.0.0, else=builder/create
         ),
-
         ChangeNotifierProxyProvider<AuthProvider, DepartmentProvider>(
           update: (context, auth, departmentList) => DepartmentProvider(
               auth.token,
@@ -130,7 +121,6 @@ class MyApp extends StatelessWidget {
                   : departmentList
                       .departmentList), //update=provider version>=4.0.0, else=builder/create
         ),
-
         ChangeNotifierProxyProvider<AuthProvider, CompanyProvider>(
           update: (context, auth, previousCompany) => CompanyProvider(
               auth.token,
@@ -139,7 +129,6 @@ class MyApp extends StatelessWidget {
                   : previousCompany
                       .companies), //update=provider version>=4.0.0, else=builder/create
         ),
-    
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) => MaterialApp(
@@ -197,8 +186,10 @@ class MyApp extends StatelessWidget {
           // ),
 
           routes: {
-            SharedContactListScreen.routeName: (context) =>SharedContactListScreen(),
-            PersonalContactListScreen.routeName: (context) =>  PersonalContactListScreen(),
+            SharedContactListScreen.routeName: (context) =>
+                SharedContactListScreen(),
+            PersonalContactListScreen.routeName: (context) =>
+                PersonalContactListScreen(),
             ProfileScreen.routeName: (context) => ProfileScreen(),
             EditProfileScreen.routeName: (context) => EditProfileScreen(),
             RegisterScreen.routeName: (context) => RegisterScreen(),
@@ -212,8 +203,10 @@ class MyApp extends StatelessWidget {
             SendOTPScreen.routeName: (context) => SendOTPScreen(),
             VerifyOTPScreen.routeName: (context) => VerifyOTPScreen(),
             AdministratorScreen.routeName: (context) => AdministratorScreen(),
-            EditContactPersonScreen.routeName: (context) => EditContactPersonScreen(),
-            ContactPersonDetailScreen.routeName: (context) => ContactPersonDetailScreen(),
+            EditContactPersonScreen.routeName: (context) =>
+                EditContactPersonScreen(),
+            ContactPersonDetailScreen.routeName: (context) =>
+                ContactPersonDetailScreen(),
             NFCScreen.routeName: (context) => NFCScreen(),
           },
         ),

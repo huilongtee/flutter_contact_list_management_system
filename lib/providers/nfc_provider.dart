@@ -160,11 +160,12 @@ class NFCProvider with ChangeNotifier {
             'status': 'Delivering',
           })); //merge data that is incoming and the data that existing in the database
 
-      _nfcs[nfcIndex] = NFC(
-        id: id,
-        status: 'Delivering',
-        operatorID: newNFC.operatorID,
-      );
+      // _nfcs[nfcIndex] = NFC(
+      //   id: id,
+      //   status: 'Delivering',
+      //   operatorID: newNFC.operatorID,
+      // );
+      _nfcs.removeAt(nfcIndex);
       notifyListeners();
     } else {
       print('...');

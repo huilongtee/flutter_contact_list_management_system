@@ -6,12 +6,14 @@
 // import '../widgets/personal_contact_item.dart';
 // import 'package:grouped_list/sliver_grouped_list.dart'; //group listview
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/department_provider.dart';
@@ -20,7 +22,6 @@ import '../providers/profile.dart';
 import '../providers/role_provider.dart';
 import '../providers/sharedContactList_provider.dart';
 
-
 import '../screens/department_screen.dart';
 import '../screens/role_screen.dart';
 
@@ -28,7 +29,6 @@ import '../widgets/app_drawer.dart';
 import '../widgets/dialog.dart';
 import '../widgets/searchField.dart';
 import '../widgets/shared_contact_item.dart';
-
 
 class SharedContactListScreen extends StatefulWidget {
   static const routeName = '/sharedContactList_page';
@@ -52,6 +52,8 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   bool _isAdmin = false;
   // var _editedProfile = '';
   // List _mergedList;
+  bool isNfcAvalible = false;
+  bool listenerRunning = false;
 
   @override
   void didChangeDependencies() {
@@ -134,25 +136,29 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                     .checkAdmin()
                     .then((_) {
                   _isAdmin =
-                      Provider.of<RoleProvider>(context, listen: false).isAdmin; print('_isAdmin');
-              print(_isAdmin);
+                      Provider.of<RoleProvider>(context, listen: false).isAdmin;
+                  print('_isAdmin');
+                  print(_isAdmin);
                 });
               });
-
-             
             });
           });
         }
       });
-
+      checkISNFCAvailable();
       setState(() {
         _isLoading = false;
         print('_isLoading');
         print(_isLoading);
       });
+      _isInit = false;
     }
-    _isInit = false;
+
     super.didChangeDependencies();
+  }
+
+  void checkISNFCAvailable() async {
+    isNfcAvalible = await NfcManager.instance.isAvailable();
   }
 
   String displayDepartmentName(String id) {
@@ -192,16 +198,24 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
     super.dispose();
   }
 
-  void onSelected(BuildContext context, int item) {
+  void onSelected(BuildContext context, int item) async {
     switch (item) {
       case 0:
         // _openDialog();
-        _showBottomSheet();
+        _showBottomSheetForPhoneNo();
         break;
       case 1:
-        Navigator.pushNamed(context, RoleScreen.routeName);
+        _showBottomSheetForNFC();
+        String errMessage = await _listenForNFCEvents();
+
+        if (errMessage != null) {
+          Dialogs.showMyDialog(context, errMessage);
+        }
         break;
       case 2:
+        Navigator.pushNamed(context, RoleScreen.routeName);
+        break;
+      case 3:
         Navigator.pushNamed(context, DepartmentScreen.routeName);
         break;
     }
@@ -240,7 +254,7 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   }
 
 //show bottom sheet start
-  void _showBottomSheet() {
+  void _showBottomSheetForPhoneNo() {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext content) {
@@ -299,8 +313,156 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
   }
 //show bottom sheet end
 
+//add by nfc
+  void _showBottomSheetForNFC() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+                padding: EdgeInsets.all(10),
+                child: Center(
+                  child: _getNfcWidgets(),
+                )),
+          );
+        });
+  }
+
+  Widget _getNfcWidgets() {
+    if (isNfcAvalible) {
+      return Text('Please tag the NFC card too add new contact person');
+    } else {
+      if (Platform.isIOS) {
+        //Ios doesnt allow the user to turn of NFC at all,  if its not avalible it means its not build in
+        return const Text("Your device doesn't support NFC");
+      } else {
+        //Android phones can turn of NFC in the settings
+        return const Text(
+            "Your device doesn't support NFC or it's turned off in the system settings");
+      }
+    }
+  }
+
+  //Helper method to show a quick message
+  void _alert(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+        ),
+        duration: const Duration(
+          seconds: 2,
+        ),
+      ),
+    );
+  }
+
+  Future<String> _listenForNFCEvents() async {
+    //Always run this for ios but only once for android
+    if (Platform.isAndroid && listenerRunning == false || Platform.isIOS) {
+      //Android supports reading nfc in the background, starting it one time is all we need
+      if (Platform.isAndroid) {
+        _alert(
+          'NFC listener running in background now, approach tag(s)',
+        );
+        //Update button states
+        setState(() {
+          listenerRunning = true;
+        });
+      }
+
+      NfcManager.instance.startSession(
+        onDiscovered: (NfcTag tag) async {
+          bool succses = false;
+          //Try to convert the raw tag data to NDEF
+          final ndefTag = Ndef.from(tag);
+          //If the data could be converted we will get an object
+          if (ndefTag != null) {
+            // If we want to write the current counter vlaue we will replace the current content on the tag
+
+            //The NDEF Message was already parsed, if any
+            if (ndefTag.cachedMessage != null) {
+              var ndefMessage = ndefTag.cachedMessage;
+              //Each NDEF message can have multiple records, we will use the first one in our example
+              if (ndefMessage.records.isNotEmpty &&
+                  ndefMessage.records.first.typeNameFormat ==
+                      NdefTypeNameFormat.nfcWellknown) {
+                //If the first record exists as 1:Well-Known we consider this tag as having a value for us
+                final wellKnownRecord = ndefMessage.records.first;
+
+                ///Payload for a 1:Well Known text has the following format:
+                ///[Encoding flag 0x02 is UTF8][ISO language code like en][content]
+
+                if (wellKnownRecord.payload.first == 0x02) {
+                  //Now we know the encoding is UTF8 and we can skip the first byte
+                  final languageCodeAndContentBytes =
+                      wellKnownRecord.payload.skip(1).toList();
+                  //Note that the language code can be encoded in ASCI, if you need it be carfully with the endoding
+                  final languageCodeAndContentText =
+                      utf8.decode(languageCodeAndContentBytes);
+                  //Cutting of the language code
+                  final payload = languageCodeAndContentText.substring(2);
+                  //Parsing the content to string
+                  // final storedCounters = int.tryParse(payload);
+                  final storedContactPersonID = payload.toString();
+                  if (storedContactPersonID != null) {
+                    succses = true;
+
+                    try {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      final errMessage =
+                          await Provider.of<SharedContactListProvider>(context,
+                                  listen: false)
+                              .addContactPersonByContactPersonID(
+                                  storedContactPersonID);
+                      setState(() {
+                        _isLoading = false;
+                      });
+
+                      Navigator.of(context).pop();
+
+                      return errMessage;
+                    } on HttpException catch (error) {
+                      return error.toString();
+                    } catch (error) {
+                      return error.toString();
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          //Due to the way ios handles nfc we need to stop after each tag
+          if (Platform.isIOS) {
+            NfcManager.instance.stopSession();
+          }
+          if (succses == false) {
+            _alert(
+              'Tag was not valid',
+            );
+          }
+        },
+        // Required for iOS to define what type of tags should be noticed
+        pollingOptions: {
+          NfcPollingOption.iso14443,
+          NfcPollingOption.iso15693,
+        },
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isAdmin == true) {
+      print('it is th admin');
+    } else {
+      print('it is not admin');
+    }
     return Scaffold(
       appBar: AppBar(
           title: Text('Shared Contact List'),
@@ -311,16 +473,20 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                     onSelected: (item) => onSelected(context, item),
                     itemBuilder: (context) => [
                       PopupMenuItem<int>(
-                        child: Text('Add Contact Person'),
+                        child: Text('Add Contact Person By Phone Number'),
                         value: 0,
                       ),
                       PopupMenuItem<int>(
-                        child: Text('Roles'),
+                        child: Text('Add Contact Person By NFC Card'),
                         value: 1,
                       ),
                       PopupMenuItem<int>(
-                        child: Text('Departments'),
+                        child: Text('Roles'),
                         value: 2,
+                      ),
+                      PopupMenuItem<int>(
+                        child: Text('Departments'),
+                        value: 3,
                       ),
                     ],
                   ),
@@ -332,9 +498,9 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
           ? Center(
               // child: CircularProgressIndicator(),
               child: SpinKitDoubleBounce(
-          color: Theme.of(context).primaryColor,
-          size: 100,
-        ),
+                color: Theme.of(context).primaryColor,
+                size: 100,
+              ),
             )
           : WillPopScope(
               onWillPop: () async {
@@ -371,21 +537,35 @@ class _SharedContactListScreenState extends State<SharedContactListScreen> {
                         builder: (context, _contactPerson, _) =>
                             ListView.builder(
                           itemCount: _contactPerson.sharedContactList.length,
-                          itemBuilder: (_, index) => Column(
-                            children: [
-                              SharedContactItem(
-                                _contactPerson.sharedContactList[index].id,
-                                _contactPerson
-                                    .sharedContactList[index].fullName,
-                                _contactPerson
-                                    .sharedContactList[index].imageUrl,
-                                _contactPerson.sharedContactList[index].roleId,
-                                _contactPerson
-                                    .sharedContactList[index].departmentId,
-                                _isAdmin,
-                              ),
-                            ],
-                          ),
+                          itemBuilder: (_, index) {
+                            final sortedItem = _contactPerson.sharedContactList
+                              ..sort((item1, item2) =>
+                                  item1.fullName.compareTo(item2.fullName));
+                            final item = sortedItem[index];
+                            return Column(
+                              children: [
+                                SharedContactItem(
+                                  // _contactPerson
+                                  //     .sharedContactList[index].id,
+                                  // _contactPerson
+                                  //     .sharedContactList[index].fullName,
+                                  // _contactPerson
+                                  //     .sharedContactList[index].imageUrl,
+                                  // _contactPerson
+                                  //     .sharedContactList[index].roleId,
+                                  // _contactPerson.sharedContactList[index]
+                                  //     .departmentId,
+                                  // _isAdmin,
+                                  item.id,
+                                  item.fullName,
+                                  item.imageUrl,
+                                  item.roleId,
+                                  item.departmentId,
+                                  _isAdmin,
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),

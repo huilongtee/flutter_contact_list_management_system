@@ -45,16 +45,18 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   String query = '';
   PersonalContactListProvider personalContactPersonProvider;
   DateTime lastPressed;
-
+  var _isInit = true;
   var _isLoading = false;
   final _form = GlobalKey<FormState>();
   var _filledData = '';
-  var _isInit = true;
+
+  bool isNfcAvalible = false;
   // List<AZItem> items = [];
   // List<AZItem> _backupList = [];
   // List<_KIndexBar> kIndexBar = [];
   Profile loadedProfileResult = null;
   bool listenerRunning = false;
+
   @override
   void didChangeDependencies() {
     if (_isInit) {
@@ -68,6 +70,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         Provider.of<PersonalContactListProvider>(context, listen: false)
             .fetchAndSetPersonalContactList()
             .then((_) {
+          checkISNFCAvailable();
           _contactPerson =
               Provider.of<PersonalContactListProvider>(context, listen: false)
                   .personalContactList;
@@ -107,16 +110,23 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     }
   }
 
-  void onSelected(BuildContext context, int item) {
+  void checkISNFCAvailable() async {
+    isNfcAvalible = await NfcManager.instance.isAvailable();
+  }
+
+  void onSelected(BuildContext context, int item) async {
     switch (item) {
       case 0:
         // _openDialog();
         _showBottomSheetForPhoneNo();
         break;
       case 1:
-        _listenForNFCEvents();
         _showBottomSheetForNFC();
+        String errMessage = await _listenForNFCEvents();
 
+        if (errMessage != null) {
+          Dialogs.showMyDialog(context, errMessage);
+        }
         break;
     }
   }
@@ -210,22 +220,6 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     }
   }
 
-//add by nfc
-  void _showBottomSheetForNFC() {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext content) {
-          return Card(
-            elevation: 5,
-            child: Container(
-                padding: EdgeInsets.all(10),
-                child: Center(
-                  child: _getNfcWidgets(),
-                )),
-          );
-        });
-  }
-
   void _showBottomSheetForPhoneNo() {
     showModalBottomSheet(
         context: context,
@@ -307,6 +301,22 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
   //       ),
   //     );
 
+//add by nfc
+  void _showBottomSheetForNFC() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext content) {
+          return Card(
+            elevation: 5,
+            child: Container(
+                padding: EdgeInsets.all(10),
+                child: Center(
+                  child: _getNfcWidgets(),
+                )),
+          );
+        });
+  }
+
   Widget _getNfcWidgets() {
     if (isNfcAvalible) {
       return Text('Please tag the NFC card too add new contact person');
@@ -336,7 +346,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
     );
   }
 
-  Future<void> _listenForNFCEvents() async {
+  Future<String> _listenForNFCEvents() async {
     //Always run this for ios but only once for android
     if (Platform.isAndroid && listenerRunning == false || Platform.isIOS) {
       //Android supports reading nfc in the background, starting it one time is all we need
@@ -388,26 +398,33 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                     succses = true;
 
                     try {
-      final errMessage =
-          await Provider.of<PersonalContactListProvider>(context, listen: false)
-              .addContactPersonByContactPersonID(storedContactPersonID,loadedProfileResult);
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      final errMessage =
+                          await Provider.of<PersonalContactListProvider>(
+                                  context,
+                                  listen: false)
+                              .addContactPersonByContactPersonID(
+                                  storedContactPersonID);
+                      setState(() {
+                        _isLoading = false;
+                      });
 
-      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
 
-      setState(() {
-        _isLoading = false;
-      });
-      return errMessage;
-    } on HttpException catch (error) {
-      return error.toString();
-    } catch (error) {
-      return error.toString();
-    }
+                      return errMessage;
+                    } on HttpException catch (error) {
+                      return error.toString();
+                    } catch (error) {
+                      return error.toString();
+                    }
                   }
                 }
               }
             }
           }
+
           //Due to the way ios handles nfc we need to stop after each tag
           if (Platform.isIOS) {
             NfcManager.instance.stopSession();
@@ -425,6 +442,7 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
         },
       );
     }
+    return null;
   }
 
   @override
@@ -520,28 +538,47 @@ class _PersonalContactListScreenState extends State<PersonalContactListScreen> {
                       child: Consumer<PersonalContactListProvider>(
                         builder: (context, _contactPerson, _) =>
                             ListView.builder(
-                          itemCount: _contactPerson.personalContactList.length,
-                          itemBuilder: (_, index) => Column(
-                            children: [
-                              PersonalContactItem(
-                                _contactPerson.personalContactList[index].id,
-                                _contactPerson
-                                    .personalContactList[index].fullName,
-                                _contactPerson
-                                    .personalContactList[index].imageUrl,
-                                _contactPerson
-                                    .personalContactList[index].phoneNumber,
-                                _contactPerson
-                                    .personalContactList[index].emailAddress,
-                                _contactPerson
-                                    .personalContactList[index].homeAddress,
-                              ),
-                              // Divider(
-                              //   thickness: 1,
-                              // ),
-                            ],
-                          ),
-                        ),
+                                itemCount:
+                                    _contactPerson.personalContactList.length,
+                                itemBuilder: (_, index) {
+                                  final sortedItem = _contactPerson
+                                      .personalContactList
+                                    ..sort((item1, item2) => item1.fullName
+                                        .compareTo(item2.fullName));
+                                  final item = sortedItem[index];
+                                  return Column(
+                                    children: [
+                                      PersonalContactItem(
+                                        // _contactPerson
+                                        //     .personalContactList[index].id,
+                                        // _contactPerson
+                                        //     .personalContactList[index]
+                                        //     .fullName,
+                                        // _contactPerson
+                                        //     .personalContactList[index]
+                                        //     .imageUrl,
+                                        // _contactPerson
+                                        //     .personalContactList[index]
+                                        //     .phoneNumber,
+                                        // _contactPerson
+                                        //     .personalContactList[index]
+                                        //     .emailAddress,
+                                        // _contactPerson
+                                        //     .personalContactList[index]
+                                        //     .homeAddress,
+                                        item.id,
+                                        item.fullName,
+                                        item.imageUrl,
+                                        item.phoneNumber,
+                                        item.emailAddress,
+                                        item.homeAddress,
+                                      ),
+                                      // Divider(
+                                      //   thickness: 1,
+                                      // ),
+                                    ],
+                                  );
+                                }),
                       ),
                     ),
 

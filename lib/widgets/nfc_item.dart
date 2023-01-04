@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_contact_list_management_system/providers/profile_provider.dart';
 import '../providers/nfc_provider.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +20,18 @@ class NFCItem extends StatefulWidget {
 
 class _NFCItemState extends State<NFCItem> {
   bool listenerRunning = false;
+  bool isNfcAvalible = false;
 
   bool writeOperatorIDOnNextContact = false;
+  void checkISNFCAvailable() async {
+    isNfcAvalible = await NfcManager.instance.isAvailable();
+  }
 
-
+  @override
+  void initState() {
+    checkISNFCAvailable();
+    super.initState();
+  }
 
   //add by nfc
   void _showBottomSheetForNFC() {
@@ -46,13 +53,10 @@ class _NFCItemState extends State<NFCItem> {
     if (isNfcAvalible) {
       //For ios always false, for android true if running
       writeOperatorIDOnNextContact ? null : _writeNfcTag();
-      return 
-      Row(
+      return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(writeOperatorIDOnNextContact
-            ? 'Waiting for tag to write'
-            : 'Write to tag'),
+          Text('Waiting for tag to write'),
         ],
       );
     } else {
