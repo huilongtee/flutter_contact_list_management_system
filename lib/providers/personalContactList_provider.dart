@@ -43,7 +43,7 @@ class PersonalContactListProvider with ChangeNotifier {
   /*==================================== retrieve a list of contact person ID and return their profile ============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
     try {
       final response = await http.get(url);
 
@@ -85,7 +85,7 @@ class PersonalContactListProvider with ChangeNotifier {
     final searchTerm = 'orderBy="operatorID"&equalTo="$userId"';
     //fetch all contact person id who have been added by this user($userId)
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -119,7 +119,7 @@ class PersonalContactListProvider with ChangeNotifier {
     if (addByPhone == true) {
       final searchTerm = 'orderBy="phoneNumber"&equalTo="$searchType"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -153,7 +153,7 @@ class PersonalContactListProvider with ChangeNotifier {
     } else {
       final searchTerm = 'orderBy="userID"&equalTo="$searchType"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -213,7 +213,7 @@ class PersonalContactListProvider with ChangeNotifier {
           await fetchAndReturnContactPersonProfile(phoneNumber, true);
       print(authToken);
       final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
       try {
         if (contactPerson == null) {
           errMessage = 'This phone number is not found in the system';
@@ -272,7 +272,7 @@ class PersonalContactListProvider with ChangeNotifier {
         return errMessage;
       } else {
         final url = Uri.parse(
-            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
+            'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken');
         try {
           if (contactPerson == null) {
             errMessage = 'This person is not found in the system';
@@ -312,7 +312,7 @@ class PersonalContactListProvider with ChangeNotifier {
     String listID = null;
 
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList.json?auth=$authToken&$searchTerm');
     final existingContactPersonIndex =
         _personalContactList.indexWhere((prof) => prof.id == id);
     var existingContactPerson =
@@ -342,7 +342,7 @@ class PersonalContactListProvider with ChangeNotifier {
     }
 
     final deleteUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList/$listID.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/personalContactList/$listID.json?auth=$authToken');
 
     final response = await http.delete(deleteUrl);
 

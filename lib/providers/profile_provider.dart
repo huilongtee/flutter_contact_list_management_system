@@ -32,7 +32,7 @@ class ProfileProvider with ChangeNotifier {
         filterByCompanyID ? '' : 'orderBy="companyID"&equalTo=""';
 
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -73,7 +73,7 @@ class ProfileProvider with ChangeNotifier {
    
    
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
     try {
       final response = await http.get(url);
 
@@ -119,7 +119,7 @@ class ProfileProvider with ChangeNotifier {
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -183,7 +183,7 @@ class ProfileProvider with ChangeNotifier {
     print(authToken);
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
 
       await http.patch(updateUrl, //update data
           body: json.encode({
@@ -206,7 +206,7 @@ class ProfileProvider with ChangeNotifier {
 
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/${newProfile.id}.json?auth=$authToken');
 
       await http.patch(updateUrl, //update data
           body: json.encode({
@@ -250,7 +250,7 @@ class ProfileProvider with ChangeNotifier {
     //   final userId = extractedData['name'];
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
 
       await http.patch(updateUrl, //update data
           body: json.encode({

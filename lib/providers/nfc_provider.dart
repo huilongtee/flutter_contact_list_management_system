@@ -33,7 +33,7 @@ class NFCProvider with ChangeNotifier {
   //======================================= Request NFC Tag Start =========================================//
   Future<void> requestNFCTag() async {
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken');
     try {
       final nfcResponse = await http.post(url, //add data
           body: json.encode({
@@ -64,7 +64,7 @@ class NFCProvider with ChangeNotifier {
   Future<void> fetchAndSetNFC() async {
     final searchTerm = 'orderBy="operatorID"&equalTo="$userId"';
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -108,7 +108,7 @@ class NFCProvider with ChangeNotifier {
   Future<void> fetchAndSetRequestingNFC() async {
     final searchTerm = 'orderBy="status"&equalTo="Requesting"';
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/nfc.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -153,7 +153,7 @@ class NFCProvider with ChangeNotifier {
 
     if (nfcIndex >= 0) {
       final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/nfc/$id.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/nfc/$id.json?auth=$authToken');
 
       await http.patch(url, //update data
           body: json.encode({

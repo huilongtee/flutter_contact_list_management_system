@@ -37,7 +37,7 @@ class RoleProvider with ChangeNotifier {
   Future<void> checkAdmin() async {
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var getRoleIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final getRoleIDResponse = await http.get(getRoleIDUrl);
 
@@ -76,7 +76,7 @@ class RoleProvider with ChangeNotifier {
 
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final checkCompanyIDResponse = await http.get(checkCompanyIDUrl);
 
@@ -96,7 +96,7 @@ class RoleProvider with ChangeNotifier {
       //fetch all colleague userId
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -136,7 +136,7 @@ class RoleProvider with ChangeNotifier {
 
   Future<void> addRole(Role newRole) async {
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
     try {
       final response = await http.post(url, //add data
           body: json.encode({
@@ -172,7 +172,7 @@ class RoleProvider with ChangeNotifier {
 
     if (roleIndex >= 0) {
       final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles/$id.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/roles/$id.json?auth=$authToken');
 
       await http.patch(url, //update data
           body: json.encode({

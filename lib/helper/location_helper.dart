@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 // const GOOGLE_API_KEY = 'AIzaSyCAsTAm9AE0bZulYclrNITKy6Vq-tQOD4A';
-const GOOGLE_API_KEY = 'AIzaSyCiNRfD39BXa1SkG5GXUGefm4IHwVIEOVI';
+// const GOOGLE_API_KEY = 'AIzaSyCiNRfD39BXa1SkG5GXUGefm4IHwVIEOVI';
+const GOOGLE_API_KEY = 'AIzaSyDTCujsk5m2m9KvU7BWOmWbv1R_nCpoFYM';
+
 
 class LocationHelper {
   static String generateLocationPreviewImage(

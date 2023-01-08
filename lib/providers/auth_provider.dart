@@ -66,7 +66,7 @@ class AuthProvider with ChangeNotifier {
       _userId = result.uid;
 
       final userURL = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$_token');
       try {
         final userResponse =
             await http //await will wait for this operation finish then will only execute the later code
@@ -122,7 +122,7 @@ class AuthProvider with ChangeNotifier {
       _userId = result.uid;
 
       final administratorUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
 
       try {
         final administratorResponse =
@@ -169,7 +169,7 @@ class AuthProvider with ChangeNotifier {
     IdTokenResult tokenResult = await result.getIdTokenResult();
     _token = tokenResult.token;
     final administratorUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token');
     try {
       final response = await http.get(administratorUrl);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
@@ -197,7 +197,7 @@ class AuthProvider with ChangeNotifier {
     _token = tokenResult.token;
     final searchTerm = 'orderBy="userID"&equalTo="$_userId"';
     final administratorUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/administrator.json?auth=$_token&$searchTerm');
     try {
       final response = await http.get(administratorUrl);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;

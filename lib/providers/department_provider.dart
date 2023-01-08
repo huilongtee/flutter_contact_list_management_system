@@ -35,7 +35,7 @@ class DepartmentProvider with ChangeNotifier {
 
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final checkCompanyIDResponse = await http.get(checkCompanyIDUrl);
 
@@ -56,7 +56,7 @@ class DepartmentProvider with ChangeNotifier {
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
 
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/departments.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/departments.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -98,7 +98,7 @@ class DepartmentProvider with ChangeNotifier {
 
   Future<void> addDepartment(Department newDepartment) async {
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/departments.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/departments.json?auth=$authToken');
     try {
       final response = await http.post(url, //add data
           body: json.encode({
@@ -135,7 +135,7 @@ class DepartmentProvider with ChangeNotifier {
 
     if (departmentIndex >= 0) {
       final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/departments/$id.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/departments/$id.json?auth=$authToken');
 
       await http.patch(url, //update data
           body: json.encode({

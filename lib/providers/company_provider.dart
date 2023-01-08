@@ -48,7 +48,7 @@ class CompanyProvider with ChangeNotifier {
 
   Future<void> fetchAndSetCompany() async {
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body) as Map<String,
@@ -81,7 +81,7 @@ class CompanyProvider with ChangeNotifier {
   //fetch company name by searching company id
   Future<void> fetchAndSetCompanyName(String companyID) async {
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
 
     try {
       final response = await http.get(url);
@@ -369,7 +369,7 @@ class CompanyProvider with ChangeNotifier {
   Future<void> addCompany(String phoneNumber, String companyName) async {
     //add company
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken');
     try {
       final companyResponse = await http.post(url, //add data
           body: json.encode({
@@ -412,7 +412,7 @@ class CompanyProvider with ChangeNotifier {
 
     if (companyIndex >= 0) {
       final url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$id.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$id.json?auth=$authToken');
 
       await http.patch(url, //update data
           body: json.encode({

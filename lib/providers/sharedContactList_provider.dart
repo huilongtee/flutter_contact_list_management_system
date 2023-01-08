@@ -58,7 +58,7 @@ class SharedContactListProvider with ChangeNotifier {
 
     //check whether this user is the company admin  of this company
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies.json?auth=$authToken&$searchTerm');
     try {
       final response = await http.get(url);
 
@@ -98,7 +98,7 @@ class SharedContactListProvider with ChangeNotifier {
           // print('userID: ' + userID);
           //update comapny admin id based on their own id
           final url = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
+              'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/companies/$companyID.json?auth=$authToken');
           await http.patch(url, //update data
               body: json.encode({
                 'companyAdminID': userID,
@@ -107,7 +107,7 @@ class SharedContactListProvider with ChangeNotifier {
           //create a role
           //create role called company admin for this company
           final createRoleUrl = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
+              'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/roles.json?auth=$authToken');
           try {
             final createRoleResponse = await http.post(createRoleUrl, //add data
                 body: json.encode({
@@ -125,7 +125,7 @@ class SharedContactListProvider with ChangeNotifier {
             //assign this role for this admin,  indicate this user role is admin
 
             var updateUserComapnyIDUrl = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userID.json?auth=$authToken');
+                'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userID.json?auth=$authToken');
             await http.patch(updateUserComapnyIDUrl, //update data
                 body: json.encode({
                   'companyID': companyID,
@@ -134,7 +134,7 @@ class SharedContactListProvider with ChangeNotifier {
 
             //add into shared contact list
             final addIntoSharedContactListUrl = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+                'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
             try {
               final addIntoSharedContactListResponse = await http.post(
                   addIntoSharedContactListUrl, //add data
@@ -174,7 +174,7 @@ class SharedContactListProvider with ChangeNotifier {
   /*==================================== check is company admin End ============================================*/
   Future<void> fetchAndSetContactPersonProfile(List loadedData) async {
     var url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken');
     try {
       final response = await http.get(url);
 
@@ -223,7 +223,7 @@ class SharedContactListProvider with ChangeNotifier {
     //     'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$userId.json?auth=$authToken');
     final searchTerm = 'orderBy="userID"&equalTo="$userId"';
     var checkCompanyIDUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
     try {
       final checkCompanyIDResponse = await http.get(checkCompanyIDUrl);
 
@@ -244,7 +244,7 @@ class SharedContactListProvider with ChangeNotifier {
       //fetch all colleague userId based on the company id
       final searchTerm = 'orderBy="companyID"&equalTo="$companyID"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -314,7 +314,7 @@ class SharedContactListProvider with ChangeNotifier {
       }
       if (contactPerson.companyId.isEmpty) {
         final url = Uri.parse(
-            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+            'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
         try {
           final response = await http.post(url, //add data
               body: json.encode({
@@ -332,7 +332,7 @@ class SharedContactListProvider with ChangeNotifier {
 
           //add company id for that contact person
           final userUrl = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
+              'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
           await http.patch(userUrl, //update data
               body: json.encode({
                 'companyID': companyID,
@@ -385,7 +385,7 @@ class SharedContactListProvider with ChangeNotifier {
       } else {
         if (contactPerson.companyId.isEmpty) {
           final url = Uri.parse(
-              'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
+              'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken');
           try {
             final response = await http.post(url, //add data
                 body: json.encode({
@@ -403,7 +403,7 @@ class SharedContactListProvider with ChangeNotifier {
 
             //add company id for that contact person
             final userUrl = Uri.parse(
-                'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
+                'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/${contactPerson.id}.json?auth=$authToken');
             await http.patch(userUrl, //update data
                 body: json.encode({
                   'companyID': companyID,
@@ -432,7 +432,7 @@ class SharedContactListProvider with ChangeNotifier {
     String listID = null;
 
     final url = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList.json?auth=$authToken&$searchTerm');
     final existingContactPersonIndex =
         _sharedContactList.indexWhere((prof) => prof.id == id);
     var existingContactPerson = _sharedContactList[existingContactPersonIndex];
@@ -460,7 +460,7 @@ class SharedContactListProvider with ChangeNotifier {
     }
 
     final deleteUrl = Uri.parse(
-        'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList/$listID.json?auth=$authToken');
+        'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/sharedContactList/$listID.json?auth=$authToken');
 
     final response = await http.delete(deleteUrl);
 
@@ -472,7 +472,7 @@ class SharedContactListProvider with ChangeNotifier {
     } else {
       try {
         final removecompanyIDURL = Uri.parse(
-            'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
+            'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/$id.json?auth=$authToken');
         await http.patch(removecompanyIDURL, //update data
             body: json.encode({
               'companyID': '',
@@ -498,7 +498,7 @@ class SharedContactListProvider with ChangeNotifier {
     if (addByPhone == true) {
       final searchTerm = 'orderBy="phoneNumber"&equalTo="$searchType"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -534,7 +534,7 @@ class SharedContactListProvider with ChangeNotifier {
     } else {
       final searchTerm = 'orderBy="userID"&equalTo="$searchType"';
       var url = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users.json?auth=$authToken&$searchTerm');
       try {
         final response = await http.get(url);
 
@@ -587,7 +587,7 @@ class SharedContactListProvider with ChangeNotifier {
     //   final userId = extractedData['name'];
     if (profileIndex >= 0) {
       final updateUrl = Uri.parse(
-          'https://eclms-9fed2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${id}.json?auth=$authToken');
+          'https://eclms-4113b-default-rtdb.asia-southeast1.firebasedatabase.app/users/${id}.json?auth=$authToken');
 
       await http.patch(updateUrl, //update data
           body: json.encode({
