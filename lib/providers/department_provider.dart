@@ -67,9 +67,6 @@ class DepartmentProvider with ChangeNotifier {
         }
 
         final List<Department> loadedDepartment = [];
-        if (extractedData == null) {
-          return;
-        }
 
         extractedData.forEach((departmentId, departmentData) {
           loadedDepartment.add(

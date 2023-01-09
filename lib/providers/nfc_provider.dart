@@ -119,10 +119,6 @@ class NFCProvider with ChangeNotifier {
         print("error");
         return;
       }
-      // var status = '';
-      // extractedData.forEach((profileId, profileData) {
-      //   status = profileData['status'];
-      // });
 
       final List<NFC> loadedNFCs = [];
       if (extractedData == null) {
